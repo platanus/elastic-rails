@@ -8,7 +8,7 @@ module Elastic
       # TODO: multiple index mode (one per type)
     end
 
-    def drop
+    def truncate
       api_client.indices.delete index: index_name # TODO: add +'*' in multi index mode
       clear_index_cache
     end

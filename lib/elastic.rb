@@ -20,6 +20,10 @@ module Elastic
     Elastic::Index.new api_client, (_index || default_index).to_s
   end
 
+  def truncate(_index = nil)
+    connect(_index).truncate
+  end
+
   private
 
   def config
