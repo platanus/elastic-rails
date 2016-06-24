@@ -1,6 +1,14 @@
 require "elasticsearch"
 require "elastic/version"
 
+require "elastic/nodes/base"
+require "elastic/nodes/queries/term"
+require "elastic/nodes/queries/range"
+require "elastic/nodes/compound/and"
+require "elastic/nodes/compound/or"
+require "elastic/nodes/compound/boolean"
+require "elastic/nodes/join/nested"
+
 require "elastic/capabilities/aggregation_builder"
 require "elastic/capabilities/bool_query_builder"
 require "elastic/capabilities/context_handler"
