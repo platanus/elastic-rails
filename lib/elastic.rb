@@ -1,4 +1,5 @@
 require "elasticsearch"
+require "active_support/all"
 require "elastic/version"
 
 require "elastic/nodes/base"
@@ -7,19 +8,21 @@ require "elastic/nodes/queries/range"
 require "elastic/nodes/compound/and"
 require "elastic/nodes/compound/or"
 require "elastic/nodes/compound/boolean"
+require "elastic/nodes/compound/function_score"
 require "elastic/nodes/join/nested"
 
-require "elastic/capabilities/aggregation_builder"
+# require "elastic/capabilities/aggregation_builder"
 require "elastic/capabilities/bool_query_builder"
-require "elastic/capabilities/context_handler"
+# require "elastic/capabilities/context_handler"
 
+require "elastic/contexts/bool_query_context"
+
+require "elastic/type_definition"
 require "elastic/index"
-require "elastic/type"
 require "elastic/query"
-require "elastic/histogram"
-require "elastic/value_transform"
-require "elastic/indexable"
-require "elastic/indexable_record"
+# require "elastic/histogram"
+# require "elastic/indexable"
+# require "elastic/indexable_record"
 
 module Elastic
   extend self
