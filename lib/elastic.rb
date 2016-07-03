@@ -17,7 +17,8 @@ require "elastic/capabilities/bool_query_builder"
 
 require "elastic/contexts/bool_query_context"
 
-require "elastic/type_definition"
+require "elastic/configuration"
+require "elastic/adaptor"
 require "elastic/index"
 require "elastic/query"
 # require "elastic/histogram"

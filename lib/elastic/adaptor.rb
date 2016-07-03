@@ -1,0 +1,73 @@
+module Elastic
+  class Adaptor
+    def initialize(_suffix)
+      @suffix = _suffix
+    end
+
+    def index_name
+      @index_name ||= "#{Configuration.index_name}_#{@suffix}"
+    end
+
+    def remap(_type, _mapping)
+      # TODO
+    end
+
+    def exists?
+      api_client.indices.exists? build_options
+    end
+
+    def create
+      api_client.indices.create build_options
+      api_client.cluster.health wait_for_status: 'yellow'
+    end
+
+    def ensure_index
+      create unless exists?
+    end
+
+    def get_mappings
+      mappings = api_client.indices.get_mapping build_options
+      mappings[index_name]['mappings']
+    end
+
+    def set_mapping(_type, _mapping)
+      api_client.indices.put_mapping build_options(
+        type: _type,
+        update_all_types: true,
+        body: _mapping
+      )
+    end
+
+    def index(_type, _id, _data)
+      api_client.index build_options(type: _type, id: _id, body: _data)
+    end
+
+    def query(_query, type: nil)
+      api_client.search build_options(body: _query, type: type)
+    end
+
+    def count(_query, type: nil)
+      r = api_client.count build_options(body: _query, type: type)
+      r["count"]
+    end
+
+    def clear(_query = nil)
+      if _query.nil?
+        return unless exists?
+        api_client.delete_by_query build_options(body: { "match_all" => {} })
+      else
+        api_client.delete_by_query build_options(body: _query)
+      end
+    end
+
+    private
+
+    def api_client
+      Configuration.api_client
+    end
+
+    def build_options(_options = {})
+      { index: index_name }.merge! _options
+    end
+  end
+end
