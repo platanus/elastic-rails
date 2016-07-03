@@ -11,16 +11,9 @@ require "elastic/nodes/compound/boolean"
 require "elastic/nodes/compound/function_score"
 require "elastic/nodes/join/nested"
 
-# require "elastic/capabilities/aggregation_builder"
-require "elastic/capabilities/bool_query_builder"
-# require "elastic/capabilities/context_handler"
-
-require "elastic/contexts/bool_query_context"
-
 require "elastic/configuration"
 require "elastic/adaptor"
-require "elastic/index"
-require "elastic/query"
+require "elastic/mapping_manager"
 # require "elastic/histogram"
 # require "elastic/indexable"
 # require "elastic/indexable_record"
