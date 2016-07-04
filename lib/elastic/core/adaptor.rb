@@ -1,11 +1,11 @@
-module Elastic
+module Elastic::Core
   class Adaptor
     def initialize(_suffix)
       @suffix = _suffix
     end
 
     def index_name
-      @index_name ||= "#{Configuration.index_name}_#{@suffix}"
+      @index_name ||= "#{Elastic::Configuration.index_name}_#{@suffix}"
     end
 
     def remap(_type, _mapping)
@@ -63,7 +63,7 @@ module Elastic
     private
 
     def api_client
-      Configuration.api_client
+      Elastic::Configuration.api_client
     end
 
     def build_options(_options = {})

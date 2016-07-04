@@ -1,6 +1,10 @@
 require "elasticsearch"
 require "active_support/all"
 require "elastic/version"
+require "elastic/configuration"
+
+require "elastic/commands/command"
+require "elastic/commands/infer_field_options"
 
 require "elastic/nodes/base"
 require "elastic/nodes/queries/term"
@@ -11,9 +15,14 @@ require "elastic/nodes/compound/boolean"
 require "elastic/nodes/compound/function_score"
 require "elastic/nodes/join/nested"
 
-require "elastic/configuration"
-require "elastic/adaptor"
-require "elastic/mapping_manager"
+require "elastic/fields/value"
+require "elastic/fields/nested"
+
+require "elastic/core/definition"
+require "elastic/core/adaptor"
+require "elastic/core/mapping_manager"
+require "elastic/core/serializer"
+
 # require "elastic/histogram"
 # require "elastic/indexable"
 # require "elastic/indexable_record"
