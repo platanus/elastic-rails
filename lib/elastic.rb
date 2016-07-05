@@ -23,6 +23,12 @@ require "elastic/core/adaptor"
 require "elastic/core/mapping_manager"
 require "elastic/core/serializer"
 
+require "elastic/types/base_type"
+require "elastic/types/faceted_type"
+require "elastic/types/nestable_type"
+require "elastic/type"
+require "elastic/nested_type"
+
 # require "elastic/histogram"
 # require "elastic/indexable"
 # require "elastic/indexable_record"
