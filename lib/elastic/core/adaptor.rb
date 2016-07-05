@@ -16,6 +16,22 @@ module Elastic::Core
       api_client.indices.exists? build_options
     end
 
+    def exists_type?(_type)
+      begin
+        api_client.indices.exists_type build_options(type: _type)
+      rescue Elasticsearch::Transport::Transport::Errors::NotFound
+        return false
+      end
+    end
+
+    def exists_mapping?(_type)
+      begin
+        !api_client.indices.get_mapping(build_options(type: _type)).empty?
+      rescue Elasticsearch::Transport::Transport::Errors::NotFound
+        return false
+      end
+    end
+
     def create
       api_client.indices.create build_options
       api_client.cluster.health wait_for_status: 'yellow'
@@ -40,6 +56,14 @@ module Elastic::Core
 
     def index(_type, _id, _data)
       api_client.index build_options(type: _type, id: _id, body: _data)
+    end
+
+    def find(_id, type: '_all')
+      begin
+        api_client.get build_options(type: type, id: _id)
+      rescue Elasticsearch::Transport::Transport::Errors::NotFound
+        return nil
+      end
     end
 
     def query(_query, type: nil)
