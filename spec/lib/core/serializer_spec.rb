@@ -28,9 +28,30 @@ describe Elastic::Core::Serializer do
   end
 
   describe "as_es_document" do
+    it "includes object type in result" do
+      object = OpenStruct.new(id: 'foo')
+      expect(serializer.new(definition, object).as_es_document['_type']).to eq 'OpenStruct'
+    end
+
+    it "includes object id in result if available" do
+      object = OpenStruct.new(id: 'foo')
+      expect(serializer.new(definition, object).as_es_document['_id']).to eq 'foo'
+    end
+
+    it "does not includes object id in result if not available" do
+      object = OpenStruct.new(other: 'foo')
+      expect(serializer.new(definition, object).as_es_document.key? '_id').to be false
+    end
+
+    it "does not includes object metadata if only_data option is used" do
+      object = OpenStruct.new(id: 'id', foo: 'foo', bar: 'bar')
+      expect(serializer.new(definition, object).as_es_document(only_data: true))
+        .to eq({ 'foo' => 'foo', 'bar' => 'bar' })
+    end
+
     it "only serializes properties added to the definition as fields" do
       object = OpenStruct.new(foo: 'foo', bar: 'bar', qux: true)
-      expect(serializer.new(definition, object).as_es_document)
+      expect(serializer.new(definition, object).as_es_document['data'])
         .to eq({ 'foo' => 'foo', 'bar' => 'bar' })
     end
 
@@ -43,7 +64,7 @@ describe Elastic::Core::Serializer do
 
     it "properly handles overriden attributes" do
       object = OpenStruct.new(foo: 'foo', bar: 'bar')
-      expect(serializer_w_override.new(definition, object).as_es_document)
+      expect(serializer_w_override.new(definition, object).as_es_document['data'])
         .to eq({ 'foo' => 'foo rules!', 'bar' => 'bar' })
     end
   end

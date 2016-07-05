@@ -53,12 +53,16 @@ describe Elastic::Type do
   describe "as_es_document" do
     it "renders the document according the field definition" do
       expect(root_index.new(object).as_es_document).to eq(
-        "foo" => ['hello', 'world'],
-        "bar" => 2,
-        "tags" => [
-          { "name" => "baz_tag" },
-          { "name" => "qux_tag" }
-        ]
+        '_type' => 'RootType',
+        '_id' => 1,
+        'data' => {
+          "foo" => ['hello', 'world'],
+          "bar" => 2,
+          "tags" => [
+            { "name" => "baz_tag" },
+            { "name" => "qux_tag" }
+          ]
+        }
       )
     end
   end

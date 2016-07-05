@@ -36,7 +36,7 @@ module Elastic::Fields
     end
 
     def prepare_value_for_index(_values)
-      _values.map { |v| @index.new(v).as_es_document }
+      _values.map { |v| @index.new(v).as_es_document(only_data: true) }
     end
   end
 end

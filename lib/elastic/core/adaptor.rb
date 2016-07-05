@@ -54,8 +54,12 @@ module Elastic::Core
       )
     end
 
-    def index(_type, _id, _data)
-      api_client.index build_options(type: _type, id: _id, body: _data)
+    def index(_document)
+      api_client.index build_options(
+        id: _document['_id'],
+        type: _document['_type'],
+        body: _document['data']
+      )
     end
 
     def find(_id, type: '_all')

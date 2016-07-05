@@ -43,7 +43,7 @@ module Elastic
     def save
       self.class.tap do |klass|
         klass.enforce_mapping!
-        klass.adaptor.index(object.class.to_s, read_value_for_indexing(:id), as_es_document)
+        klass.adaptor.index as_es_document
         klass.ensure_full_mapping
       end
     end
