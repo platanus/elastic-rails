@@ -47,8 +47,10 @@ describe Elastic::Core::MappingManager do
     end
 
     describe "migrate" do
-      it { expect { foo_manager.migrate }.to change { client.exists? }.to(true) }
-      it { expect { foo_manager.migrate }.to change { client.exists_mapping?('type_a') }.to(true) }
+      it "creates the index and the mapping" do
+        expect { foo_manager.migrate }
+          .to change { client.exists? && client.exists_mapping?('type_a') }.to(true)
+      end
     end
   end
 
@@ -65,7 +67,9 @@ describe Elastic::Core::MappingManager do
     end
 
     describe "migrate" do
-      it { expect { foo_manager.migrate }.to change { client.exists_mapping?('type_a') }.to(true) }
+      it "creates the mapping" do
+        expect { foo_manager.migrate }.to change { client.exists_mapping?('type_a') }.to(true)
+      end
     end
   end
 

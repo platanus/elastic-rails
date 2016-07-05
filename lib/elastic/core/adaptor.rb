@@ -16,33 +16,27 @@ module Elastic::Core
       api_client.indices.exists? build_options
     end
 
-    def exists_type?(_type)
-      begin
-        api_client.indices.exists_type build_options(type: _type)
-      rescue Elasticsearch::Transport::Transport::Errors::NotFound
-        return false
-      end
-    end
-
-    def exists_mapping?(_type)
-      begin
-        !api_client.indices.get_mapping(build_options(type: _type)).empty?
-      rescue Elasticsearch::Transport::Transport::Errors::NotFound
-        return false
-      end
+    def ensure_index
+      create unless exists?
+      self
     end
 
     def create
       api_client.indices.create build_options
       api_client.cluster.health wait_for_status: 'yellow'
+      self
     end
 
-    def ensure_index
-      create unless exists?
+    def exists_type?(_type)
+      api_client.indices.exists_type build_options(type: _type)
     end
 
-    def get_mappings
-      mappings = api_client.indices.get_mapping build_options
+    def exists_mapping?(_type)
+      !api_client.indices.get_mapping(build_options(type: _type)).empty?
+    end
+
+    def get_mappings(type: nil)
+      mappings = api_client.indices.get_mapping build_options(type: type)
       mappings[index_name]['mappings']
     end
 
@@ -52,6 +46,7 @@ module Elastic::Core
         update_all_types: true,
         body: _mapping
       )
+      self
     end
 
     def index(_document)
@@ -60,23 +55,33 @@ module Elastic::Core
         type: _document['_type'],
         body: _document['data']
       )
+      self
+    end
+
+    def bulk_index(_documents)
+      body = _documents.map do |doc|
+        { 'index' => doc.merge('_index' => index_name) }
+      end
+
+      api_client.bulk body: body
+      self
+    end
+
+    def refresh
+      api_client.indices.refresh build_options
+      self
     end
 
     def find(_id, type: '_all')
-      begin
-        api_client.get build_options(type: type, id: _id)
-      rescue Elasticsearch::Transport::Transport::Errors::NotFound
-        return nil
-      end
+      api_client.get build_options(type: type, id: _id)
     end
 
-    def query(_query, type: nil)
-      api_client.search build_options(body: _query, type: type)
+    def count(type: nil, query: nil)
+      api_client.count(build_options(type: type, body: query))['count']
     end
 
-    def count(_query, type: nil)
-      r = api_client.count build_options(body: _query, type: type)
-      r["count"]
+    def query(type: nil, query: nil)
+      api_client.search build_options(type: type, body: query)
     end
 
     def clear(_query = nil)

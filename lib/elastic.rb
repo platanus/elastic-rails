@@ -7,6 +7,7 @@ require "elastic/support/transform"
 
 require "elastic/commands/command"
 require "elastic/commands/infer_field_options"
+require "elastic/commands/import_index_documents"
 
 require "elastic/nodes/base"
 require "elastic/nodes/queries/term"
