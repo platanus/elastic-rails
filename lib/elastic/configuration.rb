@@ -2,12 +2,24 @@ module Elastic
   module Configuration
     extend self
 
+    def configure(_options = nil, &_block)
+      if _options.nil?
+        _block.call self
+      else
+        @config = config.merge _options.symbolize_keys
+      end
+    end
+
     def api_client
-      @api_client ||= load_api_client
+      config[:client] ||= load_api_client
     end
 
     def index_name
-      config['index']
+      config[:index]
+    end
+
+    def indices_path
+      'app/indices'
     end
 
     def strict_mode
@@ -17,15 +29,14 @@ module Elastic
     private
 
     def config
-      @config ||= Rails.application.config_for(:elastic)
+      @config ||= {
+        host: '127.0.0.1',
+        port: 9200
+      }
     end
 
     def load_api_client
-      uri = config['url'] ? URI(config['url']) : nil
-      Elasticsearch::Client.new(
-        host: uri ? uri.host : config['host'],
-        port: uri ? uri.port : config['port']
-      )
+      Elasticsearch::Client.new host: config[:host], port: config[:port]
     end
   end
 end

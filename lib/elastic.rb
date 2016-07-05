@@ -1,6 +1,7 @@
 require "elasticsearch"
-require "active_support/all"
+
 require "elastic/version"
+require "elastic/railtie" if defined? Rails
 require "elastic/configuration"
 
 require "elastic/support/command"
@@ -37,35 +38,7 @@ require "elastic/nested_type"
 # require "elastic/indexable_record"
 
 module Elastic
-  extend self
-
-  def connect(_index = nil)
-    Elastic::Index.new api_client, (_index || default_index).to_s
-  end
-
-  def truncate(_index = nil)
-    connect(_index).truncate
-  end
-
-  private
-
-  def config
-    Rails.application.config_for(:elastic)
-  end
-
-  def default_index
-    config['index']
-  end
-
-  def api_client
-    @api_client ||= load_api_client
-  end
-
-  def load_api_client
-    uri = config['url'] ? URI(config['url']) : nil
-    Elasticsearch::Client.new(
-      host: uri ? uri.host : config['host'],
-      port: uri ? uri.port : config['port']
-    )
+  def self.configure(*_args)
+    Configuration.configure(*_args)
   end
 end
