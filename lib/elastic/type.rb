@@ -19,13 +19,46 @@ module Elastic
       @mapping ||= load_mapping
     end
 
-    def self.remap
-      # TODO
+    def self.import_method
+      @import_method
+    end
+
+    def self.import_method=(_value)
+      @import_method = _value
+    end
+
+    def self.import_transform
+      @import_transform
+    end
+
+    def self.import_transform=(_value)
+      @import_transform = _value
+    end
+
+    def self.references(_tree = {})
+      self.import_transform = -> { includes(_tree) }
+    end
+
+    def self.reindex(_options = {})
+      adaptor.drop if adaptor.exists?
+
+      mapping.migrate
+      Commands::ImportIndexDocuments.for _options.merge(
+        index: self,
+        transform: import_transform,
+        method: import_method
+      )
+      ensure_full_mapping
     end
 
     def self.import(_collection, _options = {})
       enforce_mapping!
-      # TODO
+      Commands::ImportIndexDocuments.for _options.merge(
+        index: self,
+        collection: _collection,
+        transform: import_transform,
+        method: import_method
+      )
       ensure_full_mapping
     end
 

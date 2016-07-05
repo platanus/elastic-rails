@@ -90,6 +90,12 @@ describe Elastic::Type do
     end
   end
 
+  describe "import" do
+    it "fails if mapping is out of sync" do
+      expect { root_index.import [] }.to raise_error RuntimeError
+    end
+  end
+
   context "mapping is synced" do
     before { root_index.mapping.migrate }
 
@@ -98,6 +104,19 @@ describe Elastic::Type do
         root_index.new(object).save
 
         expect(root_index.adaptor.find(object.id, type: 'RootType')).not_to be nil
+      end
+    end
+
+    describe "import" do
+      let(:objects) do
+        [
+          root_type.new(1, 'hello world', 1, []),
+          root_type.new(2, 'hello world', 1, [])
+        ]
+      end
+
+      it "stores a batch of objects" do
+        expect { root_index.import(objects) }.to change { root_index.adaptor.refresh.count }.by 2
       end
     end
   end

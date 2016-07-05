@@ -27,6 +27,11 @@ module Elastic::Core
       self
     end
 
+    def drop
+      api_client.indices.delete build_options
+      self
+    end
+
     def exists_type?(_type)
       api_client.indices.exists_type build_options(type: _type)
     end
