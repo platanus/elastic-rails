@@ -45,6 +45,11 @@ describe Elastic::Core::MappingManager do
       it { expect(empty_manager.fetch.out_of_sync?).to be true }
       it { expect(foo_manager.fetch.out_of_sync?).to be true }
     end
+
+    describe "migrate" do
+      it { expect { foo_manager.migrate }.to change { client.exists? }.to(true) }
+      it { expect { foo_manager.migrate }.to change { client.exists_mapping?('type_a') }.to(true) }
+    end
   end
 
   context "mapping does not exist" do
@@ -57,6 +62,10 @@ describe Elastic::Core::MappingManager do
     describe "out_of_sync?" do
       it { expect(empty_manager.fetch.out_of_sync?).to be false }
       it { expect(foo_manager.fetch.out_of_sync?).to be true }
+    end
+
+    describe "migrate" do
+      it { expect { foo_manager.migrate }.to change { client.exists_mapping?('type_a') }.to(true) }
     end
   end
 
@@ -144,6 +153,26 @@ describe Elastic::Core::MappingManager do
       it "returns an empty hash for ignored or non existant fields" do
         expect(foo_manager.has_field?('qux')).to be false
         expect(foo_manager.has_field?('baz')).to be false
+      end
+    end
+
+    describe "migrate" do
+      let(:out_of_sync_manager) do
+        manager_w_definition(mapping: { 'properties' => { 'baz' => { 'type' => 'string' } } }).fetch
+      end
+
+      it "changes mapping if there are no conflicts" do
+        expect { out_of_sync_manager.migrate }
+          .to change { out_of_sync_manager.get_field_options('baz') }
+      end
+
+      let(:conflicting_manager) do
+        manager_w_definition(mapping: { 'properties' => { 'foo' => { 'type' => 'long' } } }).fetch
+      end
+
+      it "reindex if there are mapping conflicts", skip: true do
+        expect { conflicting_manager.migrate }
+          .to change { conflicting_manager.get_field_options('foo') }
       end
     end
   end

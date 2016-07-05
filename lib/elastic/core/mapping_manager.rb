@@ -42,6 +42,17 @@ module Elastic::Core
       @index[_name] || {}
     end
 
+    def migrate
+      # TODO: make this a command
+      @adaptor.create unless @adaptor.exists?
+      begin
+        types.each { |t| @adaptor.set_mapping(t, user_mapping) }
+      rescue Elasticsearch::Transport::Transport::Errors::BadRequest
+        # TODO: https://www.elastic.co/guide/en/elasticsearch/guide/current/reindex.html
+      end
+      fetch
+    end
+
     private
 
     def types
@@ -60,19 +71,25 @@ module Elastic::Core
 
     def synchronized?
       return false if @index.nil?
-      flatten(definition.as_es_mapping).all? do |field, properties|
+      flatten(user_mapping).all? do |field, properties|
         @index[field] == properties
       end
+    end
+
+    def user_mapping
+      @user_mapping ||= definition.as_es_mapping
     end
 
     def flatten(_raw, _prefix = '')
       _raw['properties'].map do |name, raw_field|
         if raw_field['type'] == 'nested'
           childs = flatten(raw_field, name + '.')
-          raw_field.delete 'properties'
-          childs << [_prefix + name, raw_field]
+          childs << [
+            _prefix + name,
+            raw_field.slice(*(raw_field.keys - ['properties']))
+          ]
         else
-          [[_prefix + name, raw_field]]
+          [[_prefix + name, raw_field.dup]]
         end
       end.flatten(1)
     end
@@ -89,6 +106,7 @@ module Elastic::Core
             end
           end
         end
+        result.each_value(&:freeze)
       end
     end
   end
