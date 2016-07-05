@@ -1,5 +1,5 @@
 module Elastic::Commands
-  class InferFieldOptions < Command.new(:klass, :field)
+  class InferFieldOptions < Elastic::Support::Command.new(:klass, :field)
     def perform
       if klass.respond_to? :get_field_index_type
         { type: klass.get_field_index_type }

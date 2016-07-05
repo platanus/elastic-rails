@@ -1,5 +1,5 @@
 module Elastic::Commands
-  class ImportIndexDocuments < Command.new(
+  class ImportIndexDocuments < Elastic::Support::Command.new(
     :index, collection: nil, transform: nil, method: nil, cache_size: 10000
   )
     def perform

@@ -1,4 +1,4 @@
-module Elastic::Commands
+module Elastic::Support
   module Command
     def self.new(*_attributes)
       attr_names = []
