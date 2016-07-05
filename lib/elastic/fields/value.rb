@@ -12,6 +12,7 @@ module Elastic::Fields
       @name = _name.to_s
       @options = _options
       @mapping_inference = true
+      @transform = Elastic::Support::Transform.new @options[:transform]
     end
 
     def expanded_names
@@ -39,15 +40,7 @@ module Elastic::Fields
     end
 
     def prepare_value_for_index(_value)
-      transform = @options.try(:fetch, :transform, nil)
-
-      case transform
-      when nil then _value
-      when String, Symbol
-        _value.public_send(transform)
-      else
-        _value.instance_exec(&transform)
-      end
+      @transform.apply _value
     end
 
     private

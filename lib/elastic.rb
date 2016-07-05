@@ -3,6 +3,8 @@ require "active_support/all"
 require "elastic/version"
 require "elastic/configuration"
 
+require "elastic/support/transform"
+
 require "elastic/commands/command"
 require "elastic/commands/infer_field_options"
 
