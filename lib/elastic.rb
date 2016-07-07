@@ -9,6 +9,7 @@ require "elastic/support/transform"
 
 require "elastic/commands/infer_field_options"
 require "elastic/commands/import_index_documents"
+require "elastic/commands/build_query_from_params"
 
 require "elastic/nodes/base"
 require "elastic/nodes/queries/term"
