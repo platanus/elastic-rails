@@ -1,5 +1,5 @@
 module Elastic
-  class NestedIndex < Types::BaseType
+  class NestedType < Types::BaseType
     extend Types::FacetedType
   end
 end
