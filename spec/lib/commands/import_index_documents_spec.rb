@@ -1,29 +1,17 @@
 require 'spec_helper'
 
 describe Elastic::Commands::ImportIndexDocuments do
-  let(:foo_type) do
-    Class.new(Struct.new(:id, :name)) do
-      def self.to_s
-        'FooType'
-      end
-    end
-  end
+  let(:foo_type) { build_type('FooType', :id, :name) }
 
-  let(:foo_index) do
-    Class.new(Elastic::Type) do
-      def self.to_s
-        'FooIndex'
-      end
-
+  let!(:foo_index) do
+    build_index('FooIndex', target: foo_type, migrate: true) do
       field :name, type: :string
-    end.tap { |idx| idx.target = foo_type }
+    end
   end
 
   def perform(_options = {})
     described_class.for(_options.merge(index: foo_index))
   end
-
-  before { foo_index.mapping.migrate }
 
   context "target provides a proper each method" do
     before do

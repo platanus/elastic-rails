@@ -20,4 +20,33 @@ RSpec.configure do |config|
       allow(double).to receive(:expanded_field_names).and_return(expanded_fields)
     end
   end
+
+  def build_type(_name, *_columns)
+    Class.new(Struct.new(*_columns.map(&:to_sym))) do
+      define_singleton_method(:to_s) do
+        _name
+      end
+    end
+  end
+
+  def build_index(_name, target: nil, migrate: false, &_block)
+    klass = Class.new(Elastic::Type) do
+      define_singleton_method(:to_s) do
+        _name
+      end
+    end
+
+    klass.class_exec(self, &_block) unless _block.nil?
+    klass.target = target || build_type("#{_name}Target", *klass.definition.fields.map(&:name))
+    klass.mapping.migrate if migrate
+    klass
+  end
+
+  def build_nested_index(target: nil, &_block)
+    klass = Class.new(Elastic::NestedType)
+
+    klass.class_exec(self, &_block) unless _block.nil?
+    klass.target = target || build_type("#{_name}Target", *klass.definition.fields.map(&:name))
+    klass
+  end
 end

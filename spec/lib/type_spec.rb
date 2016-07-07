@@ -1,41 +1,21 @@
 require 'spec_helper'
 
 describe Elastic::Type do
-  let(:root_type) do
-    Class.new(Struct.new(:id, :foo, :bar, :tags)) do
-      def self.to_s
-        'RootType'
-      end
-    end
-  end
-
-  let(:tag_type) do
-    Class.new(Struct.new(:name))
-  end
+  let(:root_type) { build_type('RootType', :id, :foo, :bar, :tags) }
+  let(:tag_type) { build_type('TagType', :name) }
 
   let(:root_index) do
-    Class.new(Elastic::Type) do
-      def self.to_s
-        'RootIndex'
+    build_index('RootIndex', target: root_type) do |example|
+      field :foo, type: :string
+      field :bar, type: :long, transform: -> { self + 1 }
+
+      nested :tags do
+        field :name, type: :term
       end
 
       def foo
         object.foo.split(' ')
       end
-    end.tap do |index|
-      index.target = root_type
-
-      index.field :foo, type: :string
-      index.field :bar, type: :long, transform: -> { self + 1 }
-
-      index.nested :tags, using: tag_index
-    end
-  end
-
-  let(:tag_index) do
-    Class.new(Elastic::Type).tap do |index|
-      index.field :name, type: :term
-      index.target = tag_type
     end
   end
 
