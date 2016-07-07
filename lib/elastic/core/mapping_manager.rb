@@ -19,7 +19,7 @@ module Elastic::Core
     def fetch
       begin
         mappings = @adaptor.get_mappings
-        mappings = types.map { |t| mappings[t] }.reject(&:nil?)
+        mappings = @definition.types.map { |t| mappings[t] }.reject(&:nil?)
         @index = merge_mappings_into_index mappings
       rescue Elasticsearch::Transport::Transport::Errors::NotFound
         # ignore not-found errors when fetching mappings
@@ -46,7 +46,7 @@ module Elastic::Core
       # TODO: make this a command
       @adaptor.create unless @adaptor.exists?
       begin
-        types.each { |t| @adaptor.set_mapping(t, user_mapping) }
+        @definition.types.each { |t| @adaptor.set_mapping(t, user_mapping) }
       rescue Elasticsearch::Transport::Transport::Errors::BadRequest
         # TODO: https://www.elastic.co/guide/en/elasticsearch/guide/current/reindex.html
       end
@@ -54,10 +54,6 @@ module Elastic::Core
     end
 
     private
-
-    def types
-      @definition.targets.map(&:to_s)
-    end
 
     def compute_status
       if !synchronized?

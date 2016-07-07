@@ -13,6 +13,10 @@ module Elastic::Core
       @targets = _values
     end
 
+    def types
+      targets.map(&:to_s)
+    end
+
     def initialize()
       @targets = []
       @field_map = {}
