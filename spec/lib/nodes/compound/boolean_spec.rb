@@ -1,13 +1,21 @@
 require 'spec_helper'
 
 describe Elastic::Nodes::Boolean do
+  def build_boolean(must: [], should: [], boost: nil)
+    described_class.new.tap do |node|
+      node.musts = must
+      node.shoulds = should
+      node.boost = boost
+    end
+  end
+
   let(:child_a) { DummyQuery.new 'foo' }
   let(:child_b) { DummyQuery.new 'bar' }
   let(:child_c) { DummyQuery.new 'fur' }
 
-  let(:node) { described_class.new(must: [child_a, child_b], should: child_c) }
-  let(:single_must) { described_class.new(must: child_a) }
-  let(:single_should) { described_class.new(should: child_a) }
+  let(:node) { build_boolean(must: [child_a, child_b], should: [child_c]) }
+  let(:single_must) { build_boolean(must: [child_a]) }
+  let(:single_should) { build_boolean(should: [child_a]) }
 
   describe "render" do
     it { expect(node.render).to eq({ 'must' => ['foo', 'bar'], 'should' => ['fur'] }) }
