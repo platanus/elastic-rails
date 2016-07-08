@@ -1,14 +1,14 @@
 module Elastic::Commands
   class BuildQueryFromParams < Elastic::Support::Command.new(:index, :params)
     def perform
-      node = Elastic::Nodes::Or.new(params.map do |part|
-        Elastic::Nodes::And.new(part.map do |field, options|
+      node = Elastic::Nodes::Or.build(params.map do |part|
+        Elastic::Nodes::And.build(part.map do |field, options|
           field = field.to_s
           path = get_nesting_path field
           query_node = build_query_node(field, options)
-          path.nil? ? query_node : Elastic::Nodes::Nested.new(path, query_node)
-        end.to_a)
-      end.to_a)
+          path.nil? ? query_node : Elastic::Nodes::Nested.build(path, query_node)
+        end)
+      end)
 
       node.simplify
     end
@@ -55,12 +55,16 @@ module Elastic::Commands
 
     def build_term(_field, _options)
       terms = Array(_options[:term] || _options[:terms])
-      terms = terms.map { |t| prep(_field, t) }
-      Elastic::Nodes::Term.new _field, terms
+
+      Elastic::Nodes::Term.new.tap do |node|
+        node.field = _field
+        node.terms = terms.map { |t| prep(_field, t) }
+      end
     end
 
     def build_range(_field, _options)
-      Elastic::Nodes::Range.new(_field).tap do |node|
+      Elastic::Nodes::Range.new.tap do |node|
+        node.field = _field
         node.gte = prep(_field, _options[:gte]) if _options.key? :gte
         node.gt = prep(_field, _options[:gt]) if _options.key? :gt
         node.lte = prep(_field, _options[:lte]) if _options.key? :lte
@@ -69,7 +73,10 @@ module Elastic::Commands
     end
 
     def build_match(_field, _options)
-      Elastic::Nodes::Match.new(_field, prep(_field, _options[:matches]))
+      Elastic::Nodes::Match.new.tap do |node|
+        node.field = _field
+        node.query = prep(_field, _options[:matches])
+      end
     end
 
     def range_to_options(_range)

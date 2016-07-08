@@ -30,12 +30,12 @@ describe Elastic::Commands::BuildQueryFromParams do
 
   it "builds the correct term node depending on field type and value" do
     expect(perform(term: 'tag')).to be_a Elastic::Nodes::Term
-    expect(perform(term: 'tag').terms).to eq ['tag']
+    expect(perform(term: 'tag').terms.to_a).to eq ['tag']
   end
 
   it "builds the correct match node depending on field type and value" do
     expect(perform(string: 'phrase')).to be_a Elastic::Nodes::Match
-    expect(perform(string: 'phrase').value).to eq 'phrase'
+    expect(perform(string: 'phrase').query).to eq 'phrase'
   end
 
   it "builds the correct range node depending on field type and value" do
@@ -55,8 +55,8 @@ describe Elastic::Commands::BuildQueryFromParams do
   end
 
   it "applies type transform to nodes values" do
-    expect(perform(bar: { term: 'tag' }).terms).to eq ["transform(tag)"]
-    expect(perform(bar: { matches: 'phrase' }).value).to eq "transform(phrase)"
+    expect(perform(bar: { term: 'tag' }).terms.to_a).to eq ["transform(tag)"]
+    expect(perform(bar: { matches: 'phrase' }).query).to eq "transform(phrase)"
     expect(perform(bar: { gte: 'gte' }).gte).to eq "transform(gte)"
     expect(perform(bar: { gt: 'gt' }).gt).to eq "transform(gt)"
     expect(perform(bar: { lte: 'lte' }).lte).to eq "transform(lte)"
