@@ -1,34 +1,34 @@
 module Elastic::Nodes
-  class Match < Base
+  class Match < BaseWithBoost
     MATCH_MODES = [:boolean, :phrase, :phrase_prefix]
 
-    attr_reader :field, :value, :mode
+    attr_accessor :field, :query
+    attr_reader :mode
 
-    def initialize(_field, _value, mode: :boolean)
-      @field = _field
-      self.value = _value
-      self.mode = mode
-    end
-
-    def value=(_value)
-      raise ArgumentError, 'query value must be a string' unless _value.is_a? String
-      @value = _value
+    def query=(_query)
+      raise ArgumentError, 'query must be a string' unless _query.is_a? String
+      @query = _query
     end
 
     def mode=(_value)
-      raise ArgumentError, 'invalid match mode' unless MATCH_MODES.include? _value.to_sym
+      _value = _value.to_sym
+      raise ArgumentError, 'invalid match mode' unless mode.nil? || MATCH_MODES.include?(_value)
       @mode = _value
     end
 
     def clone
-      self.class.new(@field, @value, mode: @mode)
+      base_clone.tap do |clone|
+        clone.field = @field
+        clone.value = @value
+        clone.mode = @mode
+      end
     end
 
     def render
-      query_options = { 'query' => @value }
-      query_options['type'] = @mode.to_s unless @mode.nil?
+      query_options = { 'query' => @query }
+      query_options['type'] = @mode.to_s unless @mode.nil? || @mode == :boolean
 
-      { "match" => { @field.to_s => query_options } }
+      { "match" => { @field.to_s => render_boost(query_options) } }
     end
 
     def simplify

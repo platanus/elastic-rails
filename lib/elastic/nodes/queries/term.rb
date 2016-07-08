@@ -1,24 +1,29 @@
 module Elastic::Nodes
-  class Term < Base
-    attr_reader :field, :terms
+  class Term < BaseWithBoost
+    attr_accessor :field
 
-    def initialize(_field, _terms)
-      _terms = Array(_terms)
-      raise ArgumentError, 'must provide at least one term' if _terms.length == 0
+    def terms=(_terms)
+      @terms = _terms.dup.to_a
+    end
 
-      @field = _field
-      @terms = Array(_terms)
+    def terms
+      @terms.each
     end
 
     def clone
-      self.class.new @field, @terms
+      base_clone.tap do |clone|
+        clone.field = @field
+        clone.terms = @terms
+      end
     end
 
     def render
+      raise ArgumentError, 'must provide at least one term' if !@terms || @terms.length == 0
+
       if @terms.length == 1
-        { "term" => { @field.to_s => @terms.first } }
+        { "term" => { @field.to_s => render_boost('value' => @terms.first) } }
       else
-        { "terms" => { @field.to_s => @terms } }
+        { "terms" => render_boost(@field.to_s => @terms) }
       end
     end
 

@@ -1,17 +1,15 @@
 module Elastic::Nodes
-  class Range < Base
+  class Range < BaseWithBoost
     attr_accessor :field, :gte, :gt, :lte, :lt
 
-    def initialize(_field, gte: nil, gt: nil, lte: nil, lt: nil)
-      @field = _field
-      @gte = gte
-      @gt = gt
-      @lte = lte
-      @lt = lt
-    end
-
     def clone
-      self.class.new @field, gte: @gte, gt: @gt, lte: @lte, lt: @lt
+      base_clone.tap do |clone|
+        clone.field = @field
+        clone.gte = @gte
+        clone.gt = @gt
+        clone.lte = @lte
+        clone.lt = @lt
+      end
     end
 
     def render
@@ -21,7 +19,7 @@ module Elastic::Nodes
       options['lte'] = @lte unless @lte.nil?
       options['lt'] = @lt unless @lt.nil?
 
-      { "range" => { @field.to_s => options } }
+      { "range" => { @field.to_s => render_boost(options) } }
     end
 
     def simplify
