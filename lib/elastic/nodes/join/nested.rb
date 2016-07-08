@@ -1,14 +1,19 @@
 module Elastic::Nodes
   class Nested < Base
-    attr_accessor :path, :child
-
-    def initialize(_path, _child)
-      @path = _path
-      @child = _child
+    def self.build(_path, _child)
+      new.tap do |node|
+        node.path = _path
+        node.child = _child
+      end
     end
 
+    attr_accessor :path, :child
+
     def clone
-      self.class.new @path, @child
+      base_clone.tap do |clone|
+        clone.path = @path
+        clone.child = @child.clone
+      end
     end
 
     def render

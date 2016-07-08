@@ -1,13 +1,19 @@
 module Elastic::Nodes
   class And < Base
-    attr_reader :children
+    def self.build(_children)
+      new.tap { |node| node.children = _children }
+    end
 
-    def initialize(_children)
-      @children = _children
+    def add_child(_child)
+      @children << _child
+    end
+
+    def children=(_value)
+      @children = _value.dup.to_a
     end
 
     def clone
-      self.class.new _children.map(&:clone)
+      clone_with_children @children.map(&:clone)
     end
 
     def render
@@ -24,17 +30,23 @@ module Elastic::Nodes
         groups = Hash.new { |h,k| h[k] = [] }
         nesting.each { |n| groups[n.path] << n.child }
         nesting = groups.map do |path, nodes|
-          next Nested.new(path, nodes.first) if nodes.length == 1
-          Nested.new(path, self.class.new(nodes))
+          next Nested.build(path, nodes.first) if nodes.length == 1
+          Nested.build(path, clone_with_children(nodes))
         end
       end
 
       new_children = nesting + non_nesting
       return new_children.first if new_children.count == 1
-      self.class.new new_children
+      clone_with_children new_children
     end
 
     private
+
+    def clone_with_children(_children)
+      base_clone.tap do |clone|
+        clone.children = _children
+      end
+    end
 
     def operation
       'and'

@@ -1,12 +1,18 @@
 require 'spec_helper'
 
 describe Elastic::Nodes::And do
+  def build_and(_children)
+    described_class.new.tap do |node|
+      node.children = _children
+    end
+  end
+
   let(:child_a) { DummyQuery.new 'foo' }
   let(:child_b) { DummyQuery.new 'bar' }
   let(:child_c) { DummyQuery.new 'fur' }
 
-  let(:node) { described_class.new([child_a, child_b]) }
-  let(:node_single) { described_class.new([child_a]) }
+  let(:node) { build_and([child_a, child_b]) }
+  let(:node_single) { build_and([child_a]) }
 
   describe "render" do
     it { expect(node.render).to eq({ 'and' => ['foo', 'bar'] }) }
@@ -18,11 +24,11 @@ describe Elastic::Nodes::And do
   end
 
   context "when child nodes are nested queries" do
-    let(:nested_a1) { Elastic::Nodes::Nested.new 'nested_a', child_a }
-    let(:nested_a2) { Elastic::Nodes::Nested.new 'nested_a', child_b }
-    let(:nested_b) { Elastic::Nodes::Nested.new 'nested_b', child_c }
+    let(:nested_a1) { Elastic::Nodes::Nested.build 'nested_a', child_a }
+    let(:nested_a2) { Elastic::Nodes::Nested.build 'nested_a', child_b }
+    let(:nested_b) { Elastic::Nodes::Nested.build 'nested_b', child_c }
 
-    let(:complex_node) { described_class.new([nested_a1, nested_a2, nested_b]) }
+    let(:complex_node) { build_and([nested_a1, nested_a2, nested_b]) }
 
     describe "simplify" do
       it "moves nested queries up in the hierarchy" do
