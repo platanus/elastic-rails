@@ -9,9 +9,9 @@ describe Elastic::Nodes::Boolean do
     end
   end
 
-  let(:child_a) { DummyQuery.new 'foo' }
-  let(:child_b) { DummyQuery.new 'bar' }
-  let(:child_c) { DummyQuery.new 'fur' }
+  let(:child_a) { build_node 'foo' }
+  let(:child_b) { build_node 'bar' }
+  let(:child_c) { build_node 'fur' }
 
   let(:node) { build_boolean(must: [child_a, child_b], should: [child_c]) }
   let(:single_must) { build_boolean(must: [child_a]) }

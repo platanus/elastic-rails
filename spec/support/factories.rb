@@ -50,4 +50,25 @@ RSpec.configure do |config|
     klass.target = target || build_type("#{_name}Target", *klass.definition.fields.map(&:name))
     klass
   end
+
+  def build_node(_string, _boost = nil)
+    Class.new(Elastic::Nodes::BaseWithBoost) do
+      def initialize(_query, _boost)
+        @query = _query
+        self.boost = _boost
+      end
+
+      def clone
+        self.class.new @query, boost
+      end
+
+      def render
+        @query
+      end
+
+      def simplify
+        clone
+      end
+    end.new(_string, _boost)
+  end
 end
