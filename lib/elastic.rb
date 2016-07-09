@@ -19,7 +19,7 @@ require "elastic/nodes/queries/match"
 require "elastic/nodes/compound/and"
 require "elastic/nodes/compound/or"
 require "elastic/nodes/compound/boolean"
-require "elastic/nodes/compound/function_score"
+require "elastic/nodes/modifiers/function_score"
 require "elastic/nodes/join/nested"
 
 require "elastic/fields/value"
