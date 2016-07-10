@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Elastic::Nodes::Match do
-  def build_range(_field, _query, mode: nil, boost: nil)
+  def build_match(_field, _query, mode: nil, boost: nil)
     described_class.new.tap do |node|
       node.field = _field
       node.query = _query
@@ -10,9 +10,17 @@ describe Elastic::Nodes::Match do
     end
   end
 
-  let(:node_a) { build_range(:foo, 'hello world') }
-  let(:node_b) { build_range(:bar, 'hello world', mode: 'phrase') }
-  let(:node_boost) { build_range(:bar, 'hello world', boost: '2.0') }
+  let(:node_a) { build_match(:foo, 'hello world') }
+  let(:node_b) { build_match(:bar, 'hello world', mode: 'phrase') }
+  let(:node_boost) { build_match(:bar, 'hello world', boost: '2.0') }
+
+  describe "mode" do
+    it "fails if an invalid mode is provided" do
+      expect { node_a.mode = 'cow' }.to raise_error ArgumentError
+      expect { node_a.mode = nil }.not_to raise_error
+      expect { node_a.mode = 'phrase' }.not_to raise_error
+    end
+  end
 
   describe "render" do
     it "renders correctly" do

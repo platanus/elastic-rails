@@ -11,15 +11,15 @@ module Elastic::Nodes
     end
 
     def mode=(_value)
-      _value = _value.to_sym
-      raise ArgumentError, 'invalid match mode' unless mode.nil? || MATCH_MODES.include?(_value)
+      _value = _value.try(:to_sym)
+      raise ArgumentError, 'invalid match mode' if !_value.nil? && !MATCH_MODES.include?(_value)
       @mode = _value
     end
 
     def clone
       base_clone.tap do |clone|
         clone.field = @field
-        clone.value = @value
+        clone.query = @query
         clone.mode = @mode
       end
     end
