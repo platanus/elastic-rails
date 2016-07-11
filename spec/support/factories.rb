@@ -22,8 +22,22 @@ RSpec.configure do |config|
     end
   end
 
+  def field_double(_name, _mapping = {}, _mapping_inference = true)
+    double(:field).tap do |field|
+      allow(field).to receive(:name).and_return _name.to_s
+      allow(field).to receive(:expanded_names).and_return [_name.to_s]
+      allow(field).to receive(:mapping_inference_enabled?).and_return _mapping_inference
+      allow(field).to receive(:mapping_options).and_return _mapping
+      allow(field).to receive(:has_field?).and_return false
+      allow(field).to receive(:get_field).and_return nil
+      allow(field).to receive(:freeze).and_return nil
+    end
+  end
+
   def build_type(_name, *_columns)
     Class.new(Struct.new(*_columns.map(&:to_sym))) do
+      include Elastic::Indexable
+
       define_singleton_method(:to_s) do
         _name
       end

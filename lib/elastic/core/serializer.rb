@@ -28,6 +28,7 @@ module Elastic::Core
       return data if only_data
 
       result = { '_type' => object.class.to_s, 'data' => data }
+      # TODO: maybe disable id for elastic_mode = :storage
       result['_id'] = read_attribute_for_indexing(:id) if has_attribute_for_indexing?(:id)
       result
     end

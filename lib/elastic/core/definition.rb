@@ -86,14 +86,18 @@ module Elastic::Core
     private
 
     def load_targets
+      mode = nil
       @targets.map do |target|
-        next target.to_s.camelize.constantize if target.is_a?(Symbol) || target.is_a?(String)
+        target = target.to_s.camelize.constantize if target.is_a?(Symbol) || target.is_a?(String)
+        raise 'Index target is not indexable' unless target.include?(Elastic::Indexable)
+        raise 'Mistmatching indexable mode' if mode && mode != target.elastic_mode
+        mode = target.elastic_mode
         target
       end
     end
 
     def infer_mapping_options(_name)
-      Elastic::Commands::InferFieldOptions.for(klass: main_target, field: _name)
+      main_target.elastic_field_options_for(_name)
     end
   end
 end

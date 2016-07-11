@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Elastic::Core::Definition do
-  let(:simple_target) { Class.new.new }
+  let(:simple_target) { build_type('Foo', :id) }
 
   def build_definition(_target = nil)
     described_class.new().tap do |definition|
@@ -9,19 +9,26 @@ describe Elastic::Core::Definition do
     end
   end
 
-  def field_double(_name, _mapping = {}, _mapping_inference = true)
-    double(:field).tap do |field|
-      allow(field).to receive(:name).and_return _name.to_s
-      allow(field).to receive(:expanded_names).and_return [_name.to_s]
-      allow(field).to receive(:mapping_inference_enabled?).and_return _mapping_inference
-      allow(field).to receive(:mapping_options).and_return _mapping
-      allow(field).to receive(:has_field?).and_return false
-      allow(field).to receive(:get_field).and_return nil
-      allow(field).to receive(:freeze).and_return nil
+  let(:definition) { build_definition }
+
+  describe "targets" do
+    it { expect(definition.targets).to eq [simple_target] }
+
+    it "fails if one of the targets is not indexable" do
+      definition.targets = [Class.new]
+
+      expect { definition.targets }.to raise_error RuntimeError
+    end
+
+    it "fails if targets does not use the same elastic_mode" do
+      definition.targets = [
+        Class.new { include Elastic::Indexable; self.elastic_mode = :index; },
+        Class.new { include Elastic::Indexable; self.elastic_mode = :storage; }
+      ]
+
+      expect { definition.targets }.to raise_error RuntimeError
     end
   end
-
-  let(:definition) { build_definition }
 
   describe "targets" do
     it { expect(definition.targets).to eq [simple_target] }
@@ -138,8 +145,8 @@ describe Elastic::Core::Definition do
 
     before do
       definition.register_field foo_field
-      allow_any_instance_of(Elastic::Commands::InferFieldOptions)
-        .to receive(:perform).and_return({ 'type' => 'teapot' })
+      allow(simple_target).to receive(:elastic_field_options_for)
+        .and_return({ 'type' => 'teapot' })
     end
 
     describe "as_es_mapping" do
