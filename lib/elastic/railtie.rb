@@ -1,10 +1,11 @@
 require "elastic/railties/utils"
 require "elastic/railties/ar_helpers"
 require "elastic/railties/indexable_record"
+require "elastic/railties/type_extensions"
 
 module Elastic
   class Railtie < Rails::Railtie
-    initializer "elastic.configure_rails_initialization" do |app|
+    initializer "elastic.configure_rails_initialization" do
       Elastic.configure Rails.application.config_for(:elastic)
 
       # Make every model indexable
@@ -22,4 +23,9 @@ end
 # Expose railties utils at Elastic namespace
 module Elastic
   extend Elastic::Railties::Utils
+end
+
+# Add activerecord related index helpers
+class Elastic::Type
+  include Elastic::Railties::TypeExtensions
 end

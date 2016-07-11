@@ -2,6 +2,19 @@ module Elastic::Railties
   module ARHelpers
     extend self
 
+    def find_each_with_options(_collection, includes: nil, scope: nil, &_block)
+      if _collection.respond_to? :find_each
+        _collection = _collection.includes(*includes) if includes
+        _collection = _collection.send(scope) if scope
+        _collection.find_each(&_block)
+      elsif _collection.respond_to? :each
+        ActiveRecord::Associations::Preloader.new.preload(_collection, *includes) if includes
+        _collection.each(&_block)
+      else
+        raise 'Elastic ActiveRecord importing is only supported for collection types'
+      end
+    end
+
     def infer_ar4_field_options(_klass, _field)
       return nil if _klass.method_defined? _field # occluded by method override
       return nil unless _klass.serialized_attributes[_field].nil? # occluded by serializer
@@ -18,6 +31,7 @@ module Elastic::Railties
 
     private
 
+    # rubocop:disable Metrics/CyclomaticComplexity
     def ar_type_to_options(_type)
       case _type.try(:to_sym)
       when :text              then { type: :string }
@@ -26,7 +40,8 @@ module Elastic::Railties
       when :float, :decimal   then { type: :double } # not sure..
       when :datetime, :date   then { type: :date }
       when :boolean           then { type: :boolean }
-      else nil end
+      end
     end
+    # rubocop:enable Metrics/CyclomaticComplexity
   end
 end

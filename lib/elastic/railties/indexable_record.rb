@@ -6,19 +6,25 @@ module Elastic::Railties
     end
 
     module ClassMethods
-      def find_each_for_elastic(_options = {}, &_block)
-        # TODO:
-      end
-
       def elastic_mode
         :index # storage mode not supported for AR
       end
 
-      def preload_by_elastic_ids(_ids)
-        self.where(id: _ids)
+      def collect_for_elastic(_definition, _from = nil, &_block)
+        # Check that collection matches type?
+        ARHelpers.find_each_with_options(
+          _from || self,
+          includes: _definition.custom_options[:ar_import_includes],
+          scope: _definition.custom_options[:ar_import_scope],
+          &_block
+        )
       end
 
-      def elastic_field_options_for(_field)
+      def preload_by_elastic_ids(_definition, _ids)
+        where(id: _ids)
+      end
+
+      def elastic_field_options_for(_definition, _field)
         if Rails.version.to_f >= 4.2
           ARHelpers.infer_ar5_field_options(self, _field)
         else
@@ -27,9 +33,7 @@ module Elastic::Railties
       end
 
       def index(_options)
-        index_depends(_options.delete(:depends))
         on = _options.delete(:on)
-
         if on == :create
           index_on_create _options
         elsif on == :save
@@ -43,18 +47,6 @@ module Elastic::Railties
 
       def index_on_save(_options = {})
         after_save(_options) { index_later }
-      end
-
-      def index_depends(_depends)
-        @index_depends = _depends
-      end
-
-      def index_all
-        index_class.clear
-
-        scope = self
-        scope = self.includes(@index_depends) if @index_depends
-        scope.find_each { |r| index_class.store(r) } # TODO: index_many
       end
     end
   end

@@ -4,6 +4,10 @@ require 'elastic/railties/ar_helpers'
 describe Elastic::Railties::ARHelpers do
   let(:helpers) { described_class }
 
+  describe "find_each_with_options" do
+    pending "handles preload and scope options"
+  end
+
   describe "infer_ar4_field_options" do
     let(:target) do
       Class.new do
