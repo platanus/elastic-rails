@@ -17,21 +17,26 @@ module Elastic
         @elastic_mode = _value
       end
 
-      def find_each_for_elastic(_options = {}, &_block)
-        self.each &_block
+      def collect_for_elastic(_definition, _from = nil, &_block)
+        _from = self unless _from
+        if _from.respond_to? :find_each_for_elastic
+          _from.find_each_for_elastic &_block
+        elsif _from.respond_to? :each
+          _from.each &_block
+        end
       end
 
-      def preload_by_elastic_ids(_ids)
+      def preload_by_elastic_ids(_definition, _ids)
         raise NotImplementedError, "Indexable classes using elastic_mode = :index \
-          should implement 'preload_by_elastic_ids'"
+should implement 'preload_by_elastic_ids'"
       end
 
-      def build_from_elastic_data(_data)
+      def build_from_elastic_data(_definition, _data)
         raise NotImplementedError, "Indexable classes using elastic_mode = :storage \
-          should implement 'build_from_elastic_data'"
+should implement 'build_from_elastic_data'"
       end
 
-      def elastic_field_options_for(_field)
+      def elastic_field_options_for(_definition, _field)
         nil
       end
     end
@@ -45,6 +50,3 @@ module Elastic
     end
   end
 end
-
-
-

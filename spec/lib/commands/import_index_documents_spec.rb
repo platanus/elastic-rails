@@ -9,66 +9,27 @@ describe Elastic::Commands::ImportIndexDocuments do
     end
   end
 
-  def perform(_options = {})
-    described_class.for(_options.merge(index: foo_index))
+  let(:collection) { [foo_type.new(1, 'hello'), foo_type.new(2, 'world')] }
+
+  def perform(_collection = nil)
+    described_class.for(index: foo_index, collection: _collection)
   end
 
-  context "target provides a proper each method" do
-    before do
-      class << foo_type
-        def each(&_block)
-          [new(1, 'hello'), new(2, 'world')].each(&_block)
-        end
-      end
-    end
-
-    it "indexes returned documents" do
-      expect { perform }
-        .to change { foo_index.adaptor.refresh.count(type: 'FooType') }.by(2)
-    end
+  before do
+    allow(foo_type).to receive(:collect_for_elastic).and_yield(foo_type.new(1, 'hello'))
   end
 
-  context "target does not provide a for_each or each method" do
-    before do
-      class << foo_type
-        def each_tag(&_block)
-          [new(1, 'hello'), new(2, 'world')].each(&_block)
-        end
-      end
-    end
-
-    it "fails if method is not provided" do
-      expect { perform }.to raise_error(NoMethodError)
-    end
-
-    it "indexes returned documents if method is provided" do
-      expect { perform method: :each_tag }
-        .to change { foo_index.adaptor.refresh.count(type: 'FooType') }.by(2)
-    end
+  it "calls collect_for_elastic with nil if no collection is given" do
+    expect(foo_type).to receive(:collect_for_elastic).with(foo_index.definition)
+    perform
   end
 
-  context "a :transform option is provided" do
-    before do
-      class << foo_type
-        def to_a
-          [new(1, 'hello'), new(2, 'world')]
-        end
-      end
-    end
+  it "calls collect_for_elastic with collection if collection is given" do
+    expect(foo_type).to receive(:collect_for_elastic).with(foo_index.definition, collection)
+    perform collection
+  end
 
-    it "it calls a target's method if a symbol is given" do
-      expect { perform(transform: :to_a) }
-        .to change { foo_index.adaptor.refresh.count(type: 'FooType') }.by(2)
-    end
-
-    it "it executes the given ruby code in the target context if a string is provided" do
-      expect { perform(transform: "to_a[0...1]") }
-        .to change { foo_index.adaptor.refresh.count(type: 'FooType') }.by(1)
-    end
-
-    it "it executes the given Proc in the target context if a proc is provided" do
-      expect { perform(transform: -> { to_a }) }
-        .to change { foo_index.adaptor.refresh.count(type: 'FooType') }.by(2)
-    end
+  it "indexes returned documents" do
+    expect { perform }.to change { foo_index.adaptor.refresh.count(type: 'FooType') }.by(1)
   end
 end

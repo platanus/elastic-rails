@@ -1,22 +1,32 @@
 module Elastic::Commands
   class ImportIndexDocuments < Elastic::Support::Command.new(
-    :index, collection: nil, transform: nil, method: nil, cache_size: 10000
+    :index, collection: nil, cache_size: 10000
   )
     def perform
-      transformed_targets.each { |target| import(target) }
+      if collection.present?
+        import_collection
+      else
+        targets.each { |target| import_target(target) }
+      end
       flush
     end
 
     private
 
-    def import(_target)
-      _target.public_send(import_method_for(_target)) do |object|
-        append index.new(object).as_es_document
-      end
+    def import_collection
+      main_target.collect_for_elastic(index.definition, collection) { |obj| queue obj }
     end
 
-    def append(_document)
-      cache << _document
+    def import_target(_target)
+      _target.collect_for_elastic(index.definition) { |obj| queue obj }
+    end
+
+    def cache
+      @cache ||= []
+    end
+
+    def queue(_object)
+      cache << render_for_es(_object)
       flush if cache.length > cache_size
     end
 
@@ -27,23 +37,16 @@ module Elastic::Commands
       end
     end
 
-    def cache
-      @cache ||= []
+    def render_for_es(_object)
+      index.new(_object).as_es_document
     end
 
-    def import_method_for(_target)
-      return method unless method.nil?
-      return :find_each if _target.respond_to? :find_each
-      return :each
+    def main_target
+      index.definition.main_target
     end
 
     def targets
-      return [collection] unless collection.nil?
       index.definition.targets
-    end
-
-    def transformed_targets
-      Elastic::Support::Transform.new(transform).apply_to_many targets
     end
   end
 end
