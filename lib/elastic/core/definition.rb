@@ -1,5 +1,7 @@
 module Elastic::Core
   class Definition
+    attr_reader :custom_options
+
     def main_target
       targets.first
     end
@@ -21,6 +23,7 @@ module Elastic::Core
       @targets = []
       @field_map = {}
       @frozen = false
+      @custom_options = HashWithIndifferentAccess.new
     end
 
     def register_field(_field)
@@ -75,6 +78,7 @@ module Elastic::Core
     def freeze
       unless @frozen
         @field_map.each_value(&:freeze)
+        @custom_options.freeze
         @frozen = true
       end
     end
@@ -97,7 +101,7 @@ module Elastic::Core
     end
 
     def infer_mapping_options(_name)
-      main_target.elastic_field_options_for(_name)
+      main_target.elastic_field_options_for(self, _name)
     end
   end
 end

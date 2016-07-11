@@ -38,6 +38,13 @@ describe Elastic::Core::Definition do
     it { expect(definition.main_target).to eq simple_target }
   end
 
+  describe "custom_options" do
+    it "holds key -> value pairs with indifferent access" do
+      definition.custom_options[:foo] = 'bar'
+      expect(definition.custom_options['foo']).to eq 'bar'
+    end
+  end
+
   describe "fields" do
     it { expect(definition.fields).to be_a Enumerator }
     it { expect(definition.fields.count).to eq 0 }
@@ -72,6 +79,13 @@ describe Elastic::Core::Definition do
 
     describe "frozen?" do
       it { expect(definition.frozen?).to be true }
+    end
+
+    describe "custom_options" do
+      it "gets frozen" do
+        expect(definition.custom_options.frozen?).to be true
+        expect { definition.custom_options[:foo] = 'bar' }.to raise_error RuntimeError
+      end
     end
   end
 
