@@ -36,8 +36,6 @@ RSpec.configure do |config|
 
   def build_type(_name, *_columns)
     Class.new(Struct.new(*_columns.map(&:to_sym))) do
-      include Elastic::Indexable
-
       define_singleton_method(:to_s) do
         _name
       end

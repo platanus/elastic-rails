@@ -1,6 +1,6 @@
 module Elastic::Core
   class Definition
-    attr_reader :custom_options
+    attr_reader :extended_options
 
     def main_target
       targets.first
@@ -16,14 +16,14 @@ module Elastic::Core
     end
 
     def types
-      targets.map(&:to_s)
+      targets.map(&:type_name)
     end
 
     def initialize()
       @targets = []
       @field_map = {}
       @frozen = false
-      @custom_options = HashWithIndifferentAccess.new
+      @extended_options = HashWithIndifferentAccess.new
     end
 
     def register_field(_field)
@@ -78,8 +78,8 @@ module Elastic::Core
     def freeze
       unless @frozen
         @field_map.each_value(&:freeze)
-        @custom_options.freeze
         @frozen = true
+        @extended_options.freeze
       end
     end
 
@@ -93,15 +93,22 @@ module Elastic::Core
       mode = nil
       @targets.map do |target|
         target = target.to_s.camelize.constantize if target.is_a?(Symbol) || target.is_a?(String)
-        raise 'Index target is not indexable' unless target.include?(Elastic::Indexable)
-        raise 'Mistmatching indexable mode' if mode && mode != target.elastic_mode
-        mode = target.elastic_mode
+
+        target = load_target_middleware(target) unless target.class < BaseMiddleware
+        raise 'Index target is not indexable' if target.nil?
+        raise 'Mistmatching indexable mode' if mode && mode != target.mode
+        mode = target.mode
+
         target
-      end
+      end.freeze
+    end
+
+    def load_target_middleware(_target)
+      Middleware.wrap(_target)
     end
 
     def infer_mapping_options(_name)
-      main_target.elastic_field_options_for(self, _name)
+      main_target.field_options_for(_name, extended_options)
     end
   end
 end

@@ -16,17 +16,18 @@ describe Elastic::Commands::ImportIndexDocuments do
   end
 
   before do
-    allow(foo_type).to receive(:collect_for_elastic).and_yield(foo_type.new(1, 'hello'))
+    allow(foo_type).to receive(:find_each_for_elastic).and_yield(foo_type.new(1, 'hello'))
   end
 
-  it "calls collect_for_elastic with nil if no collection is given" do
-    expect(foo_type).to receive(:collect_for_elastic).with(foo_index.definition)
+  it "calls find_each_for_elastic with nil if no collection is given" do
+    expect(foo_type).to receive(:find_each_for_elastic).with no_args
     perform
   end
 
-  it "calls collect_for_elastic with collection if collection is given" do
-    expect(foo_type).to receive(:collect_for_elastic).with(foo_index.definition, collection)
-    perform collection
+  it "calls collection.each if collection is given" do
+    expect { perform(collection) }
+      .to change { foo_index.adaptor.refresh.count(type: 'FooType') }
+      .by(2)
   end
 
   it "indexes returned documents" do

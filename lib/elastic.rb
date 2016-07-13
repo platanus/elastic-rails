@@ -1,7 +1,6 @@
 require "elasticsearch"
 
 require "elastic/version"
-require "elastic/railtie" if defined? Rails
 require "elastic/configuration"
 
 require "elastic/support/command"
@@ -28,6 +27,9 @@ require "elastic/core/definition"
 require "elastic/core/adaptor"
 require "elastic/core/mapping_manager"
 require "elastic/core/serializer"
+require "elastic/core/middleware"
+require "elastic/core/base_middleware"
+require "elastic/core/default_middleware"
 
 require "elastic/types/base_type"
 require "elastic/types/faceted_type"
@@ -43,4 +45,10 @@ module Elastic
   def self.configure(*_args)
     Configuration.configure(*_args)
   end
+
+  def self.register_middleware(_middleware)
+    Core::Middleware.register _middleware
+  end
 end
+
+require "elastic/railtie" if defined? Rails

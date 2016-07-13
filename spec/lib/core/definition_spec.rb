@@ -2,46 +2,37 @@ require 'spec_helper'
 
 describe Elastic::Core::Definition do
   let(:simple_target) { build_type('Foo', :id) }
+  let(:middleware) { Class.new(Elastic::Core::BaseMiddleware) { def mode; :index end } }
+  let(:definition) { described_class.new.tap { |d| d.targets = [simple_target] } }
 
-  def build_definition(_target = nil)
-    described_class.new().tap do |definition|
-      definition.targets = [_target || simple_target]
-    end
+  before do
+    allow(Elastic::Core::Middleware).to receive(:wrap) { |t| middleware.new(t) }
   end
 
-  let(:definition) { build_definition }
-
   describe "targets" do
-    it { expect(definition.targets).to eq [simple_target] }
-
-    it "fails if one of the targets is not indexable" do
-      definition.targets = [Class.new]
-
-      expect { definition.targets }.to raise_error RuntimeError
+    it "wraps targets using middleware provided by Middleware module" do
+      expect(definition.targets.first).to be_a middleware
+      expect(definition.targets.first.target).to be simple_target
     end
 
     it "fails if targets does not use the same elastic_mode" do
       definition.targets = [
-        Class.new { include Elastic::Indexable; self.elastic_mode = :index; },
-        Class.new { include Elastic::Indexable; self.elastic_mode = :storage; }
+        Class.new(Elastic::Core::BaseMiddleware) { def mode; :index end; }.new(nil),
+        Class.new(Elastic::Core::BaseMiddleware) { def mode; :storage end; }.new(nil)
       ]
 
       expect { definition.targets }.to raise_error RuntimeError
     end
   end
 
-  describe "targets" do
-    it { expect(definition.targets).to eq [simple_target] }
-  end
-
   describe "main_target" do
-    it { expect(definition.main_target).to eq simple_target }
+    it { expect(definition.main_target).to eq definition.targets.first }
   end
 
-  describe "custom_options" do
+  describe "extended_options" do
     it "holds key -> value pairs with indifferent access" do
-      definition.custom_options[:foo] = 'bar'
-      expect(definition.custom_options['foo']).to eq 'bar'
+      definition.extended_options[:foo] = 'bar'
+      expect(definition.extended_options['foo']).to eq 'bar'
     end
   end
 
@@ -51,15 +42,15 @@ describe Elastic::Core::Definition do
   end
 
   describe "has_field?" do
-    it { expect(definition.has_field? 'foo').to be false }
+    it { expect(definition.has_field?('foo')).to be false }
   end
 
   describe "get_field" do
-    it { expect(definition.get_field 'foo').to be nil }
+    it { expect(definition.get_field('foo')).to be nil }
   end
 
   describe "as_es_mapping" do
-    it { expect(definition.as_es_mapping).to eq({ "properties" => {} }) }
+    it { expect(definition.as_es_mapping).to eq("properties" => {}) }
   end
 
   describe "register_field" do
@@ -81,16 +72,16 @@ describe Elastic::Core::Definition do
       it { expect(definition.frozen?).to be true }
     end
 
-    describe "custom_options" do
+    describe "extended_options" do
       it "gets frozen" do
-        expect(definition.custom_options.frozen?).to be true
-        expect { definition.custom_options[:foo] = 'bar' }.to raise_error RuntimeError
+        expect(definition.extended_options.frozen?).to be true
+        expect { definition.extended_options[:foo] = 'bar' }.to raise_error RuntimeError
       end
     end
   end
 
   context "fields have been registered" do
-    let(:foo_field) { field_double(:foo, { type: 'string' }) }
+    let(:foo_field) { field_double(:foo, type: 'string') }
     let(:bar_field) { field_double(:bar, { type: 'integer' }, false) }
 
     before do
@@ -124,12 +115,12 @@ describe Elastic::Core::Definition do
       end
 
       it "properly renders mapping" do
-        expect(definition.as_es_mapping).to eq({
+        expect(definition.as_es_mapping).to eq(
           'properties' => {
             'foo' => { 'type' => 'string' },
             'bar' => { 'type' => 'integer' }
           }
-        })
+        )
       end
     end
 
@@ -158,23 +149,26 @@ describe Elastic::Core::Definition do
     let(:foo_field) { field_double(:foo, {}, true) }
 
     before do
+      allow_any_instance_of(middleware)
+        .to receive(:field_options_for)
+        .and_return('type' => 'teapot')
+
       definition.register_field foo_field
-      allow(simple_target).to receive(:elastic_field_options_for)
-        .and_return({ 'type' => 'teapot' })
     end
 
     describe "as_es_mapping" do
-      it "call's field's mapping_inference_enabled?" do
+      it "call's field_options_for and field's mapping_inference_enabled?" do
         definition.as_es_mapping
+        expect(definition.main_target).to have_received(:field_options_for).with('foo', {})
         expect(foo_field).to have_received(:mapping_inference_enabled?)
       end
 
       it "infers field options from using InferFieldOptions command" do
-        expect(definition.as_es_mapping).to eq({
+        expect(definition.as_es_mapping).to eq(
           'properties' => {
             'foo' => { 'type' => 'teapot' }
           }
-        })
+        )
       end
     end
   end
