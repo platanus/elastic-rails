@@ -23,8 +23,16 @@ module Elastic::Nodes
       @musts = _nodes.dup.to_a
     end
 
+    def musts
+      @musts.each
+    end
+
     def shoulds=(_nodes)
       @shoulds = _nodes.dup.to_a
+    end
+
+    def shoulds
+      @shoulds.each
     end
 
     def render
@@ -40,6 +48,9 @@ module Elastic::Nodes
     def simplify
       new_must = @musts.map(&:simplify)
       new_should = @shoulds.map(&:simplify)
+
+      # TODO: ands inside must should be exploded (if no boost)
+      # TODO: ors inside should should be exploded (if no boost)
 
       return new_must.first if new_must.length == 1 && new_should.length == 0
 
