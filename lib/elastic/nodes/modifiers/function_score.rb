@@ -19,12 +19,12 @@ module Elastic::Nodes
     end
 
     def score_mode=(_value)
-      raise ArgumentError, "invalid score mode #{_value}" unless SCORE_MODES.include? _value
+      raise ArgumentError, "invalid score mode #{_value}" if _value && !SCORE_MODES.include?(_value)
       @score_mode = _value
     end
 
     def boost_mode=(_value)
-      raise ArgumentError, "invalid boost mode #{_value}" unless BOOST_MODES.include? _value
+      raise ArgumentError, "invalid boost mode #{_value}" if _value && !BOOST_MODES.include?(_value)
       @boost_mode = _value
     end
 
