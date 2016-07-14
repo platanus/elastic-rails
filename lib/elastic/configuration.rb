@@ -22,8 +22,16 @@ module Elastic
       'app/indices'
     end
 
+    def page_size
+      @config[:page_size]
+    end
+
+    def coord_similarity
+      @config[:coord_similarity]
+    end
+
     def strict_mode
-      true
+      @config[:strict_types]
     end
 
     private
@@ -31,7 +39,10 @@ module Elastic
     def config
       @config ||= {
         host: '127.0.0.1',
-        port: 9200
+        port: 9200,
+        page_size: 20,
+        coord_similarity: true,
+        strict_types: true
       }
     end
 

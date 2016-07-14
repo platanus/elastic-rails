@@ -33,10 +33,10 @@ module Elastic
       ensure_full_mapping
     end
 
-    def self.query(_query)
+    def self.query
       enforce_mapping!
       ensure_full_mapping
-      # TODO
+      Query.new self
     end
 
     def self.clear

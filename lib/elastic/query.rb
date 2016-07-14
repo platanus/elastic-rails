@@ -1,39 +1,60 @@
 module Elastic
   class Query
-    include Capabilities::ContextHandler
-    include Capabilities::BoolQueryBuilder
-    include Capabilities::AggregationBuilder
+    extend Forwardable
+    include Enumerable
+    include Dsl::BoolQueryBuilder
 
-    attr_accessor :type, :size, :input_transform
+    def_delegators :result, :ids, :pluck, :count, :[], :each, :each_with_score, :find_each,
+      :as_es_query
 
-    def initialize(_type, minimum_should_match: 1, size: nil)
-      @type = _type
-      @size = size
-      self.minimum_should_match = minimum_should_match
+    attr_reader :index, :root
+
+    def initialize(_index, _root = nil, _extended_options = nil)
+      @index = _index
+      @root = _root || build_base_query
+      @extended_options = _extended_options || HashWithIndifferentAccess.new
     end
 
-    def render
-      search = {}
-      search['size'] = @size unless @size.nil?
-      render_query_to search
-      render_aggregations_to search
-      search
+    def coord_similarity(_enable)
+      with_clone { root.query.disable_coord = !_enable }
     end
 
-    def run
-      type.query(render)
+    def limit(_size)
+      with_clone { root.page_size = _size }
+    end
+    alias :size :limit
+
+    def offset(_offset)
+      with_clone { root.offset = _offset }
+    end
+
+    def result(_reset = false)
+      @result = nil if _reset
+      @result ||= Core::Result.new(@index, @root.simplify.render, all_options)
     end
 
     private
 
-    def render_query_to(_search)
-      query = {}
-      render_bool_query_to query
-      _search['query'] = query if query.length > 0
+    attr_reader :extended_options
+
+    def with_clone(&_block)
+      new_query = self.class.new(@index, @root.clone, extended_options.dup)
+      new_query.instance_exec(&_block)
+      new_query
     end
 
-    def transform_input(_name, _value)
-      type.prepare_field_for_query _name, _value
+    def with_bool_query(&_block)
+      with_clone { _block.call(root.query) }
+    end
+
+    def all_options
+      @index.definition.extended_options.merge(extended_options).freeze
+    end
+
+    def build_base_query
+      bool_query = Nodes::Boolean.new
+      bool_query.disable_coord = true unless Configuration.coord_similarity
+      Nodes::Search.build bool_query
     end
   end
 end
