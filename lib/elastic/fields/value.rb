@@ -28,7 +28,7 @@ module Elastic::Fields
     end
 
     def mapping_options
-      process_custom_types @options.symbolize_keys.slice(*MAPPING_OPTIONS)
+      process_special_types @options.symbolize_keys.slice(*MAPPING_OPTIONS)
     end
 
     def has_field?(_name)
@@ -45,10 +45,13 @@ module Elastic::Fields
 
     private
 
-    def process_custom_types(_definition)
+    def process_special_types(_definition)
       case _definition[:type].try(:to_sym)
       when :term
-        _definition.merge! type: 'string', index: 'not_analyzed'
+        _definition[:type] = 'string'
+        _definition[:index] = 'not_analyzed'
+      when :date
+        _definition[:format] = 'dateOptionalTime' unless _definition.key? :format
       end
 
       _definition
