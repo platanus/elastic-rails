@@ -5,11 +5,16 @@ module Elastic::Core
       @treatment_cache = {}
     end
 
-    def format(_source)
-      # TODO: support nested fields
+    def format(_source, _prefix = nil)
       _source.each do |field, value|
-        treatment = treatment_for field
-        _source[field] = send(treatment, value) unless treatment == :none
+        field_name = _prefix ? "#{_prefix}.#{field}" : field
+
+        treatment = treatment_for field_name
+        if treatment == :nested
+          value.each { |v| format(v, field_name) }
+        else
+          _source[field] = send(treatment, value) unless treatment == :none
+        end
       end
     end
 
@@ -23,12 +28,13 @@ module Elastic::Core
 
     def get_treatment(_field)
       field_options = @mapping.get_field_options(_field)
-      return :join_string if field_options['type'] == 'string'
+      return :nested if field_options['type'] == 'nested'
+      return :parse_date if field_options['type'] == 'date'
       :none
     end
 
-    def join_string(_value)
-      _value.join ' '
+    def parse_date(_value)
+      Time.parse _value
     end
   end
 end
