@@ -18,7 +18,10 @@ describe Elastic::Nodes::Boolean do
   let(:single_should) { build_boolean(should: [child_a]) }
 
   describe "render" do
-    it { expect(node.render).to eq({ 'must' => ['foo', 'bar'], 'should' => ['fur'] }) }
+    it "renders correctly" do
+      expect(node.render)
+        .to eq('bool' => { 'must' => ['foo', 'bar'], 'should' => ['fur'] })
+    end
   end
 
   describe "simplify" do

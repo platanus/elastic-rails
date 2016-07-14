@@ -36,13 +36,15 @@ module Elastic::Nodes
     end
 
     def render
-      {}.tap do |boolean|
+      options = {}.tap do |boolean|
         boolean['must'] = @musts.map(&:render) if @musts.length > 0
         boolean['should'] = @shoulds.map(&:render) if @shoulds.length > 0
         boolean['minimum_should_match'] = minimum_should_match unless minimum_should_match.nil?
-        boolean['disable_coord'] = disable_coord unless disable_coord.nil?
+        boolean['disable_coord'] = true if disable_coord
         render_boost(boolean)
       end
+
+      { "bool" => options }
     end
 
     def simplify
