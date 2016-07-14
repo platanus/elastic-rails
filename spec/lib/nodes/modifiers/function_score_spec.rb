@@ -30,6 +30,13 @@ describe Elastic::Nodes::FunctionScore do
     before { node.boost = 2.0 }
 
     describe "simplify" do
+      describe "render" do
+        it "renders correctly" do
+          expect(node.render)
+            .to eq('function_score' => { 'query' => 'foo', 'boost' => 2.0 })
+        end
+      end
+
       it "returns the query object with the boost set to the parent value" do
         expect(node.simplify).to be_a query.class
         expect(node.simplify.boost).to eq 2.0
@@ -43,7 +50,7 @@ describe Elastic::Nodes::FunctionScore do
     describe "render" do
       it "renders correctly" do
         expect(node.render)
-          .to eq({ 'function_score' => { 'query' => 'foo', 'weight' => 2.0 } })
+          .to eq('function_score' => { 'query' => 'foo', 'weight' => 2.0 })
       end
     end
 
@@ -53,13 +60,13 @@ describe Elastic::Nodes::FunctionScore do
       describe "render" do
         it "renders correctly" do
           expect(node.render)
-            .to eq({
+            .to eq(
               'function_score' => {
                 'query' => 'foo',
                 'weight' => 2.0,
                 'boost_mode' => 'replace'
               }
-            })
+            )
         end
       end
     end
@@ -72,7 +79,7 @@ describe Elastic::Nodes::FunctionScore do
       describe "render" do
         it "renders correctly" do
           expect(node.render)
-            .to eq({
+            .to eq(
               'function_score' => {
                 'query' => 'foo',
                 'functions' => [
@@ -89,7 +96,7 @@ describe Elastic::Nodes::FunctionScore do
                   }
                 ]
               }
-            })
+            )
         end
       end
     end

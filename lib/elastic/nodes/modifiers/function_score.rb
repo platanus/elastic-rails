@@ -65,7 +65,7 @@ module Elastic::Nodes
       if @functions.length > 1
         function_score['score_mode'] = @score_mode.to_s if @score_mode && @score_mode != :multiply
         function_score['functions'] = @functions
-      else
+      elsif @functions.length == 1
         function_score.merge! @functions.first
       end
 
@@ -75,7 +75,7 @@ module Elastic::Nodes
     def simplify
       new_query = query.simplify
 
-      if @functions.length == 0
+      if @functions.empty?
         return new_query if boost.nil?
 
         if new_query.is_a?(BaseWithBoost) && new_query.boost.nil?
