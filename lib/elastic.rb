@@ -31,6 +31,7 @@ require "elastic/core/serializer"
 require "elastic/core/middleware"
 require "elastic/core/base_middleware"
 require "elastic/core/default_middleware"
+require "elastic/core/source_formatter"
 
 require "elastic/dsl/bool_query_builder"
 require "elastic/dsl/bool_query_context"
