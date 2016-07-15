@@ -33,6 +33,10 @@ module Elastic
       ensure_full_mapping
     end
 
+    def self.index(_object)
+      new(_object).save
+    end
+
     def self.query
       enforce_mapping!
       ensure_full_mapping
@@ -42,6 +46,10 @@ module Elastic
     def self.clear
       enforce_mapping!
       adaptor.clear
+    end
+
+    def self.refresh
+      adaptor.refresh
     end
 
     def save
