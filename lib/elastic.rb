@@ -26,6 +26,7 @@ require "elastic/nodes/agg/average"
 require "elastic/nodes/agg/minimum"
 require "elastic/nodes/agg/maximum"
 require "elastic/nodes/agg/sum"
+require "elastic/nodes/agg/date_histogram"
 
 require "elastic/fields/value"
 require "elastic/fields/nested"
