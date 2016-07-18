@@ -11,6 +11,7 @@ require "elastic/commands/build_query_from_params"
 
 require "elastic/nodes/base"
 require "elastic/nodes/boostable"
+require "elastic/nodes/aggregable"
 require "elastic/nodes/search"
 require "elastic/nodes/queries/term"
 require "elastic/nodes/queries/range"

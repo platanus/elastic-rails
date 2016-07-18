@@ -1,23 +1,19 @@
 module Elastic::Nodes::Agg
   class Terms < Elastic::Nodes::Base
-    attr_accessor :field, :size
+    include Elastic::Nodes::Aggregable
 
-    def clone
-      base_clone.tap do |clone|
-        clone.field = @field
-        clone.size = @size
-      end
+    clone_and_simplify_with do |clone|
+      clone.field = @field
+      clone.size = @size
     end
+
+    attr_accessor :field, :size
 
     def render
       options = { 'field' => @field.to_s }
       options['size'] = @size if @size
 
-      { 'terms' => options }
-    end
-
-    def simplify
-      clone
+      render_aggs 'terms' => options
     end
   end
 end
