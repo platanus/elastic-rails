@@ -1,6 +1,14 @@
 module Elastic::Nodes
-  class Match < BaseWithBoost
+  class Match < Base
+    include Boostable
+
     MATCH_MODES = [:boolean, :phrase, :phrase_prefix]
+
+    clone_and_simplify_with do |clone|
+      clone.field = @field
+      clone.query = @query
+      clone.mode = @mode
+    end
 
     attr_accessor :field, :query
     attr_reader :mode
@@ -16,23 +24,11 @@ module Elastic::Nodes
       @mode = _value
     end
 
-    def clone
-      base_clone.tap do |clone|
-        clone.field = @field
-        clone.query = @query
-        clone.mode = @mode
-      end
-    end
-
     def render
       query_options = { 'query' => @query }
       query_options['type'] = @mode.to_s unless @mode.nil? || @mode == :boolean
 
       { "match" => { @field.to_s => render_boost(query_options) } }
-    end
-
-    def simplify
-      return self
     end
   end
 end

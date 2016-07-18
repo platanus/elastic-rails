@@ -29,14 +29,14 @@ describe Elastic::Nodes::FunctionScore do
   context "a boost has been set" do
     before { node.boost = 2.0 }
 
-    describe "simplify" do
-      describe "render" do
-        it "renders correctly" do
-          expect(node.render)
-            .to eq('function_score' => { 'query' => 'foo', 'boost' => 2.0 })
-        end
+    describe "render" do
+      it "renders correctly" do
+        expect(node.render)
+          .to eq('function_score' => { 'query' => 'foo', 'boost' => 2.0 })
       end
+    end
 
+    describe "simplify" do
       it "returns the query object with the boost set to the parent value" do
         expect(node.simplify).to be_a query.class
         expect(node.simplify.boost).to eq 2.0

@@ -10,7 +10,7 @@ require "elastic/commands/import_index_documents"
 require "elastic/commands/build_query_from_params"
 
 require "elastic/nodes/base"
-require "elastic/nodes/base_with_boost"
+require "elastic/nodes/boostable"
 require "elastic/nodes/search"
 require "elastic/nodes/queries/term"
 require "elastic/nodes/queries/range"

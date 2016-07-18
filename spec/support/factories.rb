@@ -64,7 +64,9 @@ RSpec.configure do |config|
   end
 
   def build_node(_string, _boost = nil)
-    Class.new(Elastic::Nodes::BaseWithBoost) do
+    Class.new(Elastic::Nodes::Base) do
+      include Elastic::Nodes::Boostable
+
       def initialize(_query, _boost)
         @query = _query
         self.boost = _boost

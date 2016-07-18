@@ -1,14 +1,12 @@
 module Elastic::Nodes
-  class BaseWithBoost < Base
+  module Boostable
     attr_accessor :boost
 
-    private
-
-    def base_clone
-      clone = super
-      clone.boost = @boost unless @boost.nil?
-      clone
+    def self.included(_klass)
+      _klass.clone_and_simplify_with { |c| c.boost = @boost }
     end
+
+    private
 
     def render_boost(_hash)
       _hash['boost'] = @boost.to_f unless @boost.nil?

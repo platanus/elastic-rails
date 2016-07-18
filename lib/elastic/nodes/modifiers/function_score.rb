@@ -1,5 +1,11 @@
 module Elastic::Nodes
-  class FunctionScore < BaseWithBoost
+  class FunctionScore < Base
+    include Boostable
+
+    clone_with do |clone|
+      prepare_clone clone, @query.clone
+    end
+
     SCORE_MODES = [:multiply, :sum, :avg, :first, :max, :min]
     BOOST_MODES = [:multiply, :replace, :sum, :avg, :max, :min]
 
@@ -33,29 +39,18 @@ module Elastic::Nodes
     end
 
     def add_field_function(_field, factor: 1, modifier: :none, missing: 1, weight: nil, filter: nil)
-      add_function('field_value_factor', {
+      params = {
         'field' => _field,
         'factor' => factor,
         'modifier' => modifier,
         'missing' => missing
-      }, filter, weight)
+      }
+
+      add_function('field_value_factor', params, filter, weight)
     end
 
     def add_decay_function(_field, _options = {})
       raise NotImplementedError, 'decay function not implemented'
-    end
-
-    def clone
-      clone_with_query @query.clone
-    end
-
-    def clone_with_query(_query)
-      base_clone.tap do |clone|
-        clone.query = _query
-        clone.functions = @functions
-        clone.boost_mode = @boost_mode
-        clone.score_mode = @score_mode
-      end
     end
 
     def render
@@ -78,14 +73,13 @@ module Elastic::Nodes
       if @functions.empty?
         return new_query if boost.nil?
 
-        if new_query.is_a?(BaseWithBoost) && new_query.boost.nil?
-          # some queries support the boost attribute directly
+        if new_query.class.include?(Boostable) && new_query.boost.nil?
           new_query.boost = boost
           return new_query
         end
       end
 
-      clone_with_query new_query
+      prepare_clone(super, new_query)
     end
 
     private
@@ -97,6 +91,14 @@ module Elastic::Nodes
         hash['filter'] = _filter.render unless _filter.nil?
       end
       self
+    end
+
+    def prepare_clone(_clone, _query)
+      _clone.query = _query
+      _clone.functions = @functions
+      _clone.boost_mode = @boost_mode
+      _clone.score_mode = @score_mode
+      _clone
     end
   end
 end

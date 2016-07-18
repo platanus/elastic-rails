@@ -1,5 +1,12 @@
 module Elastic::Nodes
-  class Term < BaseWithBoost
+  class Term < Base
+    include Boostable
+
+    clone_and_simplify_with do |clone|
+      clone.field = @field
+      clone.terms = @terms
+    end
+
     attr_accessor :field
 
     def terms=(_terms)
@@ -10,25 +17,14 @@ module Elastic::Nodes
       @terms.each
     end
 
-    def clone
-      base_clone.tap do |clone|
-        clone.field = @field
-        clone.terms = @terms
-      end
-    end
-
     def render
-      raise ArgumentError, 'must provide at least one term' if !@terms || @terms.length == 0
+      raise ArgumentError, 'must provide at least one term' if !@terms || @terms.empty?
 
       if @terms.length == 1
         { "term" => { @field.to_s => render_boost('value' => @terms.first) } }
       else
         { "terms" => render_boost(@field.to_s => @terms) }
       end
-    end
-
-    def simplify
-      return self
     end
   end
 end
