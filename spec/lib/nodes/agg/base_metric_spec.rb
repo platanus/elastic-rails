@@ -21,4 +21,10 @@ describe Elastic::Nodes::Agg::BaseMetric do
       expect(metric.render).to eq('foo' => { 'field' => 'bar', 'missing' => 20 })
     end
   end
+
+  describe "handle_result" do
+    it "builds a bucket collection" do
+      expect(metric.handle_result('value' => :foo)).to eq :foo
+    end
+  end
 end

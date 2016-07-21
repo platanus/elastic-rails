@@ -1,7 +1,10 @@
 module Elastic::Nodes::Agg
   class BaseMetric < Elastic::Nodes::Base
-    def self.build(_field)
-      new.tap { |m| m.field = _field }
+    def self.build(_field, missing: nil)
+      new.tap do |node|
+        node.field = _field
+        node.missing = missing
+      end
     end
 
     attr_accessor :field, :missing
@@ -22,6 +25,10 @@ module Elastic::Nodes::Agg
 
     def simplify
       clone
+    end
+
+    def handle_result(_raw)
+      _raw['value']
     end
 
     private

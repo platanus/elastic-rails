@@ -1,0 +1,16 @@
+module Elastic::Results
+  class BucketCollection < Base
+    extend Forwardable
+    include Enumerable
+
+    def_delegators :@buckets, :last, :first, :count, :[], :each
+
+    def initialize(_buckets)
+      @buckets = _buckets
+    end
+
+    def each_hit(&_block)
+      @buckets.each { |b| b.each_hit(&_block) }
+    end
+  end
+end

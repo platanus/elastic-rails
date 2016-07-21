@@ -1,5 +1,11 @@
 module Elastic::Nodes
   class Search < Base
+    include Aggregable
+
+    clone_with { |c| prepare_clone(c, @query.clone) }
+
+    simplify_with { |c| prepare_clone(c, @query.simplify) }
+
     attr_accessor :query, :size, :offset
 
     def self.build(_query)
@@ -7,6 +13,7 @@ module Elastic::Nodes
     end
 
     def initialize
+      super
       @size = size || Elastic::Configuration.page_size
       @offset = offset
       @fields = nil
@@ -21,10 +28,6 @@ module Elastic::Nodes
       @fields = _values.nil? ? nil : _values.dup.to_a
     end
 
-    def clone
-      clone_with_query @query.clone
-    end
-
     def render
       {
         "size" => @size,
@@ -32,22 +35,24 @@ module Elastic::Nodes
       }.tap do |options|
         options["_source"] = @fields unless @fields.nil?
         options["from"] = @offset unless offset == 0
+        render_aggs(options)
       end
     end
 
-    def simplify
-      clone_with_query @query.simplify
+    def handle_result(_raw)
+      hits = _raw['hits'] ? _raw['hits']['hits'].map { |h| Elastic::Results::Hit.new h } : []
+      aggs = _raw['aggregations'] ? load_aggs_results(_raw['aggregations']) : {}
+
+      Elastic::Results::Root.new(hits, aggs)
     end
 
     private
 
-    def clone_with_query(_query)
-      base_clone.tap do |clone|
-        clone.query = _query
-        clone.size = @size
-        clone.offset = @offset
-        clone.fields = @fields
-      end
+    def prepare_clone(_clone, _query)
+      _clone.query = _query
+      _clone.size = @size
+      _clone.offset = @offset
+      _clone.fields = @fields
     end
   end
 end

@@ -27,5 +27,13 @@ module Elastic::Nodes
       _into['aggs'] = Hash[aggs.map { |k, v| [k, v.render] }] if has_aggs?
       _into
     end
+
+    def load_aggs_results(_raw)
+      {}.tap do |result|
+        aggs.each do |name, node|
+          result[name] = node.handle_result(_raw[name])
+        end
+      end
+    end
   end
 end

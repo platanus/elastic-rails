@@ -83,6 +83,10 @@ RSpec.configure do |config|
       def simplify
         clone
       end
+
+      def handle_result(_raw)
+        _raw
+      end
     end.new(_string, _boost)
   end
 end

@@ -1,10 +1,18 @@
 module Elastic::Nodes::Agg
   class DateHistogram < Elastic::Nodes::Base
     include Elastic::Nodes::Aggregable
+    include Elastic::Nodes::Bucketed
 
     clone_and_simplify_with do |clone|
       clone.field = @field
       clone.interval = @size
+    end
+
+    def self.build(_field, interval: nil)
+      new.tap do |node|
+        node.field = _field
+        node.interval = interval
+      end
     end
 
     attr_accessor :field

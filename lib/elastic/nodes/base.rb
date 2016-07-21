@@ -45,6 +45,10 @@ module Elastic::Nodes
       end
     end
 
+    def handle_result(_raw)
+      nil
+    end
+
     private
 
     def base_clone

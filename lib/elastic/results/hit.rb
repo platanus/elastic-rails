@@ -1,4 +1,4 @@
-module Elastic::Core
+module Elastic::Results
   class Hit
     attr_accessor :raw, :ref
 
