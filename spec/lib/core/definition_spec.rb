@@ -29,10 +29,10 @@ describe Elastic::Core::Definition do
     it { expect(definition.main_target).to eq definition.targets.first }
   end
 
-  describe "extended_options" do
+  describe "middleware_options" do
     it "holds key -> value pairs with indifferent access" do
-      definition.extended_options[:foo] = 'bar'
-      expect(definition.extended_options['foo']).to eq 'bar'
+      definition.middleware_options[:foo] = 'bar'
+      expect(definition.middleware_options['foo']).to eq 'bar'
     end
   end
 
@@ -72,10 +72,10 @@ describe Elastic::Core::Definition do
       it { expect(definition.frozen?).to be true }
     end
 
-    describe "extended_options" do
+    describe "middleware_options" do
       it "gets frozen" do
-        expect(definition.extended_options.frozen?).to be true
-        expect { definition.extended_options[:foo] = 'bar' }.to raise_error RuntimeError
+        expect(definition.middleware_options.frozen?).to be true
+        expect { definition.middleware_options[:foo] = 'bar' }.to raise_error RuntimeError
       end
     end
   end

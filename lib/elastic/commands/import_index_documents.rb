@@ -14,11 +14,11 @@ module Elastic::Commands
     private
 
     def import_collection
-      main_target.collect_for(collection, extended_options) { |obj| queue obj }
+      main_target.collect_for(collection, middleware_options) { |obj| queue obj }
     end
 
     def import_target(_target)
-      _target.collect_all(extended_options) { |obj| queue obj }
+      _target.collect_all(middleware_options) { |obj| queue obj }
     end
 
     def cache
@@ -49,8 +49,8 @@ module Elastic::Commands
       index.definition.targets
     end
 
-    def extended_options
-      index.definition.extended_options
+    def middleware_options
+      index.definition.middleware_options
     end
   end
 end

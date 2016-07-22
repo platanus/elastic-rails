@@ -1,6 +1,6 @@
 module Elastic::Core
   class Definition
-    attr_reader :extended_options
+    attr_reader :middleware_options
 
     def main_target
       targets.first
@@ -23,7 +23,7 @@ module Elastic::Core
       @targets = []
       @field_map = {}
       @frozen = false
-      @extended_options = HashWithIndifferentAccess.new
+      @middleware_options = HashWithIndifferentAccess.new
     end
 
     def register_field(_field)
@@ -79,7 +79,7 @@ module Elastic::Core
       unless @frozen
         @field_map.each_value(&:freeze)
         @frozen = true
-        @extended_options.freeze
+        @middleware_options.freeze
       end
     end
 
@@ -108,7 +108,7 @@ module Elastic::Core
     end
 
     def infer_mapping_options(_name)
-      main_target.field_options_for(_name, extended_options)
+      main_target.field_options_for(_name, middleware_options)
     end
   end
 end
