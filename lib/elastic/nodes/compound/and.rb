@@ -13,13 +13,7 @@ module Elastic::Nodes
     end
 
     def clone
-      clone_with_children @children.map(&:clone)
-    end
-
-    def render
-      {
-        operation => @children.map(&:render)
-      }
+      prepare_clone super, @children.map(&:clone)
     end
 
     def simplify
@@ -27,25 +21,28 @@ module Elastic::Nodes
 
       nesting, non_nesting = new_children.partition { |n| n.is_a? Nested }
       if nesting.length > 1
-        groups = Hash.new { |h,k| h[k] = [] }
+        groups = Hash.new { |h, k| h[k] = [] }
         nesting.each { |n| groups[n.path] << n.child }
         nesting = groups.map do |path, nodes|
           next Nested.build(path, nodes.first) if nodes.length == 1
-          Nested.build(path, clone_with_children(nodes))
+          Nested.build(path, prepare_clone(super, nodes))
         end
       end
 
       new_children = nesting + non_nesting
       return new_children.first if new_children.count == 1
-      clone_with_children new_children
+      prepare_clone(super, new_children)
+    end
+
+    def render
+      { operation => @children.map(&:render) }
     end
 
     private
 
-    def clone_with_children(_children)
-      base_clone.tap do |clone|
-        clone.children = _children
-      end
+    def prepare_clone(_clone, _children)
+      _clone.children = _children
+      _clone
     end
 
     def operation

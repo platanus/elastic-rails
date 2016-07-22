@@ -2,10 +2,6 @@ module Elastic::Nodes
   class FunctionScore < Base
     include Boostable
 
-    clone_with do |clone|
-      prepare_clone clone, @query.clone
-    end
-
     SCORE_MODES = [:multiply, :sum, :avg, :first, :max, :min]
     BOOST_MODES = [:multiply, :replace, :sum, :avg, :max, :min]
 
@@ -65,6 +61,10 @@ module Elastic::Nodes
       end
 
       { 'function_score' => render_boost(function_score) }
+    end
+
+    def clone
+      prepare_clone super, @query.clone
     end
 
     def simplify

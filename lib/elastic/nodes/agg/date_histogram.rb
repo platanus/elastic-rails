@@ -3,11 +3,6 @@ module Elastic::Nodes::Agg
     include Elastic::Nodes::Aggregable
     include Elastic::Nodes::Bucketed
 
-    clone_and_simplify_with do |clone|
-      clone.field = @field
-      clone.interval = @size
-    end
-
     def self.build(_field, interval: nil)
       new.tap do |node|
         node.field = _field
@@ -23,6 +18,14 @@ module Elastic::Nodes::Agg
       @interval = _value
     end
 
+    def clone
+      prepare_clone(super)
+    end
+
+    def simplify
+      prepare_clone(super)
+    end
+
     def render
       options = { 'field' => @field.to_s }
       options['interval'] = @interval if @interval
@@ -30,11 +33,13 @@ module Elastic::Nodes::Agg
       render_aggs 'date_histogram' => options
     end
 
-    def simplify
-      clone
-    end
-
     private
+
+    def prepare_clone(_clone)
+      _clone.field = @field
+      _clone.interval = @interval
+      _clone
+    end
 
     def valid_interval?(_value)
       /^\d+(\.\d+)?(y|M|w|d|h|m|s)$/ === _value

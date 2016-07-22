@@ -2,10 +2,6 @@ module Elastic::Nodes
   class Boolean < Base
     include Boostable
 
-    clone_with do |clone|
-      prepare_clone clone, @musts.map(&:clone), @shoulds.map(&:clone)
-    end
-
     attr_accessor :minimum_should_match, :disable_coord
 
     def initialize
@@ -48,6 +44,10 @@ module Elastic::Nodes
       end
 
       { "bool" => options }
+    end
+
+    def clone
+      prepare_clone super, @musts.map(&:clone), @shoulds.map(&:clone)
     end
 
     def simplify

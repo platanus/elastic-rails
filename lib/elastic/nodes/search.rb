@@ -2,10 +2,6 @@ module Elastic::Nodes
   class Search < Base
     include Aggregable
 
-    clone_with { |c| prepare_clone(c, @query.clone) }
-
-    simplify_with { |c| prepare_clone(c, @query.simplify) }
-
     attr_accessor :query, :size, :offset
 
     def self.build(_query)
@@ -37,6 +33,14 @@ module Elastic::Nodes
         options["from"] = @offset unless offset == 0
         render_aggs(options)
       end
+    end
+
+    def clone
+      prepare_clone(super, @query.clone)
+    end
+
+    def simplify
+      prepare_clone(super, @query.simplify)
     end
 
     def handle_result(_raw)

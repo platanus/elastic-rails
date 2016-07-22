@@ -1,46 +1,51 @@
 require 'spec_helper'
 
 describe Elastic::Nodes::Match do
-  def build_match(_field, _query, mode: nil, boost: nil)
-    described_class.new.tap do |node|
-      node.field = _field
-      node.query = _query
-      node.mode = mode unless mode.nil?
-      node.boost = boost unless boost.nil?
-    end
-  end
+  let(:node) { described_class.new }
 
-  let(:node_a) { build_match(:foo, 'hello world') }
-  let(:node_b) { build_match(:bar, 'hello world', mode: 'phrase') }
-  let(:node_boost) { build_match(:bar, 'hello world', boost: '2.0') }
+  before { node.field = :foo }
 
   describe "mode" do
     it "fails if an invalid mode is provided" do
-      expect { node_a.mode = 'cow' }.to raise_error ArgumentError
-      expect { node_a.mode = nil }.not_to raise_error
-      expect { node_a.mode = 'phrase' }.not_to raise_error
+      expect { node.mode = 'cow' }.to raise_error ArgumentError
+      expect { node.mode = nil }.not_to raise_error
+      expect { node.mode = 'phrase' }.not_to raise_error
+    end
+  end
+
+  describe "clone" do
+    it "copies every property" do
+      node.query = 'hello world'
+      node.mode = :phrase
+      node.boost = 2.0
+
+      expect(node.clone).not_to be node
+      expect(node.clone.query).to eq node.query
+      expect(node.clone.mode).to eq node.mode
+      expect(node.clone.boost).to eq node.boost
     end
   end
 
   describe "render" do
-    it "renders correctly" do
-      expect(node_a.render)
-        .to eq({ 'match' => { 'foo' => { 'query' => 'hello world' } } })
+    it "renders correctly if query is set" do
+      node.query = 'hello world'
+      expect(node.render).to eq('match' => { 'foo' => { 'query' => 'hello world' } })
     end
 
-    it "renders correctly" do
-      expect(node_b.render)
-        .to eq({ 'match' => { 'bar' => { 'query' => 'hello world' , 'type' => 'phrase' } } })
+    it "renders correctly if mode is changed" do
+      node.query = 'hello world'
+      node.mode = :phrase
+
+      expect(node.render)
+        .to eq('match' => { 'foo' => { 'query' => 'hello world', 'type' => 'phrase' } })
     end
 
-    it "renders correctly" do
-      expect(node_boost.render)
-        .to eq({ 'match' => { 'bar' => { 'query' => 'hello world' , 'boost' => 2.0 } } })
-    end
+    it "renders correctly if boost is set" do
+      node.query = 'hello world'
+      node.boost = 2.0
 
-    it "validates mode attribute" do
-      expect { node_a.mode = 'phrase' }.not_to raise_error
-      expect { node_a.mode = 'teapot' }.to raise_error ArgumentError
+      expect(node.render)
+        .to eq('match' => { 'foo' => { 'query' => 'hello world', 'boost' => 2.0 } })
     end
   end
 end

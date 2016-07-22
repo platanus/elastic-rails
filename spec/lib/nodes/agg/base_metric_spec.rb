@@ -9,22 +9,33 @@ describe Elastic::Nodes::Agg::BaseMetric do
     end
   end
 
-  let(:metric) { metric_class.build('bar') }
+  let(:node) { metric_class.build('bar') }
+
+  describe "clone" do
+    it "copies every property" do
+      node.missing = 20
+
+      expect(node.clone).not_to be node
+      expect(node.clone.field).to eq node.field
+      expect(node.clone.missing).to eq node.missing
+    end
+  end
 
   describe "render" do
     it "renders correctly" do
-      expect(metric.render).to eq('foo' => { 'field' => 'bar' })
+      expect(node.render).to eq('foo' => { 'field' => 'bar' })
     end
 
     it "renders missing option correctly" do
-      metric.missing = 20
-      expect(metric.render).to eq('foo' => { 'field' => 'bar', 'missing' => 20 })
+      node.missing = 20
+
+      expect(node.render).to eq('foo' => { 'field' => 'bar', 'missing' => 20 })
     end
   end
 
   describe "handle_result" do
     it "builds a bucket collection" do
-      expect(metric.handle_result('value' => :foo)).to eq :foo
+      expect(node.handle_result('value' => :foo)).to eq :foo
     end
   end
 end

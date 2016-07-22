@@ -4,12 +4,6 @@ module Elastic::Nodes
 
     MATCH_MODES = [:boolean, :phrase, :phrase_prefix]
 
-    clone_and_simplify_with do |clone|
-      clone.field = @field
-      clone.query = @query
-      clone.mode = @mode
-    end
-
     attr_accessor :field, :query
     attr_reader :mode
 
@@ -24,11 +18,28 @@ module Elastic::Nodes
       @mode = _value
     end
 
+    def clone
+      prepare_clone(super)
+    end
+
+    def simplify
+      prepare_clone(super)
+    end
+
     def render
       query_options = { 'query' => @query }
       query_options['type'] = @mode.to_s unless @mode.nil? || @mode == :boolean
 
       { "match" => { @field.to_s => render_boost(query_options) } }
+    end
+
+    private
+
+    def prepare_clone(_clone)
+      _clone.field = @field
+      _clone.query = @query
+      _clone.mode = @mode
+      _clone
     end
   end
 end

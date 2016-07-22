@@ -1,34 +1,48 @@
 require 'spec_helper'
 
 describe Elastic::Nodes::Range do
-  def build_range(_field, _options = {})
-    described_class.new.tap do |node|
-      node.field = _field
-      [:gte, :gt, :lte, :lt].each do |opt|
-        node.send("#{opt}=", _options[opt]) if _options.key? opt
-      end
-      node.boost = _options[:boost]
+  let(:node) { described_class.new }
+
+  before { node.field = :foo }
+
+  describe "render" do
+    it "renders correctly when gt and lt are set" do
+      node.gt = 20
+      node.lt = 30
+
+      expect(node.render).to eq('range' => { 'foo' => { 'gt' => 20, 'lt' => 30 } })
+    end
+
+    it "renders correctly when gte and lte are set" do
+      node.gte = 20
+      node.lte = 30
+
+      expect(node.render).to eq('range' => { 'foo' => { 'gte' => 20, 'lte' => 30 } })
+    end
+
+    it "renders correctly when boost is set" do
+      node.gt = 20
+      node.boost = 2.0
+
+      expect(node.render).to eq('range' => { 'foo' => { 'gt' => 20, 'boost' => 2.0 } })
     end
   end
 
-  let(:node_a) { build_range(:foo, gte: 20, lt: 30) }
-  let(:node_b) { build_range(:bar, gt: 20, lte: 30) }
-  let(:node_b_boost) { build_range(:bar, gt: 20, lte: 30, boost: 20.0) }
+  describe "clone" do
+    it "copies every property" do
+      node.gt = 1
+      node.gte = 2
+      node.lt = 3
+      node.lte = 4
+      node.boost = 2.0
 
-  describe "render" do
-    it "renders correctly" do
-      expect(node_a.render)
-        .to eq({ 'range' => { 'foo' => { 'gte' => 20, 'lt' => 30 } } })
-    end
-
-    it "renders correctly" do
-      expect(node_b.render)
-        .to eq({ 'range' => { 'bar' => { 'gt' => 20, 'lte' => 30 } } })
-    end
-
-    it "renders correctly" do
-      expect(node_b_boost.render)
-        .to eq({ 'range' => { 'bar' => { 'gt' => 20, 'lte' => 30, 'boost' => 20.0 } } })
+      expect(node.clone).not_to be node
+      expect(node.clone.field).to eq node.field
+      expect(node.clone.gt).to eq node.gt
+      expect(node.clone.gte).to eq node.gte
+      expect(node.clone.lt).to eq node.lt
+      expect(node.clone.lte).to eq node.lte
+      expect(node.clone.boost).to eq node.boost
     end
   end
 end

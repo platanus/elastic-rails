@@ -1,38 +1,47 @@
 require 'spec_helper'
 
 describe Elastic::Nodes::Term do
-  def build_term(_field, _terms, _boost = nil)
-    described_class.new.tap do |node|
-      node.field = _field
-      node.terms = _terms
-      node.boost = _boost unless _boost.nil?
+  let(:node) { described_class.new }
+
+  before { node.field = :foo }
+
+  describe "clone" do
+    it "copies every property" do
+      node.terms = ['foo']
+      node.boost = 2.0
+
+      expect(node.clone).not_to be node
+      expect(node.clone.field).to eq node.field
+      expect(node.clone.terms.to_a).to eq node.terms.to_a
+      expect(node.clone.boost).to eq node.boost
     end
   end
 
-  let(:node_single) { build_term(:foo, ['foo']) }
-  let(:node_boost) { build_term(:foo, ['foo'], 2.0) }
-  let(:node_multiple) { build_term(:foo, ['foo', 'bar']) }
-  let(:node_boost_multi) { build_term(:foo, ['foo', 'bar'], 2.0) }
-
   describe "render" do
-    it "renders correctly" do
-      expect(node_single.render)
-      .to eq({ 'term' => { 'foo' => { 'value' => 'foo' } } })
+    it "renders correctly when single term is set" do
+      node.terms = ['foo']
+
+      expect(node.render).to eq('term' => { 'foo' => { 'value' => 'foo' } })
     end
 
-    it "renders correctly" do
-      expect(node_boost.render)
-        .to eq({ 'term' => { 'foo' => { 'value' => 'foo', 'boost' => 2.0 } } })
+    it "renders correctly when boost is set" do
+      node.terms = ['foo']
+      node.boost = 2.0
+
+      expect(node.render).to eq('term' => { 'foo' => { 'value' => 'foo', 'boost' => 2.0 } })
     end
 
-    it "renders correctly" do
-      expect(node_multiple.render)
-        .to eq({ 'terms' => { 'foo' => ['foo', 'bar'] } })
+    it "renders correctly when multiple terms are set" do
+      node.terms = ['foo', 'bar']
+
+      expect(node.render).to eq('terms' => { 'foo' => ['foo', 'bar'] })
     end
 
-    it "renders correctly" do
-      expect(node_boost_multi.render)
-        .to eq({ 'terms' => { 'foo' => ['foo', 'bar'], 'boost' => 2.0 } })
+    it "renders correctly when multiple terms and boost is set" do
+      node.terms = ['foo', 'bar']
+      node.boost = 2.0
+
+      expect(node.render).to eq('terms' => { 'foo' => ['foo', 'bar'], 'boost' => 2.0 })
     end
   end
 end

@@ -10,7 +10,11 @@ module Elastic::Nodes
     attr_accessor :path, :child
 
     def clone
-      clone_with_child @child.clone
+      prepare_clone super, @child.clone
+    end
+
+    def simplify
+      prepare_clone super, @child.simplify
     end
 
     def render
@@ -22,17 +26,12 @@ module Elastic::Nodes
       }
     end
 
-    def simplify
-      clone_with_child @child.simplify
-    end
-
     private
 
-    def clone_with_child(_child)
-      base_clone.tap do |clone|
-        clone.path = @path
-        clone.child = _child
-      end
+    def prepare_clone(_clone, _child)
+      _clone.path = @path
+      _clone.child = _child
+      _clone
     end
   end
 end

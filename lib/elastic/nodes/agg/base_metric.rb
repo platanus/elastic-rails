@@ -10,10 +10,11 @@ module Elastic::Nodes::Agg
     attr_accessor :field, :missing
 
     def clone
-      base_clone.tap do |clone|
-        clone.field = @field
-        clone.missing = @missing
-      end
+      prepare_clone super
+    end
+
+    def simplify
+      prepare_clone super
     end
 
     def render
@@ -23,10 +24,6 @@ module Elastic::Nodes::Agg
       { metric => options }
     end
 
-    def simplify
-      clone
-    end
-
     def handle_result(_raw)
       _raw['value']
     end
@@ -34,6 +31,12 @@ module Elastic::Nodes::Agg
     private
 
     def metric
+    end
+
+    def prepare_clone(_clone)
+      _clone.field = @field
+      _clone.missing = @missing
+      _clone
     end
   end
 end

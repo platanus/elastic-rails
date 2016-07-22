@@ -1,10 +1,5 @@
 module Elastic::Nodes
   module Aggregable
-    def self.included(_klass)
-      _klass.clone_with { |c| c.aggs = Hash[aggs.map { |k, v| [k, v.clone] }] }
-      _klass.simplify_with { |c| c.aggs = Hash[aggs.map { |k, v| [k, v.simplify] }] }
-    end
-
     def has_aggs?
       aggs.count > 0
     end
@@ -15,6 +10,18 @@ module Elastic::Nodes
 
     def aggregate(_name, _node)
       aggs[_name.to_s] = _node
+    end
+
+    def clone
+      node = super
+      node.aggs = Hash[aggs.map { |k, v| [k, v.clone] }]
+      node
+    end
+
+    def simplify
+      node = super
+      node.aggs = Hash[aggs.map { |k, v| [k, v.simplify] }]
+      node
     end
 
     private
