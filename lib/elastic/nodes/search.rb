@@ -12,16 +12,16 @@ module Elastic::Nodes
       super
       @size = size || Elastic::Configuration.page_size
       @offset = offset
-      @fields = nil
+      @source = nil
     end
 
-    def fields
-      return nil if @fields.nil?
-      @fields.each
+    def source
+      return nil if @source.nil?
+      @source.each
     end
 
-    def fields=(_values)
-      @fields = _values.nil? ? nil : _values.dup.to_a
+    def source=(_values)
+      @source = _values.nil? ? nil : _values.dup.to_a
     end
 
     def render
@@ -29,7 +29,7 @@ module Elastic::Nodes
         "size" => @size,
         "query" => @query.render
       }.tap do |options|
-        options["_source"] = @fields unless @fields.nil?
+        options["_source"] = @source unless @source.nil?
         options["from"] = @offset unless offset == 0
         render_aggs(options)
       end
@@ -56,7 +56,7 @@ module Elastic::Nodes
       _clone.query = _query
       _clone.size = @size
       _clone.offset = @offset
-      _clone.fields = @fields
+      _clone.source = @source
     end
   end
 end
