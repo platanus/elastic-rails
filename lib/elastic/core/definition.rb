@@ -19,6 +19,10 @@ module Elastic::Core
       targets.map(&:type_name)
     end
 
+    def mode
+      main_target.mode
+    end
+
     def initialize()
       @targets = []
       @field_map = {}
