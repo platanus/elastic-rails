@@ -12,6 +12,11 @@ module Elastic::Nodes
       @children = _value.dup.to_a
     end
 
+    def traverse(&_block)
+      super
+      @children.each { |c| c.traverse(&_block) }
+    end
+
     def clone
       prepare_clone super, @children.map(&:clone)
     end

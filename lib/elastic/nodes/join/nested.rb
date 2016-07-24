@@ -9,6 +9,11 @@ module Elastic::Nodes
 
     attr_accessor :path, :child
 
+    def traverse(&_block)
+      super
+      @child.traverse(&_block)
+    end
+
     def clone
       prepare_clone super, @child.clone
     end

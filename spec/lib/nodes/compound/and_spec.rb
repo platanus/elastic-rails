@@ -23,6 +23,13 @@ describe Elastic::Nodes::And do
     it { expect(node_single.simplify.render).to eq(child_a.render) }
   end
 
+  describe "traversable" do
+    it "traverses through query and aggregation nodes" do
+      expect(node.pick.to_a.size).to eq(3)
+      expect(node_single.pick.to_a.size).to eq(2)
+    end
+  end
+
   context "when child nodes are nested queries" do
     let(:nested_a1) { Elastic::Nodes::Nested.build 'nested_a', child_a }
     let(:nested_a2) { Elastic::Nodes::Nested.build 'nested_a', child_b }

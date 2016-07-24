@@ -34,6 +34,12 @@ module Elastic::Nodes
       @shoulds.each
     end
 
+    def traverse(&_block)
+      super
+      @shoulds.each { |c| c.traverse(&_block) }
+      @musts.each { |c| c.traverse(&_block) }
+    end
+
     def render
       options = {}.tap do |boolean|
         boolean['must'] = @musts.map(&:render) if !@musts.empty?

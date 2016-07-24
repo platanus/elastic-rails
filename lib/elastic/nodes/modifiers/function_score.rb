@@ -49,6 +49,11 @@ module Elastic::Nodes
       raise NotImplementedError, 'decay function not implemented'
     end
 
+    def traverse(&_block)
+      super
+      @query.traverse(&_block)
+    end
+
     def render
       function_score = { 'query' => @query.render }
       function_score['boost_mode'] = @boost_mode.to_s if @boost_mode && @boost_mode != :multiply

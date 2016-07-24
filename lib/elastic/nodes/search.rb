@@ -24,6 +24,11 @@ module Elastic::Nodes
       @source = _values.nil? ? nil : _values.dup.to_a
     end
 
+    def traverse(&_block)
+      super
+      @query.traverse(&_block)
+    end
+
     def render
       {
         "size" => @size,

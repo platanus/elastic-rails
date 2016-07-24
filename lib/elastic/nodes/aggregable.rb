@@ -12,6 +12,11 @@ module Elastic::Nodes
       aggs[_name.to_s] = _node
     end
 
+    def traverse(&_block)
+      super
+      aggs.each_value { |a| a.traverse(&_block) }
+    end
+
     def clone
       node = super
       node.aggs = Hash[aggs.map { |k, v| [k, v.clone] }]

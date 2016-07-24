@@ -1,7 +1,11 @@
 require 'spec_helper'
 
 describe Elastic::Nodes::Search do
-  let(:node) { described_class.build(build_node('qux')) }
+  let(:node) do
+    described_class.build(build_node('qux')).tap do |node|
+      node.aggregate 'baz', build_node('baz')
+    end
+  end
 
   let(:result) do
     {
@@ -15,6 +19,13 @@ describe Elastic::Nodes::Search do
         'bar' => :bar
       }
     }
+  end
+
+  describe "traversable" do
+    it "traverses through query and aggregation nodes" do
+      expect(node.pick.to_a.size).to eq(3)
+      expect(node.pick(Elastic::Nodes::Search).to_a.size).to eq(1)
+    end
   end
 
   describe "handle_result" do
