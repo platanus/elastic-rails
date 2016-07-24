@@ -27,3 +27,5 @@ module Elastic::Nodes
     end
   end
 end
+
+require "elastic/nodes/concerns/hit_provider"

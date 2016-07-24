@@ -1,33 +1,17 @@
 module Elastic::Nodes
   class Search < Base
     include Aggregable
+    include Concerns::HitProvider
 
-    attr_accessor :query, :size, :offset
+    attr_accessor :query, :offset
 
     def self.build(_query)
       new.tap { |n| n.query = _query }
     end
 
     def initialize
-      super
-      @size = size || Elastic::Configuration.page_size
-      @offset = offset
-      @source = nil
-    end
-
-    def source
-      @source
-    end
-
-    def source=(_values)
-      case _values
-      when nil, false
-        @source = _values
-      when Array, Enumerable
-        @source = _values.dup.to_a
-      else
-        raise ArgumentError, 'invalid query source value'
-      end
+      @size = Elastic::Configuration.page_size
+      @offset = 0
     end
 
     def traverse(&_block)
@@ -36,12 +20,9 @@ module Elastic::Nodes
     end
 
     def render
-      {
-        "size" => @size,
-        "query" => @query.render
-      }.tap do |options|
-        options["_source"] = @source unless @source.nil?
+      { "query" => @query.render }.tap do |options|
         options["from"] = @offset unless offset == 0
+        render_hit_options(options)
         render_aggs(options)
       end
     end
@@ -65,9 +46,7 @@ module Elastic::Nodes
 
     def prepare_clone(_clone, _query)
       _clone.query = _query
-      _clone.size = @size
       _clone.offset = @offset
-      _clone.source = @source
     end
   end
 end

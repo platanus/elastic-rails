@@ -6,11 +6,6 @@ module Elastic::Nodes::Shims
       @child = _child
     end
 
-    def traverse(&_block)
-      super
-      @child.traverse(&_block)
-    end
-
     def render
       disable_hits_source if populate_by_id?
       @child.render
@@ -25,7 +20,7 @@ module Elastic::Nodes::Shims
     private
 
     def disable_hits_source
-      @child.pick(Elastic::Nodes::Search) do |node|
+      @child.pick(Elastic::Nodes::Concerns::HitProvider) do |node|
         node.source = false
       end
     end

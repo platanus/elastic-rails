@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Elastic::Nodes::Agg::TopHits do
+describe Elastic::Nodes::TopHits do
   let(:node) { described_class.new }
 
   let(:raw_result) do
