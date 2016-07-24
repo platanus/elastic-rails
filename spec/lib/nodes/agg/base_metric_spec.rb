@@ -34,8 +34,9 @@ describe Elastic::Nodes::Agg::BaseMetric do
   end
 
   describe "handle_result" do
-    it "builds a bucket collection" do
-      expect(node.handle_result('value' => :foo)).to eq :foo
+    it "builds a metric" do
+      expect(node.handle_result('value' => :foo)).to be_a Elastic::Results::Metric
+      expect(node.handle_result('value' => :foo).value).to eq :foo
     end
   end
 end

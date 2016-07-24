@@ -11,6 +11,11 @@ module Elastic::Results
       @aggs[_key.to_s].try(:as_value)
     end
 
+    def as_value
+      # TODO: return aggregation value if configured as single bucket
+      self
+    end
+
     def traverse(&_block)
       super
       @aggs.each_value { |a| a.traverse(&_block) }

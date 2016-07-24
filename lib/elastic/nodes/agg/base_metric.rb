@@ -25,7 +25,7 @@ module Elastic::Nodes::Agg
     end
 
     def handle_result(_raw)
-      _raw['value']
+      Elastic::Results::Metric.new _raw['value']
     end
 
     private

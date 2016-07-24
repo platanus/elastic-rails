@@ -13,6 +13,7 @@ require "elastic/commands/build_query_from_params"
 require "elastic/results/base"
 require "elastic/results/root"
 require "elastic/results/hit"
+require "elastic/results/metric"
 require "elastic/results/bucket_collection"
 require "elastic/results/bucket"
 

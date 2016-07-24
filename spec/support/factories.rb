@@ -85,7 +85,7 @@ RSpec.configure do |config|
       end
 
       def handle_result(_raw)
-        _raw
+        Elastic::Results::Metric.new _raw
       end
     end.new(_string, _boost)
   end
