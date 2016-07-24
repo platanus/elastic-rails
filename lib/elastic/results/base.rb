@@ -1,13 +1,9 @@
 module Elastic::Results
   class Base
-    def each_hit(&_block)
-      # nothing by default
-    end
+    include Elastic::Support::Traversable
 
-    def all_hits
-      Enumerator.new do |y|
-        each_hit { |h| y << h }
-      end
+    def traverse(&_block)
+      _block.call(self)
     end
   end
 end

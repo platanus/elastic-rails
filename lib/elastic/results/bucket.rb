@@ -8,11 +8,12 @@ module Elastic::Results
     end
 
     def [](_key)
-      @aggs[_key.to_s]
+      @aggs[_key.to_s].try(:as_value)
     end
 
-    def each_hit(&_block)
-      @aggs.each_value { |a| a.each_hit(&_block) if a.is_a? Base }
+    def traverse(&_block)
+      super
+      @aggs.each_value { |a| a.traverse(&_block) }
     end
   end
 end

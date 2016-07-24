@@ -5,15 +5,16 @@ require "elastic/configuration"
 
 require "elastic/support/command"
 require "elastic/support/transform"
+require "elastic/support/traversable"
 
 require "elastic/commands/import_index_documents"
 require "elastic/commands/build_query_from_params"
 
 require "elastic/results/base"
-require "elastic/results/bucket"
-require "elastic/results/bucket_collection"
-require "elastic/results/hit"
 require "elastic/results/root"
+require "elastic/results/hit"
+require "elastic/results/bucket_collection"
+require "elastic/results/bucket"
 
 require "elastic/nodes/base"
 require "elastic/nodes/boostable"

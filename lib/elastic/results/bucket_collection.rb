@@ -9,8 +9,9 @@ module Elastic::Results
       @buckets = _buckets
     end
 
-    def each_hit(&_block)
-      @buckets.each { |b| b.each_hit(&_block) }
+    def traverse(&_block)
+      super
+      @buckets.each { |b| b.traverse(&_block) }
     end
   end
 end
