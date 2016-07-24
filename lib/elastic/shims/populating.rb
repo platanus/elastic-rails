@@ -1,4 +1,4 @@
-module Elastic::Nodes::Shims
+module Elastic::Shims
   class Populating
     def initialize(_index, _config, _child)
       @index = _index

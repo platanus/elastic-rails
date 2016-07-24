@@ -1,4 +1,4 @@
-module Elastic::Nodes::Shims
+module Elastic::Shims
   class Grouping
     def initialize(_child)
       @child = _child

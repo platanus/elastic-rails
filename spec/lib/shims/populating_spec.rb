@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Elastic::Nodes::Shims::Populating do
+describe Elastic::Shims::Populating do
   let(:foo_type) { build_type('FooType', :id, :foo, :bar, :tags) }
 
   let(:index) do

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Elastic::Nodes::Shims::Grouping do
+describe Elastic::Shims::Grouping do
   let(:child) { build_node('child') }
   let(:result) do
     level_2_a = Elastic::Results::BucketCollection.new(

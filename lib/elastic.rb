@@ -42,8 +42,9 @@ require "elastic/nodes/agg/sum"
 require "elastic/nodes/agg/terms"
 require "elastic/nodes/agg/date_histogram"
 require "elastic/nodes/agg/top_hits"
-require "elastic/nodes/shims/populating"
-require "elastic/nodes/shims/grouping"
+
+require "elastic/shims/populating"
+require "elastic/shims/grouping"
 
 require "elastic/fields/value"
 require "elastic/fields/nested"
