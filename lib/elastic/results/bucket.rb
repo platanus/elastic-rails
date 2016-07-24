@@ -11,6 +11,10 @@ module Elastic::Results
       @aggs[_key.to_s].try(:as_value)
     end
 
+    def aggs
+      @aggs.each
+    end
+
     def as_value
       # TODO: return aggregation value if configured as single bucket
       self

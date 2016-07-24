@@ -14,6 +14,10 @@ module Elastic::Results
       @aggs[_key.to_s].try(:as_value)
     end
 
+    def aggs
+      @aggs.each
+    end
+
     def traverse(&_block)
       super
       @hits.each { |h| h.traverse(&_block) }
