@@ -16,12 +16,18 @@ module Elastic::Nodes
     end
 
     def source
-      return nil if @source.nil?
-      @source.each
+      @source
     end
 
     def source=(_values)
-      @source = _values.nil? ? nil : _values.dup.to_a
+      case _values
+      when nil, false
+        @source = _values
+      when Array, Enumerable
+        @source = _values.dup.to_a
+      else
+        raise ArgumentError, 'invalid query source value'
+      end
     end
 
     def traverse(&_block)

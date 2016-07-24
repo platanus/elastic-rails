@@ -21,6 +21,14 @@ describe Elastic::Nodes::Search do
     }
   end
 
+  describe "source" do
+    it "fails if invalid values are set" do
+      expect { node.source = false }.not_to raise_error
+      expect { node.source = [] }.not_to raise_error
+      expect { node.source = :foo }.to raise_error(ArgumentError)
+    end
+  end
+
   describe "traversable" do
     it "traverses through query and aggregation nodes" do
       expect(node.pick.to_a.size).to eq(3)
