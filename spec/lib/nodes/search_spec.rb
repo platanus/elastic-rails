@@ -43,7 +43,7 @@ describe Elastic::Nodes::Search do
 
     it "correctly parses each hit" do
       expect(node.handle_result(result).count).to eq(2)
-      expect(node.handle_result(result).first.id).to eq(1)
+      expect(node.handle_result(result).each_hit.first.id).to eq(1)
     end
   end
 
@@ -52,7 +52,7 @@ describe Elastic::Nodes::Search do
 
     describe "handle_result" do
       it "correctly parses each aggregations" do
-        expect(node.handle_result(result)[:bar]).to eq :bar
+        expect(node.handle_result(result).aggregations[:bar]).to eq :bar
       end
     end
   end

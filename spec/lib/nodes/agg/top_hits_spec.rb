@@ -29,7 +29,7 @@ describe Elastic::Nodes::TopHits do
     it "builds a hit collection" do
       expect(node.handle_result(raw_result)).to be_a Elastic::Results::HitCollection
       expect(node.handle_result(raw_result).count).to eq 2
-      expect(node.handle_result(raw_result).first.id).to eq 1
+      expect(node.handle_result(raw_result).each_hit.first.id).to eq 1
     end
   end
 end
