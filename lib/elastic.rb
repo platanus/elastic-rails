@@ -21,6 +21,7 @@ require "elastic/results/grouped_result"
 require "elastic/results/grouped_bucket"
 
 require "elastic/nodes/base"
+require "elastic/nodes/base_agg"
 require "elastic/nodes/boostable"
 require "elastic/nodes/aggregable"
 require "elastic/nodes/bucketed"

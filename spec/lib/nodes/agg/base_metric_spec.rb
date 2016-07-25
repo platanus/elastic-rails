@@ -9,7 +9,7 @@ describe Elastic::Nodes::Agg::BaseMetric do
     end
   end
 
-  let(:node) { metric_class.build('bar') }
+  let(:node) { metric_class.build('bar', 'bar') }
 
   describe "clone" do
     it "copies every property" do

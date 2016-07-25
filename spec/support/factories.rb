@@ -63,17 +63,16 @@ RSpec.configure do |config|
     klass
   end
 
-  def build_node(_string, _boost = nil)
-    Class.new(Elastic::Nodes::Base) do
+  def build_node(_query, base: nil)
+    Class.new(base || Elastic::Nodes::Base) do
       include Elastic::Nodes::Boostable
 
-      def initialize(_query, _boost)
+      def initialize(_query)
         @query = _query
-        self.boost = _boost
       end
 
       def clone
-        self.class.new @query, boost
+        self.class.new @query
       end
 
       def render
@@ -87,6 +86,12 @@ RSpec.configure do |config|
       def handle_result(_raw)
         Elastic::Results::Metric.new _raw
       end
-    end.new(_string, _boost)
+    end.new(_query)
+  end
+
+  def build_agg_node(_name, _query)
+    node = build_node(_query, base: Elastic::Nodes::BaseAgg)
+    node.name = _name
+    node
   end
 end

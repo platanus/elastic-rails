@@ -1,10 +1,10 @@
 module Elastic::Nodes::Agg
-  class Terms < Elastic::Nodes::Base
+  class Terms < Elastic::Nodes::BaseAgg
     include Elastic::Nodes::Aggregable
     include Elastic::Nodes::Bucketed
 
-    def self.build(_field, size: nil)
-      new.tap do |node|
+    def self.build(_name, _field, size: nil)
+      super(_name).tap do |node|
         node.field = _field
         node.size = size
       end

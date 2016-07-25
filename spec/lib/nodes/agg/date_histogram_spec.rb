@@ -36,7 +36,7 @@ describe Elastic::Nodes::Agg::DateHistogram do
 
   context "node has some registered aggregations" do
     before do
-      histogram.aggregate('bar', build_node('qux'))
+      histogram.aggregate build_agg_node('bar', 'qux')
     end
 
     describe "render" do

@@ -1,7 +1,7 @@
 module Elastic::Nodes::Agg
-  class BaseMetric < Elastic::Nodes::Base
-    def self.build(_field, missing: nil)
-      new.tap do |node|
+  class BaseMetric < Elastic::Nodes::BaseAgg
+    def self.build(_name, _field, missing: nil)
+      super(_name).tap do |node|
         node.field = _field
         node.missing = missing
       end

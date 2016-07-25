@@ -1,10 +1,10 @@
 module Elastic::Nodes::Agg
-  class DateHistogram < Elastic::Nodes::Base
+  class DateHistogram < Elastic::Nodes::BaseAgg
     include Elastic::Nodes::Aggregable
     include Elastic::Nodes::Bucketed
 
-    def self.build(_field, interval: nil)
-      new.tap do |node|
+    def self.build(_name, _field, interval: nil)
+      super(_name).tap do |node|
         node.field = _field
         node.interval = interval
       end

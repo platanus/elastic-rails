@@ -26,7 +26,7 @@ describe Elastic::Nodes::Agg::Terms do
 
   context "node has some registered aggregations" do
     before do
-      node.aggregate('bar', build_node('qux'))
+      node.aggregate build_agg_node('bar', 'qux')
     end
 
     describe "render" do

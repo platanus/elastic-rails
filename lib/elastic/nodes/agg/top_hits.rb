@@ -1,5 +1,5 @@
 module Elastic::Nodes
-  class TopHits < Base
+  class TopHits < BaseAgg
     include Concerns::HitProvider
 
     def render

@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Elastic::Nodes::Search do
   let(:node) do
     described_class.build(build_node('qux')).tap do |node|
-      node.aggregate 'baz', build_node('baz')
+      node.aggregate build_agg_node('baz', 'baz')
     end
   end
 
@@ -48,7 +48,7 @@ describe Elastic::Nodes::Search do
   end
 
   context "node has some aggregations" do
-    before { node.aggregate(:bar, build_node('bar')) }
+    before { node.aggregate(build_agg_node(:bar, 'bar')) }
 
     describe "handle_result" do
       it "correctly parses each aggregations" do

@@ -8,42 +8,43 @@ module Elastic::Nodes
       @aggs = _aggs.dup
     end
 
-    def aggregate(_name, _node)
-      aggs[_name.to_s] = _node
+    def aggregate(_node)
+      raise ArgumentError, 'node must provide a name' unless _node.name
+      aggs << _node
     end
 
     def traverse(&_block)
       super
-      aggs.each_value { |a| a.traverse(&_block) }
+      aggs.each { |a| a.traverse(&_block) }
     end
 
     def clone
       node = super
-      node.aggs = Hash[aggs.map { |k, v| [k, v.clone] }]
+      node.aggs = aggs.map(&:clone)
       node
     end
 
     def simplify
       node = super
-      node.aggs = Hash[aggs.map { |k, v| [k, v.simplify] }]
+      node.aggs = aggs.map(&:simplify)
       node
     end
 
     private
 
     def aggs
-      @aggs ||= {}
+      @aggs ||= []
     end
 
     def render_aggs(_into)
-      _into['aggs'] = Hash[aggs.map { |k, v| [k, v.render] }] if has_aggs?
+      _into['aggs'] = Hash[aggs.map { |a| [a.name, a.render] }] if has_aggs?
       _into
     end
 
     def load_aggs_results(_raw)
       {}.tap do |result|
-        aggs.each do |name, node|
-          result[name] = node.handle_result(_raw[name])
+        aggs.each do |node|
+          result[node.name] = node.handle_result(_raw[node.name])
         end
       end
     end
