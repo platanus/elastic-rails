@@ -68,8 +68,15 @@ module Elastic::Nodes
       { 'function_score' => render_boost(function_score) }
     end
 
+    alias :super_clone :clone
+    private :super_clone
+
     def clone
       prepare_clone super, @query.clone
+    end
+
+    def clone_with_query(_query)
+      prepare_clone super_clone, _query
     end
 
     def simplify

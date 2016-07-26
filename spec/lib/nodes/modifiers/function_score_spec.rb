@@ -26,6 +26,18 @@ describe Elastic::Nodes::FunctionScore do
     end
   end
 
+  describe "clone_with_query" do
+    it "returns a new node with the given query" do
+      other_query = build_node 'bar'
+      node.score_mode = :multiply
+      new_node = node.clone_with_query(other_query)
+
+      expect(node.score_mode).to eq new_node.score_mode
+      expect(node.query).not_to eq new_node.query
+      expect(new_node.query).to eq other_query
+    end
+  end
+
   context "a boost has been set" do
     before { node.boost = 2.0 }
 
