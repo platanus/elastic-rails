@@ -3,6 +3,13 @@ module Elastic
     extend Types::FacetedType
     extend Types::NestableType
 
+    class << self
+      extend Forwardable
+
+      def_delegators :query, :must, :should, :segment, :stats, :maximum, :minimum, :sum, :average,
+        :coord_similarity, :limit, :offset, :pluck, :ids, :total
+    end
+
     def self.suffix
       @suffix || default_suffix
     end
