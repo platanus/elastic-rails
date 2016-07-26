@@ -5,7 +5,7 @@ module Elastic::Nodes
     end
 
     def aggs=(_aggs)
-      @aggs = _aggs.dup
+      @aggs = _aggs.dup.to_a
     end
 
     def aggregate(_node)
