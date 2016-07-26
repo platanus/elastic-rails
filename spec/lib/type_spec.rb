@@ -99,5 +99,11 @@ describe Elastic::Type do
         expect { root_index.import(objects) }.to change { root_index.adaptor.refresh.count }.by 2
       end
     end
+
+    describe "drop" do
+      it "deletes the index" do
+        expect { root_index.drop }.to change { root_index.adaptor.exists? }.to false
+      end
+    end
   end
 end

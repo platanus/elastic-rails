@@ -20,17 +20,18 @@ module Elastic
     end
 
     def self.reindex
-      adaptor.drop if adaptor.exists?
-
+      drop
       mapping.migrate
       Commands::ImportIndexDocuments.for index: self
       ensure_full_mapping
+      self
     end
 
     def self.import(_collection)
       enforce_mapping!
       Commands::ImportIndexDocuments.for index: self, collection: _collection
       ensure_full_mapping
+      self
     end
 
     def self.index(_object)
@@ -43,13 +44,14 @@ module Elastic
       Query.new self
     end
 
-    def self.clear
-      enforce_mapping!
-      adaptor.clear
+    def self.drop
+      adaptor.drop if adaptor.exists?
+      self
     end
 
     def self.refresh
       adaptor.refresh
+      self
     end
 
     def self.enforce_mapping!

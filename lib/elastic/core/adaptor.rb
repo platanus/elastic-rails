@@ -89,15 +89,6 @@ module Elastic::Core
       api_client.search build_options(type: type, body: query)
     end
 
-    def clear(_query = nil)
-      if _query.nil?
-        return unless exists?
-        api_client.delete_by_query build_options(body: { "match_all" => {} })
-      else
-        api_client.delete_by_query build_options(body: _query)
-      end
-    end
-
     private
 
     def api_client
