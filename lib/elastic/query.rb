@@ -3,58 +3,99 @@ module Elastic
     extend Forwardable
     include Enumerable
     include Dsl::BoolQueryBuilder
+    include Dsl::MetricBuilder
 
-    def_delegators :result, :ids, :pluck, :count, :[], :each, :each_with_score, :find_each,
-      :as_es_query
+    def_delegators :result, :[], :each, :each_with_score, :count, :first, :last
 
-    attr_reader :index, :root
+    attr_reader :index
 
-    def initialize(_index, _root = nil, _extended_options = nil)
+    def initialize(_index, _query_config = nil)
       @index = _index
-      @root = _root || build_base_query
-      @extended_options = _extended_options || HashWithIndifferentAccess.new
+      @config = _query_config || build_base_config
     end
 
     def coord_similarity(_enable)
-      with_clone { root.query.disable_coord = !_enable }
+      with_clone { |config| config.root.query.disable_coord = !_enable }
     end
 
     def limit(_size)
-      with_clone { root.page_size = _size }
+      with_clone { |config| config.limit = _size }
     end
     alias :size :limit
 
     def offset(_offset)
-      with_clone { root.offset = _offset }
+      with_clone { |config| config.offset = _offset }
+    end
+
+    def segment(*_params)
+      with_clone do |config|
+        config.groups << Commands::BuildAggFromParams.for(index: index, params: _params)
+      end
+    end
+
+    def ids(_type = nil)
+      execute assembler.assemble_ids
+    end
+
+    def pluck(_field)
+      execute assembler.assemble_pluck(_field.to_s)
+    end
+
+    def aggregate(_name = nil, _node = nil, &_block)
+      # TODO
+    end
+
+    def total
+      execute assembler.assemble_total
     end
 
     def result(_reset = false)
       @result = nil if _reset
-      @result ||= Core::Result.new(@index, @root.simplify.render, all_options)
+      @result ||= execute(assembler.assemble)
+    end
+
+    def as_es_query
+      assembler.assemble.render
     end
 
     private
 
-    attr_reader :extended_options
-
     def with_clone(&_block)
-      new_query = self.class.new(@index, @root.clone, extended_options.dup)
-      new_query.instance_exec(&_block)
-      new_query
+      new_config = @config.clone
+      _block.call(new_config)
+      self.class.new(@index, new_config)
     end
 
     def with_bool_query(&_block)
-      with_clone { _block.call(root.query) }
+      with_clone { |config| _block.call(config.root.query) }
     end
 
-    def all_options
-      @index.definition.extended_options.merge(extended_options).freeze
+    def with_aggregable_for_metric(&_block)
+      adaptor = AggregableAdaptor.new.tap(&_block)
+      execute assembler.assemble_metric(adaptor.agg)
     end
 
-    def build_base_query
-      bool_query = Nodes::Boolean.new
-      bool_query.disable_coord = true unless Configuration.coord_similarity
-      Nodes::Search.build bool_query
+    def build_base_config
+      Core::QueryConfig.initial_config
+    end
+
+    def assembler
+      @assembler ||= Core::QueryAssembler.new(@index, @config)
+    end
+
+    def execute(_query)
+      _query.handle_result @index.adaptor.query(
+        type: @index.definition.types,
+        query: _query.render
+      )
+    end
+
+    class AggregableAdaptor
+      attr_accessor :agg
+
+      def aggregate(_node)
+        self.agg = _node
+      end
     end
   end
 end

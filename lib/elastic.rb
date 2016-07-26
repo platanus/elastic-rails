@@ -48,6 +48,7 @@ require "elastic/nodes/agg/top_hits"
 
 require "elastic/shims/populating"
 require "elastic/shims/grouping"
+require "elastic/shims/reducing"
 
 require "elastic/fields/value"
 require "elastic/fields/nested"
@@ -61,15 +62,18 @@ require "elastic/core/base_middleware"
 require "elastic/core/default_middleware"
 require "elastic/core/source_formatter"
 require "elastic/core/query_config"
+require "elastic/core/query_assembler"
 
 require "elastic/dsl/bool_query_builder"
 require "elastic/dsl/bool_query_context"
+require "elastic/dsl/metric_builder"
 
 require "elastic/types/base_type"
 require "elastic/types/faceted_type"
 require "elastic/types/nestable_type"
 require "elastic/type"
 require "elastic/nested_type"
+require "elastic/query"
 
 module Elastic
   def self.configure(*_args)

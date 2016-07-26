@@ -1,8 +1,13 @@
 require 'spec_helper'
 
 describe Elastic::Query do
+  let(:root_type) { build_type('RootType', :id, :foo, :bar, :tags) }
+
+  let(:tag_type) { build_type('TagType', :name) }
+
   let(:root_index) do
-    build_index('RootIndex', migrate: true) do
+    build_index('RootIndex', target: root_type, migrate: true) do
+      field :id, type: :long
       field :foo, type: :string
       field :bar, type: :long
       nested :tags do
@@ -13,6 +18,7 @@ describe Elastic::Query do
 
   let(:query) { described_class.new(root_index) }
 
+  # TODO: put this spec in the bool_query_builder spec
   describe "should" do
     it "returns a new query" do
       expect(query.should(foo: 'teapot')).not_to be query
@@ -24,13 +30,16 @@ describe Elastic::Query do
 
     it "adds a new 'should' query element" do
       new_query = query.should(foo: 'teapot')
-      expect(new_query.root.query.shoulds.count).to eq(1)
-      expect(new_query.root.query.shoulds.first).to be_a Elastic::Nodes::Match
-      new_query = new_query.should(foo: 'teapot')
-      expect(new_query.root.query.shoulds.count).to eq(2)
+      expect(new_query.as_es_query).to eq(
+        "query" => {
+          "bool" => { "should" => [{ "match" => { "foo" => { "query" => "teapot" } } }] }
+        },
+        "size" => 20
+      )
     end
   end
 
+  # TODO: put this spec in the bool_query_builder spec
   describe "must" do
     it "returns a new query" do
       expect(query.must(foo: 'teapot')).not_to be query
@@ -38,13 +47,14 @@ describe Elastic::Query do
 
     it "adds a new must query element" do
       new_query = query.must(bar: 20)
-      expect(new_query.root.query.musts.count).to eq(1)
-      expect(new_query.root.query.musts.first).to be_a Elastic::Nodes::Term
-      new_query = new_query.must(foo: 'teapot')
-      expect(new_query.root.query.musts.count).to eq(2)
+      expect(new_query.as_es_query).to eq(
+        "query" => { "term" => { "bar" => { "value" => 20 } } },
+        "size" => 20
+      )
     end
   end
 
+  # TODO: put this spec in the bool_query_builder spec
   describe "boost" do
     it "returns a new query" do
       expect(query.boost(2.0) { must(bar: 20) }).not_to be query
@@ -52,15 +62,114 @@ describe Elastic::Query do
 
     it "adds the proper query element wrapped in a function score node" do
       new_query = query.boost(2.0) { must(bar: 20).should(foo: 'teapot') }
-      expect(new_query.root.query.musts.count).to eq(1)
-      expect(new_query.root.query.musts.first).to be_a Elastic::Nodes::FunctionScore
-      expect(new_query.root.query.musts.first.boost).to eq 2.0
-      expect(new_query.root.query.musts.first.query).to be_a Elastic::Nodes::Term
 
-      expect(new_query.root.query.shoulds.count).to eq(1)
-      expect(new_query.root.query.shoulds.first).to be_a Elastic::Nodes::FunctionScore
-      expect(new_query.root.query.shoulds.first.boost).to eq 2.0
-      expect(new_query.root.query.shoulds.first.query).to be_a Elastic::Nodes::Match
+      expect(new_query.as_es_query).to eq(
+        "query" => {
+          "bool" => {
+            "must" => [
+              { "term" => { "bar" => { "value" => 20, "boost" => 2.0 } } }
+            ],
+            "should" => [
+              { "match" => { "foo" => { "query" => "teapot", "boost" => 2.0 } } }
+            ]
+          }
+        },
+        "size" => 20
+      )
+    end
+  end
+
+  context "some documents have been added (integration)" do
+    before do
+      tag_1 = tag_type.new('baz_tag')
+      tag_2 = tag_type.new('qux_tag')
+      root_index.index root_type.new(1, 'foo', 30, [tag_1])
+      root_index.index root_type.new(2, 'bar', 20, [tag_2])
+      root_index.index root_type.new(3, 'foo bar', 20, [tag_1, tag_2])
+      root_index.refresh
+    end
+
+    describe "limit" do
+      it "limits returned results" do
+        enum = query.limit(1).each
+        expect(enum).to be_a Enumerator
+        expect(enum.to_a.length).to eq 1
+        expect(enum.to_a.first.id).to eq 1
+      end
+    end
+
+    describe "offset" do
+      it "offset returned results" do
+        enum = query.offset(1).each
+        expect(enum).to be_a Enumerator
+        expect(enum.to_a.length).to eq 2
+        expect(enum.to_a.first.id).to eq 2
+      end
+    end
+
+    describe "each" do
+      it "iterates over matching documents" do
+        enum = query.must(foo: 'foo').each
+        expect(enum).to be_a Enumerator
+        expect(enum.to_a.length).to eq 2
+        expect(enum.to_a.first.foo).to eq 'foo'
+        expect(enum.to_a.last.foo).to eq 'foo bar'
+      end
+    end
+
+    describe "[]" do
+      it "allow accessing results by index" do
+        results = query.must(foo: 'foo')
+        expect(results[0].foo).to eq 'foo'
+        expect(results[1].foo).to eq 'foo bar'
+      end
+    end
+
+    describe "each_with_score" do
+      it "iterates over matching documents and its scores" do
+        results = query
+                  .coord_similarity(false)
+                  .boost(2.0, fixed: true) { should('tags.name' => 'baz_tag') }
+                  .boost(3.0, fixed: true) { should('tags.name' => 'qux_tag') }
+
+        results = results.each_with_score.to_a
+
+        expect(results[0][1]).to eq 5.0
+        expect(results[0][0].foo).to eq 'foo bar'
+        expect(results[1][1]).to eq 3.0
+        expect(results[1][0].foo).to eq 'bar'
+        expect(results[2][1]).to eq 2.0
+        expect(results[2][0].foo).to eq 'foo'
+      end
+    end
+
+    describe "various metrics" do
+      it "returns the required metric" do
+        new_query = query.should('tags.name' => 'baz_tag')
+        expect(new_query.average(:bar)).to eq 25
+        expect(new_query.maximum(:bar)).to eq 30
+        expect(new_query.minimum(:bar)).to eq 20
+      end
+    end
+
+    describe "segment" do
+      it "separates results in groups" do
+        groups = query.segment(:bar)
+        expect(groups.count).to eq 2
+        expect(groups.result).to be_a Elastic::Results::GroupedResult
+
+        keys_1, hits_1 = groups.first
+        keys_2, hits_2 = groups.last
+
+        expect(keys_1[:bar]).to eq 20
+        expect(hits_1.count).to eq 2
+        expect(hits_1[0].id).to eq 2
+        expect(hits_1[1].id).to eq 3
+
+        expect(keys_2[:bar]).to eq 30
+        expect(hits_2.count).to eq 1
+        expect(hits_2[0].id).to eq 1
+      end
     end
   end
 end
