@@ -1,4 +1,4 @@
-module Elastic::Nodes
+module Elastic::Nodes::Concerns
   module Bucketed
     def handle_result(_raw)
       buckets = _raw['buckets'].map do |raw_bucket|

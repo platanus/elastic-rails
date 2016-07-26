@@ -1,6 +1,6 @@
 module Elastic::Nodes
   class Match < Base
-    include Boostable
+    include Concerns::Boostable
 
     MATCH_MODES = [:boolean, :phrase, :phrase_prefix]
 

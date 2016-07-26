@@ -1,4 +1,4 @@
-module Elastic::Nodes
+module Elastic::Nodes::Concerns
   module Aggregable
     def has_aggs?
       aggs.count > 0

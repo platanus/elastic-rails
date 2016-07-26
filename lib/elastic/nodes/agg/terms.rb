@@ -1,7 +1,7 @@
 module Elastic::Nodes::Agg
   class Terms < Elastic::Nodes::BaseAgg
-    include Elastic::Nodes::Aggregable
-    include Elastic::Nodes::Bucketed
+    include Elastic::Nodes::Concerns::Aggregable
+    include Elastic::Nodes::Concerns::Bucketed
 
     def self.build(_name, _field, size: nil)
       super(_name).tap do |node|

@@ -65,7 +65,7 @@ RSpec.configure do |config|
 
   def build_node(_query, base: nil)
     Class.new(base || Elastic::Nodes::Base) do
-      include Elastic::Nodes::Boostable
+      include Elastic::Nodes::Concerns::Boostable
 
       def initialize(_query)
         @query = _query

@@ -1,6 +1,6 @@
 module Elastic::Nodes
   class FunctionScore < Base
-    include Boostable
+    include Concerns::Boostable
 
     SCORE_MODES = [:multiply, :sum, :avg, :first, :max, :min]
     BOOST_MODES = [:multiply, :replace, :sum, :avg, :max, :min]
@@ -85,7 +85,7 @@ module Elastic::Nodes
       if @functions.empty?
         return new_query if boost.nil?
 
-        if new_query.class.include?(Boostable) && new_query.boost.nil?
+        if new_query.class.include?(Concerns::Boostable) && new_query.boost.nil?
           new_query.boost = boost
           return new_query
         end

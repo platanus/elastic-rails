@@ -29,3 +29,6 @@ module Elastic::Nodes
 end
 
 require "elastic/nodes/concerns/hit_provider"
+require "elastic/nodes/concerns/aggregable"
+require "elastic/nodes/concerns/bucketed"
+require "elastic/nodes/concerns/boostable"

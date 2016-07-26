@@ -1,6 +1,6 @@
 module Elastic::Nodes
   class Term < Base
-    include Boostable
+    include Concerns::Boostable
 
     attr_accessor :field
 

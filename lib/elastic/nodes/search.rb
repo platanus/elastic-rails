@@ -1,6 +1,6 @@
 module Elastic::Nodes
   class Search < Base
-    include Aggregable
+    include Concerns::Aggregable
     include Concerns::HitProvider
 
     attr_accessor :query, :offset

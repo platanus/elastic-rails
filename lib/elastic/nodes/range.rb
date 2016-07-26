@@ -1,6 +1,6 @@
 module Elastic::Nodes
   class Range < Base
-    include Boostable
+    include Concerns::Boostable
 
     attr_accessor :field, :gte, :gt, :lte, :lt
 

@@ -1,6 +1,6 @@
 module Elastic::Nodes
   class Boolean < Base
-    include Boostable
+    include Concerns::Boostable
 
     attr_accessor :minimum_should_match, :disable_coord
 

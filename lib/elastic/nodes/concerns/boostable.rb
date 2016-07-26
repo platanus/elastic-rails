@@ -1,4 +1,4 @@
-module Elastic::Nodes
+module Elastic::Nodes::Concerns
   module Boostable
     attr_accessor :boost
 
