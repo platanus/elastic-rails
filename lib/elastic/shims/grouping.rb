@@ -1,19 +1,8 @@
 module Elastic::Shims
-  class Grouping
-    def initialize(_child)
-      @child = _child
-    end
-
-    def render
-      @child.render
-    end
-
+  class Grouping < Base
     def handle_result(_raw)
-      result = @child.handle_result(_raw)
-
       groups = []
-      group_recursive(result.aggregations, HashWithIndifferentAccess.new, groups)
-
+      group_recursive(super.aggregations, HashWithIndifferentAccess.new, groups)
       Elastic::Results::GroupedResult.new groups
     end
 

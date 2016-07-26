@@ -46,6 +46,7 @@ require "elastic/nodes/agg/terms"
 require "elastic/nodes/agg/date_histogram"
 require "elastic/nodes/agg/top_hits"
 
+require "elastic/shims/base"
 require "elastic/shims/populating"
 require "elastic/shims/grouping"
 require "elastic/shims/reducing"

@@ -1,18 +1,18 @@
 module Elastic::Shims
-  class Populating
+  class Populating < Base
     def initialize(_index, _config, _child)
+      super _child
       @index = _index
       @config = _config
-      @child = _child
     end
 
     def render
       disable_hits_source if populate_by_id?
-      @child.render
+      super
     end
 
     def handle_result(_raw)
-      result = @child.handle_result(_raw)
+      result = super
       populate result
       result
     end
@@ -20,7 +20,7 @@ module Elastic::Shims
     private
 
     def disable_hits_source
-      @child.pick(Elastic::Nodes::Concerns::HitProvider) do |node|
+      child.pick(Elastic::Nodes::Concerns::HitProvider) do |node|
         node.source = false
       end
     end

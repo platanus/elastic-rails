@@ -1,15 +1,7 @@
 module Elastic::Shims
-  class Reducing
-    def initialize(_child)
-      @child = _child
-    end
-
-    def render
-      @child.render
-    end
-
+  class Reducing < Base
     def handle_result(_raw)
-      result = @child.handle_result(_raw)
+      result = super
 
       case result
       when Elastic::Results::Root
