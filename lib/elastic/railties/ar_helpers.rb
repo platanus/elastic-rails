@@ -25,7 +25,7 @@ module Elastic::Railties
     def infer_ar5_field_options(_klass, _field)
       return nil if _klass.method_defined? _field # occluded by method override
       meta = _klass.type_for_attribute _field
-      return nil if meta.to_s? == 'ActiveRecord::Type::Serialized' # occluded by serializer
+      return nil if meta.to_s == 'ActiveRecord::Type::Serialized' # occluded by serializer
       ar_type_to_options meta.type
     end
 
