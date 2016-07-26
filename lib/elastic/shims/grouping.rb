@@ -10,23 +10,25 @@ module Elastic::Shims
 
     def handle_result(_raw)
       result = @child.handle_result(_raw)
-      Elastic::Results::GroupedResult.new group_recursive(result.aggregations, {}, [])
+
+      groups = []
+      group_recursive(result.aggregations, HashWithIndifferentAccess.new, groups)
+
+      Elastic::Results::GroupedResult.new groups
     end
 
     private
 
-    def group_recursive(_agg_context, _keys, _result)
+    def group_recursive(_agg_context, _keys, _groups)
       name, agg = _agg_context.first
 
       if agg.is_a? Elastic::Results::BucketCollection
         agg.each do |bucket|
-          group_recursive(bucket, _keys.merge(name => bucket.key), _result)
+          group_recursive(bucket, _keys.merge(name => bucket.key), _groups)
         end
       else
-        _result << Elastic::Results::GroupedBucket.new(_keys, _agg_context)
+        _groups << Elastic::Results::ResultGroup.new(_keys, _agg_context)
       end
-
-      _result
     end
   end
 end

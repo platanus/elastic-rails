@@ -18,7 +18,7 @@ require "elastic/results/metric"
 require "elastic/results/bucket_collection"
 require "elastic/results/bucket"
 require "elastic/results/grouped_result"
-require "elastic/results/grouped_bucket"
+require "elastic/results/result_group"
 require "elastic/results/root"
 
 require "elastic/nodes/base"
