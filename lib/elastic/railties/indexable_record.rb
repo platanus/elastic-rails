@@ -1,35 +1,21 @@
 module Elastic::Railties
   module IndexableRecord
     def self.included(_base)
-      _base.include Elastic::Indexable
       _base.extend ClassMethods
     end
 
     module ClassMethods
-      def elastic_mode
-        :index # storage mode not supported for AR
+      def index_class
+        @index_class ||= to_s + 'Index'
       end
 
-      def collect_for_elastic(_definition, _from = nil, &_block)
-        # Check that collection matches type?
-        ARHelpers.find_each_with_options(
-          _from || self,
-          includes: _definition.custom_options[:ar_import_includes],
-          scope: _definition.custom_options[:ar_import_scope],
-          &_block
-        )
+      def index_class=(_class)
+        @constantized_index_class = nil
+        @index_class = _class
       end
 
-      def preload_by_elastic_ids(_definition, _ids)
-        where(id: _ids)
-      end
-
-      def elastic_field_options_for(_definition, _field)
-        if Rails.version.to_f >= 4.2
-          ARHelpers.infer_ar5_field_options(self, _field)
-        else
-          ARHelpers.infer_ar4_field_options(self, _field)
-        end
+      def constantized_index_class
+        @constantized_index_class ||= @index_class.constantize
       end
 
       def index(_options)
@@ -48,6 +34,15 @@ module Elastic::Railties
       def index_on_save(_options = {})
         after_save(_options) { index_later }
       end
+    end
+
+    def index_now
+      self.class.constantized_index_class.store self
+    end
+
+    def index_later
+      # TODO: ActiveJob support
+      index_now
     end
   end
 end

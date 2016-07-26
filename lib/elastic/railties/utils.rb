@@ -20,7 +20,7 @@ module Elastic::Railties
       Rails.logger.info "Indices stats" if _index.nil?
       indices(_index).each do |index|
         Rails.logger.info "Stats for #{index.suffix}:"
-        handle_errors { index.mapping.migrate }
+        # TODO.
       end
     end
 
@@ -44,12 +44,10 @@ module Elastic::Railties
     end
 
     def handle_errors
-      begin
-        yield
-      rescue => exc
-        Rails.logger.error exc.message
-        Rails.logger.error exc.backtrace.join("\n")
-      end
+      yield
+    rescue => exc
+      Rails.logger.error exc.message
+      Rails.logger.error exc.backtrace.join("\n")
     end
   end
 end

@@ -6,7 +6,8 @@ module Elastic::Railties
 
     module ClassMethods
       def references(*_includes)
-        definition.custom_options[:ar_import_includes] = _includes
+        # TODO: check target allows options
+        definition.middleware_options[:ar_collect_includes] = _includes
       end
     end
   end

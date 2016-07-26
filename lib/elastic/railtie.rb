@@ -1,14 +1,16 @@
 require "elastic/railties/utils"
 require "elastic/railties/ar_helpers"
-require "elastic/railties/indexable_record"
+require "elastic/railties/ar_middleware"
 require "elastic/railties/type_extensions"
+require "elastic/railties/query_extensions"
+require "elastic/railties/indexable_record"
 
 module Elastic
   class Railtie < Rails::Railtie
     initializer "elastic.configure_rails_initialization" do
       Elastic.configure Rails.application.config_for(:elastic)
 
-      # Make every model indexable
+      # Make every activerecord model indexable
       ActiveRecord::Base.send(:include, Elastic::Railties::IndexableRecord)
     end
 
@@ -29,3 +31,11 @@ end
 class Elastic::Type
   include Elastic::Railties::TypeExtensions
 end
+
+# Add activerecord related query helpers
+class Elastic::Query
+  include Elastic::Railties::QueryExtensions
+end
+
+# Register active record middleware
+Elastic.register_middleware Elastic::Railties::ARMiddleware
