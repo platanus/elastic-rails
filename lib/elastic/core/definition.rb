@@ -70,7 +70,7 @@ module Elastic::Core
         end
 
         if Elastic::Configuration.strict_mode && !field_def.key?(:type)
-          raise "explicit field type for #{field} required"
+          raise "explicit field type for #{field.name} required"
         end
 
         properties[field.name] = field_def if field_def.key? :type
