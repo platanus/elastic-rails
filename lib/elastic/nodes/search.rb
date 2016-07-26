@@ -9,11 +9,6 @@ module Elastic::Nodes
       new.tap { |n| n.query = _query }
     end
 
-    def initialize
-      @size = Elastic::Configuration.page_size
-      @offset = 0
-    end
-
     def traverse(&_block)
       super
       @query.traverse(&_block)
@@ -21,7 +16,7 @@ module Elastic::Nodes
 
     def render
       { "query" => @query.render }.tap do |options|
-        options["from"] = @offset unless offset == 0
+        options["from"] = @offset if offset && offset > 0
         render_hit_options(options)
         render_aggs(options)
       end
@@ -47,6 +42,7 @@ module Elastic::Nodes
     def prepare_clone(_clone, _query)
       _clone.query = _query
       _clone.offset = @offset
+      _clone
     end
   end
 end
