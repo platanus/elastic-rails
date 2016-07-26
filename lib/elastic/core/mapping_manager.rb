@@ -27,7 +27,7 @@ module Elastic::Core
       end
 
       @status = compute_status
-      return self
+      self
     end
 
     def unmapped_fields
@@ -77,7 +77,7 @@ module Elastic::Core
     end
 
     def flatten(_raw, _prefix = '')
-      _raw['properties'].map do |name, raw_field|
+      _raw['properties'].flat_map do |name, raw_field|
         if raw_field['type'] == 'nested'
           childs = flatten(raw_field, name + '.')
           childs << [
@@ -87,7 +87,7 @@ module Elastic::Core
         else
           [[_prefix + name, raw_field.dup]]
         end
-      end.flatten(1)
+      end
     end
 
     def merge_mappings_into_index(_mappings)

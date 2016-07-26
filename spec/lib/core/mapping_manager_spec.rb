@@ -145,13 +145,13 @@ describe Elastic::Core::MappingManager do
 
       it "returs fields properties contained in server's definition" do
         expect(foo_manager.get_field_options('foo'))
-          .to eq({ 'type' => 'string', 'index' => 'not_analyzed' })
+          .to eq('type' => 'string', 'index' => 'not_analyzed')
 
-        expect(foo_manager.get_field_options('bar')).to eq({ 'type' => 'nested' })
+        expect(foo_manager.get_field_options('bar')).to eq('type' => 'nested')
       end
 
       it "handles nested fields properly" do
-        expect(foo_manager.get_field_options('bar.baz')).to eq({ 'type' => 'long' })
+        expect(foo_manager.get_field_options('bar.baz')).to eq('type' => 'long')
       end
 
       it "returns an empty hash for ignored or non existant fields" do

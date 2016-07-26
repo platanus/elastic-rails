@@ -52,26 +52,9 @@ module Elastic
       adaptor.refresh
     end
 
-    def save
-      self.class.tap do |klass|
-        klass.enforce_mapping!
-        klass.adaptor.index as_es_document
-        klass.ensure_full_mapping
-      end
-    end
-
-    private
-
-    def self.load_mapping
-      freeze_index_definition
-      Elastic::Core::MappingManager.new(adaptor, definition).tap do |mapping|
-        mapping.fetch
-      end
-    end
-
     def self.enforce_mapping!
       if mapping.out_of_sync?
-        raise RuntimeError, 'elastic mapping out of sync, run `rake es:migrate`'
+        raise 'elastic mapping out of sync, run `rake es:migrate`'
       end
     end
 
@@ -81,7 +64,20 @@ module Elastic
       end
     end
 
-    def self.default_suffix
+    def save
+      self.class.tap do |klass|
+        klass.enforce_mapping!
+        klass.adaptor.index as_es_document
+        klass.ensure_full_mapping
+      end
+    end
+
+    private_class_method def self.load_mapping
+      freeze_index_definition
+      Elastic::Core::MappingManager.new(adaptor, definition).tap(&:fetch)
+    end
+
+    private_class_method def self.default_suffix
       to_s.underscore
     end
   end

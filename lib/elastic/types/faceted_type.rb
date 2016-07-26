@@ -1,7 +1,7 @@
 module Elastic::Types
   module FacetedType
     def fields(*_fields)
-      raise ArgumentError, 'must provide at least a field name' if _fields.length == 0
+      raise ArgumentError, 'must provide at least a field name' if _fields.empty?
 
       options = {}
       options = _fields.pop if _fields.last.is_a? Hash

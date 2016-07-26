@@ -15,7 +15,7 @@ module Elastic::Support
       when nil
         _value
       else
-        raise ArgumentError, "invalid transformation type #{@transform.class.to_s}"
+        raise ArgumentError, "invalid transformation type #{@transform.class}"
       end
     end
 
@@ -30,7 +30,7 @@ module Elastic::Support
       when nil
         _values
       else
-        raise ArgumentError, "invalid transformation type #{@transform.class.to_s}"
+        raise ArgumentError, "invalid transformation type #{@transform.class}"
       end
     end
   end

@@ -15,7 +15,7 @@ describe Elastic::Nodes::And do
   let(:node_single) { build_and([child_a]) }
 
   describe "render" do
-    it { expect(node.render).to eq({ 'and' => ['foo', 'bar'] }) }
+    it { expect(node.render).to eq('and' => ['foo', 'bar']) }
   end
 
   describe "simplify" do
@@ -39,7 +39,7 @@ describe Elastic::Nodes::And do
 
     describe "simplify" do
       it "moves nested queries up in the hierarchy" do
-        expect(complex_node.simplify.render).to eq({
+        expect(complex_node.simplify.render).to eq(
           "and" => [
             {
               "nested" => {
@@ -56,7 +56,7 @@ describe Elastic::Nodes::And do
               }
             }
           ]
-        })
+        )
       end
     end
   end

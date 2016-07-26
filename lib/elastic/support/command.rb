@@ -14,14 +14,14 @@ module Elastic::Support
       end
 
       Struct.new(*attr_names) do
-        def self.for(kwargs={})
+        def self.for(kwargs = {})
           new(kwargs).perform
         end
 
         def perform
         end
 
-        define_method(:initialize) do |kwargs={}|
+        define_method(:initialize) do |kwargs = {}|
           kwargs = attr_defaults.merge kwargs
           attr_values = attr_names.map { |a| kwargs[a] }
           super(*attr_values)

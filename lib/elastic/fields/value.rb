@@ -1,10 +1,12 @@
 module Elastic::Fields
   class Value
-    MAPPING_OPTIONS = [ :type, :analyzer, :boost, :coerce, :copy_to, :doc_values, :dynamic,
+    MAPPING_OPTIONS = [
+      :type, :analyzer, :boost, :coerce, :copy_to, :doc_values, :dynamic,
       :enabled, :fielddata, :geohash, :geohash_precision, :geohash_prefix, :format, :ignore_above,
       :ignore_malformed, :include_in_all, :index_options, :lat_lon, :index, :fields, :norms,
       :null_value, :position_increment_gap, :properties, :search_analyzer, :similarity, :store,
-      :term_vector ]
+      :term_vector
+    ]
 
     attr_reader :name
 

@@ -7,7 +7,7 @@ module Elastic::Core
     end
 
     def targets
-      @target_cache ||= load_targets
+      @target_cache ||= load_targets.freeze
     end
 
     def targets=(_values)
@@ -23,7 +23,7 @@ module Elastic::Core
       main_target.mode
     end
 
-    def initialize()
+    def initialize
       @targets = []
       @field_map = {}
       @frozen = false
@@ -31,7 +31,7 @@ module Elastic::Core
     end
 
     def register_field(_field)
-      raise RuntimeError, 'definition has been frozen' if @frozen
+      raise 'definition has been frozen' if @frozen
       @field_map[_field.name] = _field
     end
 
@@ -40,7 +40,7 @@ module Elastic::Core
     end
 
     def expanded_field_names
-      @expanded_field_names ||= @field_map.map { |name, field| field.expanded_names }.flatten
+      @expanded_field_names ||= @field_map.map { |_, field| field.expanded_names }.flatten
     end
 
     def get_field(_name)
@@ -50,7 +50,7 @@ module Elastic::Core
         @field_map[_name]
       else
         parent = @field_map[_name[0...separator]]
-        parent.try(:get_field, _name[separator+1..-1])
+        parent.try(:get_field, _name[separator + 1..-1])
       end
     end
 
@@ -70,7 +70,7 @@ module Elastic::Core
         end
 
         if Elastic::Configuration.strict_mode && !field_def.key?(:type)
-          raise RuntimeError, "explicit field type for #{field} required"
+          raise "explicit field type for #{field} required"
         end
 
         properties[field.name] = field_def if field_def.key? :type
@@ -99,12 +99,12 @@ module Elastic::Core
         target = target.to_s.camelize.constantize if target.is_a?(Symbol) || target.is_a?(String)
 
         target = load_target_middleware(target) unless target.class < BaseMiddleware
-        raise 'Index target is not indexable' if target.nil?
-        raise 'Mistmatching indexable mode' if mode && mode != target.mode
+        raise 'index target is not indexable' if target.nil?
+        raise 'mistmatching indexable mode' if mode && mode != target.mode
         mode = target.mode
 
         target
-      end.freeze
+      end
     end
 
     def load_target_middleware(_target)

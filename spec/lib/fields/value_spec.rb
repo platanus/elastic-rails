@@ -1,11 +1,11 @@
 require 'spec_helper'
 
 describe Elastic::Fields::Value do
-  let(:field) { described_class.new('foo', { type: 'string' }) }
+  let(:field) { described_class.new('foo', type: 'string') }
   let(:field_w_transform) { described_class.new('foo', type: 'integer', transform: :to_s) }
   let(:field_w_lambda) { described_class.new('foo', type: 'integer', transform: -> { floor }) }
-  let(:term_field) { described_class.new('foo', { type: 'term' }) }
-  let(:date_field) { described_class.new('foo', { type: 'date' }) }
+  let(:term_field) { described_class.new('foo', type: 'term') }
+  let(:date_field) { described_class.new('foo', type: 'date') }
 
   describe "name" do
     it { expect(described_class.new('foo', {}).name).to eq('foo') }
@@ -25,13 +25,13 @@ describe Elastic::Fields::Value do
 
   describe "mapping_options" do
     it "includes only elasticsearch mapping properties" do
-      expect(field.mapping_options).to eq({ type: 'string' })
-      expect(field_w_transform.mapping_options).to eq({ type: 'integer' })
+      expect(field.mapping_options).to eq(type: 'string')
+      expect(field_w_transform.mapping_options).to eq(type: 'integer')
     end
 
     it "expands special types" do
-      expect(term_field.mapping_options).to eq({ type: 'string', index: 'not_analyzed' })
-      expect(date_field.mapping_options).to eq({ type: 'date', format: 'dateOptionalTime' })
+      expect(term_field.mapping_options).to eq(type: 'string', index: 'not_analyzed')
+      expect(date_field.mapping_options).to eq(type: 'date', format: 'dateOptionalTime')
     end
   end
 

@@ -24,7 +24,7 @@ module Elastic::Fields
     end
 
     def mapping_options
-      @index.definition.as_es_mapping.merge!({ type: :nested })
+      @index.definition.as_es_mapping.merge!(type: :nested)
     end
 
     def get_field(_name)

@@ -5,7 +5,7 @@ describe Elastic::Type do
   let(:tag_type) { build_type('TagType', :name) }
 
   let(:root_index) do
-    build_index('RootIndex', target: root_type) do |example|
+    build_index('RootIndex', target: root_type) do
       field :foo, type: :string
       field :bar, type: :long, transform: -> { self + 1 }
 
@@ -20,7 +20,7 @@ describe Elastic::Type do
   end
 
   let(:object) do
-    tags = [ tag_type.new('baz_tag'), tag_type.new('qux_tag') ]
+    tags = [tag_type.new('baz_tag'), tag_type.new('qux_tag')]
     root_type.new 1, 'hello world', 1, tags
   end
 
@@ -49,7 +49,7 @@ describe Elastic::Type do
 
   describe "definition" do
     it "holds the proper mapping structure" do
-      expect(root_index.definition.as_es_mapping).to eq({
+      expect(root_index.definition.as_es_mapping).to eq(
         'properties' => {
           'foo' => { 'type' => 'string' },
           'bar' => { 'type' => 'long' },
@@ -60,7 +60,7 @@ describe Elastic::Type do
             }
           }
         }
-      })
+      )
     end
   end
 
