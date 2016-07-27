@@ -31,9 +31,7 @@ describe Elastic::Query do
     it "adds a new 'should' query element" do
       new_query = query.should(foo: 'teapot')
       expect(new_query.as_es_query).to eq(
-        "query" => {
-          "bool" => { "should" => [{ "match" => { "foo" => { "query" => "teapot" } } }] }
-        },
+        "query" => { "match" => { "foo" => { "query" => "teapot" } } },
         "size" => 20
       )
     end
