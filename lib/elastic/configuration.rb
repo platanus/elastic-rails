@@ -34,6 +34,10 @@ module Elastic
       @config[:strict_types]
     end
 
+    def logger
+      @config[:logger] || default_logger
+    end
+
     private
 
     def config
@@ -44,6 +48,10 @@ module Elastic
         coord_similarity: true,
         strict_types: true
       }
+    end
+
+    def default_logger
+      @default_logger ||= Logger.new(STDOUT)
     end
 
     def load_api_client

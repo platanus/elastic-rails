@@ -1,25 +1,25 @@
 module Elastic::Railties
   module Utils
     def reindex(_index = nil)
-      Rails.logger.info "Reindexing indices" if _index.nil?
+      logger.info "Reindexing all indices" if _index.nil?
       indices(_index).each do |index|
-        Rails.logger.info "Reindexing index #{index.suffix}"
+        logger.info "Reindexing index #{index.suffix}"
         handle_errors { index.reindex }
       end
     end
 
     def migrate(_index = nil)
-      Rails.logger.info "Migrating indices" if _index.nil?
+      logger.info "Migrating all indices" if _index.nil?
       indices(_index).each do |index|
-        Rails.logger.info "Migrating index #{index.suffix}"
+        logger.info "Migrating index #{index.suffix}"
         handle_errors { index.mapping.migrate }
       end
     end
 
     def stats(_index = nil)
-      Rails.logger.info "Indices stats" if _index.nil?
+      logger.info "Indices stats" if _index.nil?
       indices(_index).each do |index|
-        Rails.logger.info "Stats for #{index.suffix}:"
+        logger.info "Stats for #{index.suffix}:"
         # TODO.
       end
     end
@@ -46,8 +46,12 @@ module Elastic::Railties
     def handle_errors
       yield
     rescue => exc
-      Rails.logger.error exc.message
-      Rails.logger.error exc.backtrace.join("\n")
+      logger.error exc.message
+      logger.error exc.backtrace.join("\n")
+    end
+
+    def logger
+      Elastic::Configuration.logger
     end
   end
 end
