@@ -26,10 +26,10 @@ module Elastic
       @mapping ||= load_mapping
     end
 
-    def self.reindex
+    def self.reindex(verbose: true)
       drop
       mapping.migrate
-      Commands::ImportIndexDocuments.for index: self
+      Commands::ImportIndexDocuments.for index: self, verbose: verbose
       ensure_full_mapping
       self
     end
