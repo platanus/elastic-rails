@@ -16,14 +16,18 @@ module Elastic::Railties
     end
 
     def infer_ar4_field_options(_klass, _field)
-      return nil if _klass.method_defined? _field # occluded by method override
+      # TODO: consider methods occluded by an override:
+      # AR defines methods, this wont work: return nil if _klass.method_defined? _field
+
       return nil unless _klass.serialized_attributes[_field].nil? # occluded by serializer
       return nil if _klass.columns_hash[_field].nil?
       ar_type_to_options _klass.columns_hash[_field].type
     end
 
     def infer_ar5_field_options(_klass, _field)
-      return nil if _klass.method_defined? _field # occluded by method override
+      # TODO: consider methods occluded by an override:
+      # AR defines methods, this wont work: return nil if _klass.method_defined? _field
+
       meta = _klass.type_for_attribute _field
       return nil if meta.to_s == 'ActiveRecord::Type::Serialized' # occluded by serializer
       ar_type_to_options meta.type
