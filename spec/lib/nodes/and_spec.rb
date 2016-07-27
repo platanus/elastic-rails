@@ -29,35 +29,4 @@ describe Elastic::Nodes::And do
       expect(node_single.pick.to_a.size).to eq(2)
     end
   end
-
-  context "when child nodes are nested queries" do
-    let(:nested_a1) { Elastic::Nodes::Nested.build 'nested_a', child_a }
-    let(:nested_a2) { Elastic::Nodes::Nested.build 'nested_a', child_b }
-    let(:nested_b) { Elastic::Nodes::Nested.build 'nested_b', child_c }
-
-    let(:complex_node) { build_and([nested_a1, nested_a2, nested_b]) }
-
-    describe "simplify" do
-      it "moves nested queries up in the hierarchy" do
-        expect(complex_node.simplify.render).to eq(
-          "and" => [
-            {
-              "nested" => {
-                "path" => "nested_a",
-                "query" => {
-                  "and" => ['foo', 'bar']
-                }
-              }
-            },
-            {
-              "nested" => {
-                "path" => "nested_b",
-                "query" => 'fur'
-              }
-            }
-          ]
-        )
-      end
-    end
-  end
 end
