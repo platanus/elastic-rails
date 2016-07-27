@@ -1,39 +1,101 @@
 module Elastic
   class Query
-    include Capabilities::ContextHandler
-    include Capabilities::BoolQueryBuilder
-    include Capabilities::AggregationBuilder
+    extend Forwardable
+    include Enumerable
+    include Dsl::BoolQueryBuilder
+    include Dsl::MetricBuilder
 
-    attr_accessor :type, :size, :input_transform
+    def_delegators :result, :[], :each, :each_with_score, :count, :first, :last
 
-    def initialize(_type, minimum_should_match: 1, size: nil)
-      @type = _type
-      @size = size
-      self.minimum_should_match = minimum_should_match
+    attr_reader :index
+
+    def initialize(_index, _query_config = nil)
+      @index = _index
+      @config = _query_config || build_base_config
     end
 
-    def render
-      search = {}
-      search['size'] = @size unless @size.nil?
-      render_query_to search
-      render_aggregations_to search
-      search
+    def coord_similarity(_enable)
+      with_clone { |config| config.root.query.disable_coord = !_enable }
     end
 
-    def run
-      type.query(render)
+    def limit(_size)
+      with_clone { |config| config.limit = _size }
+    end
+    alias :size :limit
+
+    def offset(_offset)
+      with_clone { |config| config.offset = _offset }
+    end
+
+    def segment(*_params)
+      with_clone do |config|
+        config.groups << Commands::BuildAggFromParams.for(index: index, params: _params)
+      end
+    end
+
+    def ids(_type = nil)
+      execute assembler.assemble_ids
+    end
+
+    def pluck(_field)
+      execute assembler.assemble_pluck(_field.to_s)
+    end
+
+    def aggregate(_name = nil, _node = nil, &_block)
+      # TODO
+    end
+
+    def total
+      execute assembler.assemble_total
+    end
+
+    def result(_reset = false)
+      @result = nil if _reset
+      @result ||= execute(assembler.assemble)
+    end
+
+    def as_es_query
+      assembler.assemble.render
     end
 
     private
 
-    def render_query_to(_search)
-      query = {}
-      render_bool_query_to query
-      _search['query'] = query if query.length > 0
+    def with_clone(&_block)
+      new_config = @config.clone
+      _block.call(new_config)
+      self.class.new(@index, new_config)
     end
 
-    def transform_input(_name, _value)
-      type.prepare_field_for_query _name, _value
+    def with_bool_query(&_block)
+      with_clone { |config| _block.call(config.root.query) }
+    end
+
+    def with_aggregable_for_metric(&_block)
+      adaptor = AggregableAdaptor.new.tap(&_block)
+      execute assembler.assemble_metric(adaptor.agg)
+    end
+
+    def build_base_config
+      Core::QueryConfig.initial_config
+    end
+
+    def assembler
+      @assembler ||= Core::QueryAssembler.new(@index, @config)
+    end
+
+    def execute(_query)
+      _query.handle_result @index.adaptor.query(
+        type: @index.definition.types,
+        query: _query.render
+      )
+    end
+
+    class AggregableAdaptor
+      attr_accessor :agg
+
+      def aggregate(_node)
+        self.agg = _node
+      end
     end
   end
 end

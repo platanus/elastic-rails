@@ -1,44 +1,86 @@
 require "elasticsearch"
+
 require "elastic/version"
+require "elastic/configuration"
 
-require "elastic/capabilities/aggregation_builder"
-require "elastic/capabilities/bool_query_builder"
-require "elastic/capabilities/context_handler"
+require "elastic/support/command"
+require "elastic/support/transform"
+require "elastic/support/traversable"
 
-require "elastic/index"
+require "elastic/commands/import_index_documents"
+require "elastic/commands/build_query_from_params"
+require "elastic/commands/build_agg_from_params"
+
+require "elastic/results/base"
+require "elastic/results/aggregations"
+require "elastic/results/hit"
+require "elastic/results/hit_collection"
+require "elastic/results/metric"
+require "elastic/results/bucket_collection"
+require "elastic/results/bucket"
+require "elastic/results/grouped_result"
+require "elastic/results/result_group"
+require "elastic/results/root"
+
+require "elastic/nodes/base"
+require "elastic/nodes/base_agg"
+require "elastic/nodes/search"
+require "elastic/nodes/term"
+require "elastic/nodes/range"
+require "elastic/nodes/match"
+require "elastic/nodes/and"
+require "elastic/nodes/or"
+require "elastic/nodes/boolean"
+require "elastic/nodes/function_score"
+require "elastic/nodes/nested"
+require "elastic/nodes/agg/base_metric"
+require "elastic/nodes/agg/stats"
+require "elastic/nodes/agg/average"
+require "elastic/nodes/agg/minimum"
+require "elastic/nodes/agg/maximum"
+require "elastic/nodes/agg/sum"
+require "elastic/nodes/agg/terms"
+require "elastic/nodes/agg/date_histogram"
+require "elastic/nodes/agg/top_hits"
+
+require "elastic/shims/base"
+require "elastic/shims/populating"
+require "elastic/shims/grouping"
+require "elastic/shims/reducing"
+
+require "elastic/fields/value"
+require "elastic/fields/nested"
+
+require "elastic/core/definition"
+require "elastic/core/adaptor"
+require "elastic/core/mapping_manager"
+require "elastic/core/serializer"
+require "elastic/core/middleware"
+require "elastic/core/base_middleware"
+require "elastic/core/default_middleware"
+require "elastic/core/source_formatter"
+require "elastic/core/query_config"
+require "elastic/core/query_assembler"
+
+require "elastic/dsl/bool_query_builder"
+require "elastic/dsl/bool_query_context"
+require "elastic/dsl/metric_builder"
+
+require "elastic/types/base_type"
+require "elastic/types/faceted_type"
+require "elastic/types/nestable_type"
 require "elastic/type"
+require "elastic/nested_type"
 require "elastic/query"
-require "elastic/histogram"
-require "elastic/value_transform"
-require "elastic/indexable"
-require "elastic/indexable_record"
 
 module Elastic
-  extend self
-
-  def connect(_index = nil)
-    Elastic::Index.new api_client, (_index || default_index).to_s
+  def self.configure(*_args)
+    Configuration.configure(*_args)
   end
 
-  private
-
-  def config
-    Rails.application.config_for(:elastic)
-  end
-
-  def default_index
-    config['index']
-  end
-
-  def api_client
-    @api_client ||= load_api_client
-  end
-
-  def load_api_client
-    uri = config['url'] ? URI(config['url']) : nil
-    Elasticsearch::Client.new(
-      host: uri ? uri.host : config['host'],
-      port: uri ? uri.port : config['port']
-    )
+  def self.register_middleware(_middleware)
+    Core::Middleware.register _middleware
   end
 end
+
+require "elastic/railtie" if defined? Rails

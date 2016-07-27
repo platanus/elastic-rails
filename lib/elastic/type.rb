@@ -1,121 +1,93 @@
 module Elastic
-  class Type
-    MAPPING_OPTIONS = [ :type, :analyzer, :boost, :coerce, :copy_to, :doc_values, :dynamic,
-      :enabled, :fielddata, :geohash, :geohash_precision, :geohash_prefix, :format, :ignore_above,
-      :ignore_malformed, :include_in_all, :index_options, :lat_lon, :index, :fields, :norms,
-      :null_value, :position_increment_gap, :properties, :search_analyzer, :similarity, :store,
-      :term_vector ]
+  class Type < Types::BaseType
+    extend Types::FacetedType
+    extend Types::NestableType
 
-    def self.connection
-      @connection ||= Elastic.connect index
+    class << self
+      extend Forwardable
+
+      def_delegators :query, :must, :should, :segment, :stats, :maximum, :minimum, :sum, :average,
+        :coord_similarity, :limit, :offset, :pluck, :ids, :total
     end
 
-    def self.index=(_value)
-      @index = _value
+    def self.suffix
+      @suffix || default_suffix
     end
 
-    def self.index
-      @index
+    def self.suffix=(_value)
+      @suffix = _value
     end
 
-    def self.type_name=(_value)
-      @type_name = _value
+    def self.adaptor
+      @adaptor ||= Elastic::Core::Adaptor.new(suffix)
     end
 
-    def self.type_name
-      @type_name ||= to_s.underscore
+    def self.mapping
+      @mapping ||= load_mapping
     end
 
-    def self.fields(*_fields)
-      raise ArgumentError, 'must provide at least a field name' if _fields.length == 0
+    def self.reindex(verbose: true)
+      drop
+      mapping.migrate
+      Commands::ImportIndexDocuments.for index: self, verbose: verbose
+      ensure_full_mapping
+      self
+    end
 
-      options = {}
-      options = _fields.pop if _fields.last.is_a? Hash
+    def self.import(_collection)
+      enforce_mapping!
+      Commands::ImportIndexDocuments.for index: self, collection: _collection
+      ensure_full_mapping
+      self
+    end
 
-      _fields.each do |name|
-        register_field(name, options)
-        register_mapping(name, options)
-        register_transform(name, options[:transform]) if options.key? :transform
+    def self.index(_object)
+      new(_object).save
+    end
+
+    def self.query
+      enforce_mapping!
+      ensure_full_mapping
+      Query.new self
+    end
+
+    def self.drop
+      adaptor.drop if adaptor.exists?
+      self
+    end
+
+    def self.refresh
+      adaptor.refresh
+      self
+    end
+
+    def self.enforce_mapping!
+      if mapping.out_of_sync?
+        raise 'elastic mapping out of sync, run `rake es:migrate`'
       end
     end
 
-    def self.field(_field, _options)
-      fields(_field, _options)
-    end
-
-    def self.store(_data, _options = {})
-      connection.index(type_name, new(_data).render, mapping: { type_name => type_mapping })
-    end
-
-    def self.store_bulk(_collection, _options = {})
-      # TODO
-    end
-
-    def self.query(_query)
-      connection.query type_name, _query
-    end
-
-    def self.clear(_options = {})
-      connection.clear type_name
-    end
-
-    def self.prepare_field_for_query(_field, _value)
-      transform = transforms[_field.to_sym]
-      transform.nil? ? _value : transform.apply(_value)
-    end
-
-    attr_reader :object
-
-    def initialize(_object)
-      @object = _object
-    end
-
-    def render
-      document = {}
-      document[:id] = fetch_object_property(:id) if object_has_property?(:id)
-
-      self.class.type_fields.each do |name, options|
-        document[name] = fetch_object_property(name)
+    def self.ensure_full_mapping
+      if mapping.incomplete?
+        mapping.fetch
       end
-
-      document
     end
 
-    private
-
-    def self.type_fields
-      @type_fields ||= []
+    def save
+      self.class.tap do |klass|
+        klass.enforce_mapping!
+        klass.adaptor.index as_es_document
+        klass.ensure_full_mapping
+      end
     end
 
-    def self.type_mapping
-      @type_mapping ||= { "properties" => { } }
+    private_class_method def self.load_mapping
+      freeze_index_definition
+      Elastic::Core::MappingManager.new(adaptor, definition).tap(&:fetch)
     end
 
-    def self.transforms
-      @transforms ||= { }
-    end
-
-    def self.register_field(_name, _options)
-      type_fields << [_name.to_sym, _options]
-    end
-
-    def self.register_mapping(_name, _options)
-      field = _options.slice(*MAPPING_OPTIONS)
-      field.merge! type: 'string', index: 'not_analyzed' if _options[:type].try(:to_sym) == :term
-      type_mapping["properties"][_name.to_s] = field if field.length > 0
-    end
-
-    def self.register_transform(_name, _transform)
-      transforms[_name.to_sym] = ValueTransform.new self, _transform
-    end
-
-    def object_has_property?(_name)
-      self.respond_to?(_name) || object.respond_to?(_name)
-    end
-
-    def fetch_object_property(_name)
-      value = self.respond_to?(_name) ? public_send(_name) : object.public_send(_name)
-      self.class.prepare_field_for_query _name, value
+    private_class_method def self.default_suffix
+      to_s.underscore
     end
   end
 end
