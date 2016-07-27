@@ -15,7 +15,7 @@ module Elastic::Railties
       end
 
       def constantized_index_class
-        @constantized_index_class ||= @index_class.constantize
+        @constantized_index_class ||= index_class.constantize
       end
 
       def index(_options)
@@ -37,7 +37,7 @@ module Elastic::Railties
     end
 
     def index_now
-      self.class.constantized_index_class.store self
+      self.class.constantized_index_class.index self
     end
 
     def index_later
