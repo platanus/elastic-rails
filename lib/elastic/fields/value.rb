@@ -52,8 +52,6 @@ module Elastic::Fields
       when :term
         _definition[:type] = 'string'
         _definition[:index] = 'not_analyzed'
-      when :date
-        _definition[:format] = 'dateOptionalTime' unless _definition.key? :format
       end
 
       _definition

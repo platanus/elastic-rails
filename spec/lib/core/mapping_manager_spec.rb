@@ -180,4 +180,13 @@ describe Elastic::Core::MappingManager do
       end
     end
   end
+
+  describe "synchronization special cases" do
+    it "properly handles date fields" do
+      manager = manager_w_definition(mapping: { 'properties' => { 'foo' => { 'type' => 'date' } } })
+      manager.migrate
+
+      expect(manager.fetch.out_of_sync?).to be false
+    end
+  end
 end

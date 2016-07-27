@@ -68,7 +68,18 @@ module Elastic::Core
     def synchronized?
       return false if @index.nil?
       flatten(user_mapping).all? do |field, properties|
-        @index[field] == properties
+        compare_field_properties(@index[field], properties)
+      end
+    end
+
+    def compare_field_properties(_current, _user)
+      return false if _current.nil?
+
+      case _current['type']
+      when 'date'
+        _current = { 'format' => 'dateOptionalTime' }.merge(_user)
+      else
+        _current == _user
       end
     end
 
