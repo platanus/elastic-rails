@@ -8,7 +8,7 @@ require "elastic/railties/indexable_record"
 module Elastic
   class Railtie < Rails::Railtie
     initializer "elastic.configure_rails_initialization" do
-      Elastic.configure Rails.application.config_for(:elastic)
+      Elastic.configure Rails.application.config_for(:elastic).merge(logger: Rails.logger)
 
       # Make every activerecord model indexable
       ActiveRecord::Base.send(:include, Elastic::Railties::IndexableRecord)
