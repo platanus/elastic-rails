@@ -7,8 +7,8 @@ module Elastic::Commands
       if block
         # TODO: builder mode, support nesting through first parameter
       else
-        node = Elastic::Nodes::Or.build(params.map do |part|
-          Elastic::Nodes::And.build(part.map do |field, options|
+        node = Elastic::Nodes::Boolean.build_or(params.map do |part|
+          Elastic::Nodes::Boolean.build_and(part.map do |field, options|
             field = field.to_s
             path = get_nesting_path field
             query_node = build_query_node(field, options)
@@ -96,6 +96,7 @@ module Elastic::Commands
 
       Elastic::Nodes::Term.new.tap do |node|
         node.field = _field
+        node.mode = _options[:mode]
         node.terms = terms.map { |t| prep(_field, t) }
       end
     end

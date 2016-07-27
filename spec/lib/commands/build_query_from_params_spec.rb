@@ -20,8 +20,10 @@ describe Elastic::Commands::BuildQueryFromParams do
   end
 
   it "builds the correct compound node depending on params structure" do
-    expect(perform(foo: 'foo', bar: 'bar')).to be_a Elastic::Nodes::And
-    expect(perform({ foo: 'foo' }, { bar: 'bar' })).to be_a Elastic::Nodes::Or
+    expect(perform(foo: 'foo', bar: 'bar')).to be_a Elastic::Nodes::Boolean
+    expect(perform(foo: 'foo', bar: 'bar').musts.count).to eq 2
+    expect(perform({ foo: 'foo' }, { bar: 'bar' })).to be_a Elastic::Nodes::Boolean
+    expect(perform({ foo: 'foo' }, { bar: 'bar' }).shoulds.count).to eq 2
   end
 
   it "fails if an unregistered field is provided" do
