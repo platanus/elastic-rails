@@ -1,5 +1,6 @@
 RSpec.configure do |config|
   config.before(:example, elasticsearch: true) do
-    Elastic.truncate
+    Elastic.drop
+    Elastic.migrate
   end
 end
