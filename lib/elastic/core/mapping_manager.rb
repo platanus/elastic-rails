@@ -39,7 +39,7 @@ module Elastic::Core
     end
 
     def get_field_options(_name)
-      @index[_name] || {}
+      @index[_name]
     end
 
     def migrate

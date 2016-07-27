@@ -27,7 +27,7 @@ module Elastic::Core
     end
 
     def get_treatment(_field)
-      field_options = @mapping.get_field_options(_field)
+      field_options = @mapping.get_field_options(_field) || {}
       return :nested if field_options['type'] == 'nested'
       return :parse_date if field_options['type'] == 'date'
       :none
