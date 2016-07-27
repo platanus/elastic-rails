@@ -67,4 +67,9 @@ describe Elastic::Commands::BuildQueryFromParams do
     expect(perform('nested.field' => { matches: 'tag' })).to be_a Elastic::Nodes::Nested
     expect(perform('nested.field' => { matches: 'tag' }).child).to be_a Elastic::Nodes::Match
   end
+
+  it "builds the correct nested node if a nested query is provided" do
+    expect(perform(nested: { field: 'tag' })).to be_a Elastic::Nodes::Nested
+    expect(perform(nested: { field: 'tag' }).child).to be_a Elastic::Nodes::Match
+  end
 end

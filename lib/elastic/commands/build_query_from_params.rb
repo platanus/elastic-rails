@@ -1,14 +1,21 @@
 module Elastic::Commands
-  class BuildQueryFromParams < Elastic::Support::Command.new(:index, :params)
+  class BuildQueryFromParams < Elastic::Support::Command.new(
+    :index, :params, block: nil, prefix: nil
+  )
+
     def perform
-      node = Elastic::Nodes::Or.build(params.map do |part|
-        Elastic::Nodes::And.build(part.map do |field, options|
-          field = field.to_s
-          path = get_nesting_path field
-          query_node = build_query_node(field, options)
-          path.nil? ? query_node : Elastic::Nodes::Nested.build(path, query_node)
+      if block
+        # TODO: builder mode, support nesting through first parameter
+      else
+        node = Elastic::Nodes::Or.build(params.map do |part|
+          Elastic::Nodes::And.build(part.map do |field, options|
+            field = field.to_s
+            path = get_nesting_path field
+            query_node = build_query_node(field, options)
+            path.nil? ? query_node : Elastic::Nodes::Nested.build(with_prefix(path), query_node)
+          end)
         end)
-      end)
+      end
 
       node.simplify
     end
@@ -18,16 +25,14 @@ module Elastic::Commands
     def get_nesting_path(_field)
       dot_index = _field.rindex('.')
       return nil if dot_index.nil?
-      return _field.slice(0, dot_index)
+      _field.slice 0, dot_index
     end
 
     def build_query_node(_field, _options)
-      raise ArgumentError, "field not mapped: #{_field}" unless index.definition.has_field? _field
-      _options = infer_options(_field, _options) unless _options.is_a? Hash
+      _field = with_prefix _field
+      _options = prepare_options _field, _options
 
-      type = _options[:type]
-      type = infer_type_from_params(_options) if type.nil?
-
+      type = infer_type_from_params(_options)
       send("build_#{type}", _field, _options)
     end
 
@@ -39,18 +44,51 @@ module Elastic::Commands
       return :range if _query.key? :gt
       return :range if _query.key? :lte
       return :range if _query.key? :lt
-      return nil
+      return :nested if _query.key? :nested
+      nil
     end
 
-    def infer_options(_field, _query)
+    def with_prefix(_path)
+      return _path if prefix.nil?
+      "#{prefix}.#{_path}"
+    end
+
+    def prepare_options(_field, _options)
       properties = index.mapping.get_field_options _field.to_s
+      raise ArgumentError, "field not mapped: #{_field}" if properties.nil?
+
       case properties['type']
+      when 'nested'
+        prepare_nested_options _options, properties
       when 'string'
-        properties['index'] == 'not_analyzed' ? { term: _query } : { matches: _query }
+        prepare_string_options _options, properties
       else
-        return range_to_options(_query) if _query.is_a? Range
-        return { term: _query }
+        prepare_default_options _options, properties
       end
+    end
+
+    def prepare_nested_options(_options, _properties)
+      return _options if _options.is_a?(Hash) && _options[:nested]
+      { nested: _options }
+    end
+
+    def prepare_string_options(_options, _properties)
+      return _options if _options.is_a? Hash
+      _properties['index'] == 'not_analyzed' ? { term: _options } : { matches: _options }
+    end
+
+    def prepare_default_options(_options, _properties)
+      return _options if _options.is_a? Hash
+      return range_to_options(_options) if _options.is_a? Range
+      { term: _options }
+    end
+
+    def build_nested(_field, _options)
+      query = _options[:nested]
+      query = [query] unless query.is_a? Array
+
+      nested_query = BuildQueryFromParams.for(index: index, params: query, prefix: _field)
+      Elastic::Nodes::Nested.build _field, nested_query
     end
 
     def build_term(_field, _options)
