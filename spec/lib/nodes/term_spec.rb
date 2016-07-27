@@ -43,5 +43,18 @@ describe Elastic::Nodes::Term do
 
       expect(node.render).to eq('terms' => { 'foo' => ['foo', 'bar'], 'boost' => 2.0 })
     end
+
+    it "renders correctly when multiple terms and mode is :all and boost is set" do
+      node.terms = ['foo', 'bar']
+      node.mode = :all
+      node.boost = 2.0
+
+      expect(node.render).to eq(
+        'bool' => {
+          'must' => [{ 'term' => { 'foo' => 'foo' } }, { 'term' => { 'foo' => 'bar' } }],
+          'boost' => 2.0
+        }
+      )
+    end
   end
 end
