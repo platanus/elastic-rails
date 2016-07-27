@@ -60,10 +60,8 @@ module Elastic::Nodes
       new_must = @musts.map(&:simplify)
       new_should = @shoulds.map(&:simplify)
 
-      # TODO: ands inside must should be exploded (if no boost)
-      # TODO: ors inside should should be exploded (if no boost)
-
       return new_must.first if new_must.length == 1 && new_should.empty?
+      return new_should.first if new_should.length == 1 && new_must.empty? # at least 1 should match
 
       prepare_clone(super, new_must, new_should)
     end

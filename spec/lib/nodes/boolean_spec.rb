@@ -26,6 +26,6 @@ describe Elastic::Nodes::Boolean do
 
   describe "simplify" do
     it { expect(single_must.simplify).to eq(child_a) }
-    it { expect(single_should.simplify).to eq(single_should) }
+    it { expect(single_should.simplify).to eq(child_a) }
   end
 end
