@@ -16,6 +16,11 @@ module Elastic::Railties
       end
     end
 
+    def drop(_index = nil)
+      logger.info "Dropping all indices" if _index.nil?
+      indices(_index).each &:drop
+    end
+
     def stats(_index = nil)
       logger.info "Indices stats" if _index.nil?
       indices(_index).each do |index|
