@@ -2,6 +2,14 @@ module Elastic::Nodes
   class Boolean < Base
     include Concerns::Boostable
 
+    def self.build_and(_nodes)
+      new.tap { |n| n.musts = _nodes }
+    end
+
+    def self.build_or(_nodes)
+      new.tap { |n| n.shoulds = _nodes }
+    end
+
     attr_accessor :minimum_should_match, :disable_coord
 
     def initialize
