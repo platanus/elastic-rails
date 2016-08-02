@@ -48,7 +48,6 @@ module Elastic::Core
     def set_mapping(_type, _mapping)
       api_client.indices.put_mapping build_options(
         type: _type,
-        update_all_types: true,
         body: _mapping
       )
       self
