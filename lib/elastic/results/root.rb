@@ -1,9 +1,10 @@
 module Elastic::Results
   class Root < HitCollection
-    attr_reader :aggregations
+    attr_reader :aggregations, :total
 
-    def initialize(_hits, _aggs)
+    def initialize(_hits, _total, _aggs)
       super _hits
+      @total = _total
       @aggregations = Aggregations.new _aggs
     end
 

@@ -31,10 +31,11 @@ module Elastic::Nodes
     end
 
     def handle_result(_raw)
-      hits = _raw['hits'] ? _raw['hits']['hits'].map { |h| Elastic::Results::Hit.new h } : []
-      aggs = _raw['aggregations'] ? load_aggs_results(_raw['aggregations']) : {}
-
-      Elastic::Results::Root.new(hits, aggs)
+      Elastic::Results::Root.new(
+        _raw['hits'] ? _raw['hits']['hits'].map { |h| Elastic::Results::Hit.new h } : [],
+        _raw['hits'] ? _raw['hits']['total'] : 0,
+        _raw['aggregations'] ? load_aggs_results(_raw['aggregations']) : {}
+      )
     end
 
     private

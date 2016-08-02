@@ -34,7 +34,7 @@ describe Elastic::Shims::Populating do
     describe "handle_result" do
       let(:hit_1) { Elastic::Results::Hit.new('_type' => 'FooType', '_id' => 1) }
       let(:hit_2) { Elastic::Results::Hit.new('_type' => 'FooType', '_id' => 2) }
-      let(:result) { Elastic::Results::Root.new([hit_1, hit_2], {}) }
+      let(:result) { Elastic::Results::Root.new([hit_1, hit_2], 2, {}) }
 
       before do
         allow(child).to receive(:handle_result).and_return result
@@ -68,7 +68,7 @@ describe Elastic::Shims::Populating do
     describe "handle_result" do
       let(:hit_1) { Elastic::Results::Hit.new('_type' => 'FooType', '_source' => { foo: 'hello' }) }
       let(:hit_2) { Elastic::Results::Hit.new('_type' => 'FooType', '_source' => { foo: 'world' }) }
-      let(:result) { Elastic::Results::Root.new([hit_1, hit_2], {}) }
+      let(:result) { Elastic::Results::Root.new([hit_1, hit_2], 2, {}) }
 
       before do
         allow(child).to receive(:handle_result).and_return result

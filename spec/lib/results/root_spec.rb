@@ -12,7 +12,7 @@ describe Elastic::Results::Root do
   let(:agg_3) { Elastic::Results::Metric.new(:baz) }
 
   let(:result) do
-    described_class.new([hit_1, hit_2], 'foo' => agg_1, 'bar' => agg_2)
+    described_class.new([hit_1, hit_2], 2, 'foo' => agg_1, 'bar' => agg_2)
   end
 
   let(:node) { metric_class.build('bar') }

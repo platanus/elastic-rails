@@ -23,7 +23,7 @@ describe Elastic::Shims::Grouping do
       ]
     )
 
-    Elastic::Results::Root.new([], 'foo' => level_1)
+    Elastic::Results::Root.new([], 0, 'foo' => level_1)
   end
 
   let(:node) { described_class.new(child) }
