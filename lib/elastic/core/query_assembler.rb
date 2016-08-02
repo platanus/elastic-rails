@@ -17,8 +17,8 @@ module Elastic::Core
       pick_query_ids build_hit_query
     end
 
-    def assemble_pluck(_field)
-      raise NotImplementedError, 'pluck not yet implemented'
+    def assemble_pick(_field)
+      pick_query_fields build_hit_query, _field
     end
 
     def assemble_metric(_node)
@@ -87,6 +87,10 @@ module Elastic::Core
 
     def pick_query_ids(_query)
       Elastic::Shims::IdPicking.new(_query)
+    end
+
+    def pick_query_fields(_query, _field)
+      Elastic::Shims::FieldPicking.new(_query, _field.to_s)
     end
   end
 end

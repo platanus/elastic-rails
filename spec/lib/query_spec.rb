@@ -144,9 +144,20 @@ describe Elastic::Query do
     describe "ids" do
       it "returns a scored id collection" do
         collection = query.must(foo: 'foo').ids
+
         expect(collection).to be_a Elastic::Results::ScoredCollection
         expect(collection.count).to eq 2
         expect(collection.to_a).to eq ["1", "3"]
+      end
+    end
+
+    describe "pick" do
+      it "returns a scored field collection" do
+        collection = query.must(foo: 'foo').pick :foo
+
+        expect(collection).to be_a Elastic::Results::ScoredCollection
+        expect(collection.count).to eq 2
+        expect(collection.to_a).to eq ["foo", "foo bar"]
       end
     end
 
@@ -186,6 +197,14 @@ describe Elastic::Query do
         it "returns grouped id collections" do
           expect(grouped.ids).to be_a Elastic::Results::GroupedResult
           expect(grouped.ids.each_group.map(&:as_value).map(&:to_a)).to eq [["2", "3"], ["1"]]
+        end
+      end
+
+      describe "pick" do
+        it "returns grouped field collections" do
+          expect(grouped.pick(:foo)).to be_a Elastic::Results::GroupedResult
+          expect(grouped.pick(:foo).each_group.map(&:as_value).map(&:to_a))
+            .to eq [["bar", "foo bar"], ["foo"]]
         end
       end
     end

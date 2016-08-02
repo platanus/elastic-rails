@@ -37,8 +37,8 @@ module Elastic
       execute assembler.assemble_ids
     end
 
-    def pluck(_field)
-      execute assembler.assemble_pluck(_field.to_s)
+    def pick(_field)
+      execute assembler.assemble_pick(_field)
     end
 
     def aggregate(_name = nil, _node = nil, &_block)
