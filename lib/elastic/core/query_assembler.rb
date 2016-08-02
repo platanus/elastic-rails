@@ -10,7 +10,15 @@ module Elastic::Core
     end
 
     def assemble_total
-      raise NotImplementedError, 'total not yet implemented'
+      query = build_base_query
+      query.size = 0
+
+      if grouped?
+        attach_groups(query)
+        query = grouped_query query
+      end
+
+      pick_query_totals query
     end
 
     def assemble_ids
@@ -91,6 +99,10 @@ module Elastic::Core
 
     def pick_query_fields(_query, _field)
       Elastic::Shims::FieldPicking.new(_query, _field.to_s)
+    end
+
+    def pick_query_totals(_query)
+      Elastic::Shims::TotalPicking.new(_query)
     end
   end
 end

@@ -161,6 +161,12 @@ describe Elastic::Query do
       end
     end
 
+    describe "total" do
+      it "returns the matching document count" do
+        expect(query.must(foo: 'foo').total).to eq 2
+      end
+    end
+
     describe "various metrics" do
       it "returns the required metric" do
         new_query = query.should('tags.name' => 'baz_tag')
@@ -205,6 +211,13 @@ describe Elastic::Query do
           expect(grouped.pick(:foo)).to be_a Elastic::Results::GroupedResult
           expect(grouped.pick(:foo).each_group.map(&:as_value).map(&:to_a))
             .to eq [["bar", "foo bar"], ["foo"]]
+        end
+      end
+
+      describe "total" do
+        it "it returns a grouped count metrics" do
+          expect(grouped.total).to be_a Elastic::Results::GroupedResult
+          expect(grouped.total.each_group.map(&:as_value)).to eq [2, 1]
         end
       end
     end

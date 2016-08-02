@@ -49,6 +49,7 @@ require "elastic/shims/base"
 require "elastic/shims/populating"
 require "elastic/shims/grouping"
 require "elastic/shims/reducing"
+require "elastic/shims/total_picking"
 require "elastic/shims/id_picking"
 require "elastic/shims/field_picking"
 
