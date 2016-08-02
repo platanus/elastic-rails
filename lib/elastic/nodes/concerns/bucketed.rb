@@ -8,7 +8,7 @@ module Elastic::Nodes::Concerns
         # configured that way
         # return Elastic::Results::SimpleBucket.new(raw_bucket['key'], aggs.first) if blebliblu
 
-        Elastic::Results::Bucket.new(raw_bucket['key'], aggs)
+        Elastic::Results::Bucket.new(raw_bucket['key'], raw_bucket['doc_count'], aggs)
       end
 
       Elastic::Results::BucketCollection.new buckets

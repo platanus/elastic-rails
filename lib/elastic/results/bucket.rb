@@ -1,9 +1,10 @@
 module Elastic::Results
   class Bucket < Aggregations
-    attr_reader :key
+    attr_reader :key, :total
 
-    def initialize(_key, _aggs)
+    def initialize(_key, _total, _aggs)
       @key = _key
+      @total = _total
       super _aggs
     end
 

@@ -5,21 +5,21 @@ describe Elastic::Shims::Grouping do
   let(:result) do
     level_2_a = Elastic::Results::BucketCollection.new(
       [
-        Elastic::Results::Bucket.new('bar_1', 'qux' => Elastic::Results::Metric.new(:qux)),
-        Elastic::Results::Bucket.new('bar_2', {})
+        Elastic::Results::Bucket.new('bar_1', 0, 'qux' => Elastic::Results::Metric.new(:qux)),
+        Elastic::Results::Bucket.new('bar_2', 0, {})
       ]
     )
 
     level_2_b = Elastic::Results::BucketCollection.new(
       [
-        Elastic::Results::Bucket.new('bar_3', {})
+        Elastic::Results::Bucket.new('bar_3', 0, {})
       ]
     )
 
     level_1 = Elastic::Results::BucketCollection.new(
       [
-        Elastic::Results::Bucket.new('foo_1', 'bar' => level_2_a),
-        Elastic::Results::Bucket.new('foo_2', 'bar' => level_2_b)
+        Elastic::Results::Bucket.new('foo_1', 0, 'bar' => level_2_a),
+        Elastic::Results::Bucket.new('foo_2', 0, 'bar' => level_2_b)
       ]
     )
 

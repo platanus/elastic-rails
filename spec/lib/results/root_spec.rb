@@ -6,7 +6,7 @@ describe Elastic::Results::Root do
   let(:agg_1) { Elastic::Results::Metric.new(:foo) }
   let(:agg_2) do
     Elastic::Results::BucketCollection.new(
-      [Elastic::Results::Bucket.new(:qux, 'baz' => agg_3)]
+      [Elastic::Results::Bucket.new(:qux, 0, 'baz' => agg_3)]
     )
   end
   let(:agg_3) { Elastic::Results::Metric.new(:baz) }
