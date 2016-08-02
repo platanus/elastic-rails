@@ -141,6 +141,15 @@ describe Elastic::Query do
       end
     end
 
+    describe "ids" do
+      it "returns a scored id collection" do
+        collection = query.must(foo: 'foo').ids
+        expect(collection).to be_a Elastic::Results::ScoredCollection
+        expect(collection.count).to eq 2
+        expect(collection.to_a).to eq ["1", "3"]
+      end
+    end
+
     describe "various metrics" do
       it "returns the required metric" do
         new_query = query.should('tags.name' => 'baz_tag')
@@ -167,6 +176,17 @@ describe Elastic::Query do
         expect(keys_2[:bar]).to eq 30
         expect(hits_2.count).to eq 1
         expect(hits_2[0].id).to eq 1
+      end
+    end
+
+    context "and query is segmented" do
+      let!(:grouped) { query.segment(:bar) }
+
+      describe "ids" do
+        it "returns grouped id collections" do
+          expect(grouped.ids).to be_a Elastic::Results::GroupedResult
+          expect(grouped.ids.each_group.map(&:as_value).map(&:to_a)).to eq [["2", "3"], ["1"]]
+        end
       end
     end
   end

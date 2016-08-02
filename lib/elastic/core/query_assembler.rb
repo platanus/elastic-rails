@@ -6,29 +6,15 @@ module Elastic::Core
     end
 
     def assemble
-      query = build_base_query
-
-      if !grouped?
-        query.size = (@config.limit || Elastic::Configuration.page_size)
-        query.offset = @config.offset
-      else
-        query.size = 0
-        last = attach_groups query
-        last.aggregate(Elastic::Nodes::TopHits.build('default'))
-
-        query = grouped_query query
-        query = reduced_query query
-      end
-
-      populated_query query
-    end
-
-    def assemble_ids
-      raise NotImplementedError, 'ids retrieval not yet implemented'
+      populated_query build_hit_query
     end
 
     def assemble_total
       raise NotImplementedError, 'total not yet implemented'
+    end
+
+    def assemble_ids
+      pick_query_ids build_hit_query
     end
 
     def assemble_pluck(_field)
@@ -57,6 +43,24 @@ module Elastic::Core
       @config.root.simplify
     end
 
+    def build_hit_query
+      query = build_base_query
+
+      if !grouped?
+        query.size = (@config.limit || Elastic::Configuration.page_size)
+        query.offset = @config.offset
+      else
+        query.size = 0
+        last = attach_groups query
+        last.aggregate(Elastic::Nodes::TopHits.build('default'))
+
+        query = grouped_query query
+        query = reduced_query query
+      end
+
+      query
+    end
+
     def grouped?
       !@config.groups.empty?
     end
@@ -79,6 +83,10 @@ module Elastic::Core
 
     def populated_query(_query)
       Elastic::Shims::Populating.new(@index, @config, _query)
+    end
+
+    def pick_query_ids(_query)
+      Elastic::Shims::IdPicking.new(_query)
     end
   end
 end

@@ -21,3 +21,5 @@ module Elastic::Shims
     end
   end
 end
+
+require "elastic/shims/concerns/hit_picker"
