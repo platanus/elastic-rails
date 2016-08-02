@@ -1,6 +1,6 @@
 module Elastic::Results
   class Hit < Base
-    attr_accessor :raw, :ref
+    attr_accessor :raw, :data
 
     def initialize(_raw)
       @raw = _raw

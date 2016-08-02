@@ -37,10 +37,10 @@ module Elastic::Shims
       if populate_by_id?
         ids = _hits.map(&:id)
         objects = target.find_by_ids(ids, middleware_options)
-        objects.each_with_index { |o, i| _hits[i].ref = o }
+        objects.each_with_index { |o, i| _hits[i].data = o }
       else
         _hits.each do |hit|
-          hit.ref = target.build_from_data(
+          hit.data = target.build_from_data(
             formatter.format(hit.source),
             middleware_options
           )

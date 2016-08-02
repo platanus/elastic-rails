@@ -46,9 +46,9 @@ describe Elastic::Shims::Populating do
       end
 
       it "populates the result " do
-        expect { node.handle_result({}) }.to change { hit_1.ref }
-        expect(hit_1.ref).to eq 'obj_1'
-        expect(hit_2.ref).to eq 'obj_2'
+        expect { node.handle_result({}) }.to change { hit_1.data }
+        expect(hit_1.data).to eq 'obj_1'
+        expect(hit_2.data).to eq 'obj_2'
       end
     end
   end
@@ -75,9 +75,9 @@ describe Elastic::Shims::Populating do
       end
 
       it "populates the result by calling 'build_from_data'" do
-        expect { node.handle_result({}) }.to change { hit_1.ref }.to be_a OpenStruct
-        expect(hit_1.ref.foo).to eq 'hello'
-        expect(hit_2.ref.foo).to eq 'world'
+        expect { node.handle_result({}) }.to change { hit_1.data }.to be_a OpenStruct
+        expect(hit_1.data.foo).to eq 'hello'
+        expect(hit_2.data.foo).to eq 'world'
       end
     end
   end
