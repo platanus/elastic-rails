@@ -28,6 +28,12 @@ module Elastic::Results
       @groups.each { |h| h.traverse(&_block) }
     end
 
+    def map_to_group(&_block)
+      self.class.new(@groups.map do |group|
+        Elastic::Results::ResultGroup.new group.keys, _block.call(group.as_value)
+      end)
+    end
+
     private
 
     def group_as_pair(_group)
