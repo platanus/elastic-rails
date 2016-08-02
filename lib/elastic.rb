@@ -12,6 +12,8 @@ require "elastic/commands/build_query_from_params"
 require "elastic/commands/build_agg_from_params"
 
 require "elastic/results/base"
+require "elastic/results/scored_item"
+require "elastic/results/scored_collection"
 require "elastic/results/aggregations"
 require "elastic/results/hit"
 require "elastic/results/hit_collection"
