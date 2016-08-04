@@ -23,7 +23,7 @@ module Elastic::Nodes
     end
 
     def handle_result(_raw)
-      nil
+      _raw
     end
   end
 end
