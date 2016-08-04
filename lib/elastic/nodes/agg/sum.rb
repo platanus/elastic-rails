@@ -1,6 +1,8 @@
 module Elastic::Nodes::Agg
   class Sum < BaseMetric
-    private def metric
+    private
+
+    def metric
       'sum'
     end
   end

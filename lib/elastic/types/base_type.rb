@@ -28,11 +28,13 @@ module Elastic::Types
       super(self.class.definition, _object)
     end
 
-    private_class_method def self.default_target
+    def self.default_target
       @default_target ||= begin
         target = to_s.match(/^(.*)Index$/)
         target ? target[1] : nil
       end
     end
+
+    private_class_method :default_target
   end
 end

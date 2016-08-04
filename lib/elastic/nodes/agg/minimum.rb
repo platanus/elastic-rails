@@ -1,6 +1,8 @@
 module Elastic::Nodes::Agg
   class Minimum < BaseMetric
-    private def metric
+    private
+
+    def metric
       'min'
     end
   end

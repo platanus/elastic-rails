@@ -81,13 +81,17 @@ module Elastic
       end
     end
 
-    private_class_method def self.load_mapping
+    def self.load_mapping
       freeze_index_definition
       Elastic::Core::MappingManager.new(adaptor, definition).tap(&:fetch)
     end
 
-    private_class_method def self.default_suffix
+    private_class_method :load_mapping
+
+    def self.default_suffix
       to_s.underscore
     end
+
+    private_class_method :default_suffix
   end
 end
