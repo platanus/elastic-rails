@@ -123,6 +123,13 @@ describe Elastic::Query do
       end
     end
 
+    describe "sort" do
+      it "changes the way returned results are ordered" do
+        expect(query.sort(:foo).to_a.first.id).to be 2
+        expect(query.sort(foo: :desc).to_a.first.id).to be 1
+      end
+    end
+
     describe "each_with_score" do
       it "iterates over matching documents and its scores" do
         results = query

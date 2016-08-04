@@ -27,6 +27,12 @@ module Elastic
       with_clone { |config| config.offset = _offset }
     end
 
+    def sort(*_params)
+      with_clone do |config|
+        config.sort = Commands::BuildSortFromParams.for(index: index, params: _params)
+      end
+    end
+
     def segment(*_params)
       with_clone do |config|
         config.groups << Commands::BuildAggFromParams.for(index: index, params: _params)

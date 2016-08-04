@@ -57,16 +57,24 @@ module Elastic::Core
       if !grouped?
         query.size = (@config.limit || Elastic::Configuration.page_size)
         query.offset = @config.offset
+        query = sort_node(query)
       else
         query.size = 0
         last = attach_groups query
-        last.aggregate(Elastic::Nodes::TopHits.build('default'))
+        last.aggregate sort_node Elastic::Nodes::TopHits.build('default')
 
         query = grouped_query query
         query = reduced_query query
       end
 
       query
+    end
+
+    def sort_node(_node)
+      return _node unless @config.sort
+      sort_node = @config.sort.clone
+      sort_node.child = _node
+      sort_node
     end
 
     def grouped?

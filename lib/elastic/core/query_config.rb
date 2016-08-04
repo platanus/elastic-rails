@@ -1,6 +1,6 @@
 module Elastic::Core
   class QueryConfig
-    attr_accessor :root, :groups, :limit, :offset, :middleware_options
+    attr_accessor :root, :groups, :limit, :offset, :sort, :middleware_options
 
     def self.initial_config
       new.tap do |config|
@@ -18,6 +18,7 @@ module Elastic::Core
         clone.groups = @groups.dup
         clone.limit = @limit
         clone.offset = @offset
+        clone.sort = @sort.try(:clone)
         clone.middleware_options = @middleware_options.dup
       end
     end
