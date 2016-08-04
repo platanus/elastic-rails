@@ -14,4 +14,3 @@ class <%= class_name %>Index < Elastic::Type
   # end
   #
 end
-
