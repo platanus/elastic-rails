@@ -1,0 +1,14 @@
+development:
+  host: '127.0.0.1'
+  port: 9200
+  index: '<%= Rails.application.class.parent_name.to_s.underscore %>_develop'
+
+test:
+  host: '127.0.0.1'
+  port: 9200
+  index: '<%= Rails.application.class.parent_name.to_s.underscore %>_test'
+
+production:
+  host: '127.0.0.1'
+  port: 9200
+  index: '<%= Rails.application.class.parent_name.to_s.underscore %>'
