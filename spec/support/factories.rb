@@ -83,7 +83,7 @@ RSpec.configure do |config|
         clone
       end
 
-      def handle_result(_raw)
+      def handle_result(_raw, _formatter)
         Elastic::Results::Metric.new _raw
       end
     end.new(_query)

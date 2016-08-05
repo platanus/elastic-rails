@@ -24,7 +24,8 @@ module Elastic::Nodes::Agg
       { metric => options }
     end
 
-    def handle_result(_raw)
+    def handle_result(_raw, _formatter)
+      # TODO: apply formatter to value
       Elastic::Results::Metric.new _raw['value']
     end
 

@@ -27,9 +27,9 @@ describe Elastic::Nodes::TopHits do
 
   describe "handle_result" do
     it "builds a hit collection" do
-      expect(node.handle_result(raw_result)).to be_a Elastic::Results::HitCollection
-      expect(node.handle_result(raw_result).count).to eq 2
-      expect(node.handle_result(raw_result).each_hit.first.id).to eq 1
+      expect(node.handle_result(raw_result, nil)).to be_a Elastic::Results::HitCollection
+      expect(node.handle_result(raw_result, nil).count).to eq 2
+      expect(node.handle_result(raw_result, nil).each_hit.first.id).to eq 1
     end
   end
 end

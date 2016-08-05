@@ -1,6 +1,6 @@
 module Elastic::Shims
   class Grouping < Base
-    def handle_result(_raw)
+    def handle_result(_raw, _formatter)
       groups = []
       group_recursive(super.aggregations, HashWithIndifferentAccess.new, groups)
       Elastic::Results::GroupedResult.new groups

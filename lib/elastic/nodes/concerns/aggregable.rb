@@ -41,10 +41,10 @@ module Elastic::Nodes::Concerns
       _into
     end
 
-    def load_aggs_results(_raw)
+    def load_aggs_results(_raw, _formatter)
       {}.tap do |result|
         aggs.each do |node|
-          result[node.name] = node.handle_result(_raw[node.name])
+          result[node.name] = node.handle_result(_raw[node.name], _formatter)
         end
       end
     end

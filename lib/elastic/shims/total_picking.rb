@@ -1,6 +1,6 @@
 module Elastic::Shims
   class TotalPicking < Base
-    def handle_result(_raw)
+    def handle_result(_raw, _formatter)
       result = super
 
       case result

@@ -5,7 +5,7 @@ module Elastic::Shims::Concerns
       super
     end
 
-    def handle_result(_raw)
+    def handle_result(_raw, _formatter)
       result = super
 
       case result

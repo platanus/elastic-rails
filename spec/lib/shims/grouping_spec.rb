@@ -32,10 +32,10 @@ describe Elastic::Shims::Grouping do
 
   describe "handle_result" do
     it "generates a grouped result" do
-      expect(node.handle_result({})).to be_a Elastic::Results::GroupedResult
-      expect(node.handle_result({}).count).to eq 3
+      expect(node.handle_result({}, nil)).to be_a Elastic::Results::GroupedResult
+      expect(node.handle_result({}, nil).count).to eq 3
 
-      keys, value = node.handle_result({}).first
+      keys, value = node.handle_result({}, nil).first
       expect(keys).to eq('foo' => 'foo_1', 'bar' => 'bar_1')
       expect(value['qux']).to eq :qux
     end

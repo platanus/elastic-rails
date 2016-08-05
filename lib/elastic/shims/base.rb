@@ -16,8 +16,8 @@ module Elastic::Shims
       @child.render
     end
 
-    def handle_result(_raw)
-      @child.handle_result(_raw)
+    def handle_result(_raw, _formatter)
+      @child.handle_result(_raw, _formatter)
     end
   end
 end

@@ -41,12 +41,12 @@ describe Elastic::Shims::Populating do
       end
 
       it "calls the child node 'handle_result'" do
-        node.handle_result :foo
-        expect(child).to have_received(:handle_result).with(:foo)
+        node.handle_result :foo, nil
+        expect(child).to have_received(:handle_result).with(:foo, nil)
       end
 
       it "populates the result " do
-        expect { node.handle_result({}) }.to change { hit_1.data }
+        expect { node.handle_result({}, nil) }.to change { hit_1.data }
         expect(hit_1.data).to eq 'obj_1'
         expect(hit_2.data).to eq 'obj_2'
       end
@@ -75,7 +75,7 @@ describe Elastic::Shims::Populating do
       end
 
       it "populates the result by calling 'build_from_data'" do
-        expect { node.handle_result({}) }.to change { hit_1.data }.to be_a OpenStruct
+        expect { node.handle_result({}, nil) }.to change { hit_1.data }.to be_a OpenStruct
         expect(hit_1.data.foo).to eq 'hello'
         expect(hit_2.data.foo).to eq 'world'
       end

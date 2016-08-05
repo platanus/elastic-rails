@@ -30,11 +30,11 @@ module Elastic::Nodes
       prepare_clone(super, @query.simplify)
     end
 
-    def handle_result(_raw)
+    def handle_result(_raw, _formatter)
       Elastic::Results::Root.new(
         _raw['hits'] ? _raw['hits']['hits'].map { |h| Elastic::Results::Hit.new h } : [],
         _raw['hits'] ? _raw['hits']['total'] : 0,
-        _raw['aggregations'] ? load_aggs_results(_raw['aggregations']) : {}
+        _raw['aggregations'] ? load_aggs_results(_raw['aggregations'], _formatter) : {}
       )
     end
 

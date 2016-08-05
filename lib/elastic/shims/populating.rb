@@ -11,7 +11,7 @@ module Elastic::Shims
       super
     end
 
-    def handle_result(_raw)
+    def handle_result(_raw, _formatter)
       result = super
       populate result
       result

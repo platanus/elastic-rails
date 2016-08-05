@@ -22,7 +22,7 @@ module Elastic::Nodes
       self.class.new
     end
 
-    def handle_result(_raw)
+    def handle_result(_raw, _formatter)
       _raw
     end
   end

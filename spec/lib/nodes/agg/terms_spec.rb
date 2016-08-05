@@ -18,9 +18,11 @@ describe Elastic::Nodes::Agg::Terms do
 
   describe "handle_result" do
     it "builds a bucket collection" do
-      expect(node.handle_result('buckets' => [])).to be_a Elastic::Results::BucketCollection
-      expect(node.handle_result('buckets' => [{ 'key' => :foo }]).count).to eq 1
-      expect(node.handle_result('buckets' => [{ 'key' => :foo }]).first.key).to eq :foo
+      expect(node.handle_result({ 'buckets' => [] }, nil))
+        .to be_a Elastic::Results::BucketCollection
+
+      expect(node.handle_result({ 'buckets' => [{ 'key' => :foo }] }, nil).count).to eq 1
+      expect(node.handle_result({ 'buckets' => [{ 'key' => :foo }] }, nil).first.key).to eq :foo
     end
   end
 
@@ -39,7 +41,10 @@ describe Elastic::Nodes::Agg::Terms do
     describe "handle_result" do
       it "correctly parses each bucket aggregations" do
         expect(
-          node.handle_result('buckets' => [{ 'key' => :foo, 'bar' => :bar }]).first[:bar]
+          node.handle_result(
+            { 'buckets' => [{ 'key' => :foo, 'bar' => :bar }] },
+            nil
+          ).first[:bar]
         ).to eq :bar
       end
     end

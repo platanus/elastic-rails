@@ -54,8 +54,8 @@ module Elastic::Nodes
       hash
     end
 
-    def handle_result(_raw)
-      @child.handle_result _raw
+    def handle_result(_raw, _formatter)
+      @child.handle_result(_raw, _formatter)
     end
 
     def traverse(&_block)

@@ -35,8 +35,8 @@ describe Elastic::Nodes::Agg::BaseMetric do
 
   describe "handle_result" do
     it "builds a metric" do
-      expect(node.handle_result('value' => :foo)).to be_a Elastic::Results::Metric
-      expect(node.handle_result('value' => :foo).value).to eq :foo
+      expect(node.handle_result({ 'value' => :foo }, nil)).to be_a Elastic::Results::Metric
+      expect(node.handle_result({ 'value' => :foo }, nil).value).to eq :foo
     end
   end
 end
