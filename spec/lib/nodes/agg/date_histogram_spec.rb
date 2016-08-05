@@ -28,11 +28,17 @@ describe Elastic::Nodes::Agg::DateHistogram do
 
   describe "handle_result" do
     it "builds a bucket collection" do
-      expect(histogram.handle_result({ 'buckets' => [] }, nil))
-        .to be_a Elastic::Results::BucketCollection
+      expect(
+        histogram.handle_result({ 'buckets' => [] }, formatter_double)
+      ).to be_a Elastic::Results::BucketCollection
 
-      expect(histogram.handle_result({ 'buckets' => [{ 'key' => 100 }] }, nil).count).to eq 1
-      expect(histogram.handle_result({ 'buckets' => [{ 'key' => 100 }] }, nil).first.key).to eq 100
+      expect(
+        histogram.handle_result({ 'buckets' => [{ 'key' => 100 }] }, formatter_double).count
+      ).to eq 1
+
+      expect(
+        histogram.handle_result({ 'buckets' => [{ 'key' => 100 }] }, formatter_double).first.key
+      ).to eq 100
     end
   end
 
@@ -53,7 +59,7 @@ describe Elastic::Nodes::Agg::DateHistogram do
         expect(
           histogram.handle_result(
             { 'buckets' => [{ 'key' => 2000, 'bar' => :bar }] },
-            nil
+            formatter_double
           ).first[:bar]
         ).to eq :bar
       end
