@@ -24,6 +24,17 @@ module Elastic::Nodes::Concerns
 
     private
 
+    def prepare_hits(_hits, _formatter)
+      _hits.map do |raw_hit|
+        Elastic::Results::Hit.new(
+          raw_hit['_type'],
+          raw_hit['_id'],
+          raw_hit['_score'],
+          raw_hit['_source'] ? _formatter.format(raw_hit['_source']) : nil
+        )
+      end
+    end
+
     def copy_hit_options(_clone)
       _clone.size = @size
       _clone.source = @source

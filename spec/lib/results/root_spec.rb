@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 describe Elastic::Results::Root do
-  let(:hit_1) { Elastic::Results::Hit.new({}) }
-  let(:hit_2) { Elastic::Results::Hit.new({}) }
+  let(:hit_1) { Elastic::Results::Hit.new('hit', 1, 0, {}) }
+  let(:hit_2) { Elastic::Results::Hit.new('hit', 1, 0, {}) }
   let(:agg_1) { Elastic::Results::Metric.new(:foo) }
   let(:agg_2) do
     Elastic::Results::BucketCollection.new(

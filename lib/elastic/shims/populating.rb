@@ -40,10 +40,7 @@ module Elastic::Shims
         objects.each_with_index { |o, i| _hits[i].data = o }
       else
         _hits.each do |hit|
-          hit.data = target.build_from_data(
-            formatter.format(hit.source),
-            middleware_options
-          )
+          hit.data = target.build_from_data(hit.source, middleware_options)
         end
       end
     end
@@ -60,10 +57,6 @@ module Elastic::Shims
       @middleware_options ||= begin
         @index.definition.middleware_options.merge(@config.middleware_options).freeze
       end
-    end
-
-    def formatter
-      @formatter ||= Elastic::Core::SourceFormatter.new(@index.mapping)
     end
   end
 end

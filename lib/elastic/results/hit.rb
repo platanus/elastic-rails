@@ -1,25 +1,13 @@
 module Elastic::Results
   class Hit < Base
-    attr_accessor :raw, :data
+    attr_reader :type, :id, :score, :source
+    attr_accessor :data
 
-    def initialize(_raw)
-      @raw = _raw
-    end
-
-    def id
-      @raw['_id']
-    end
-
-    def type
-      @raw['_type']
-    end
-
-    def score
-      @raw['_score']
-    end
-
-    def source
-      @raw['_source']
+    def initialize(_type, _id, _score, _source)
+      @type = _type
+      @id = _id
+      @score = _score
+      @source = _source
     end
   end
 end

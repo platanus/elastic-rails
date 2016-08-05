@@ -10,7 +10,7 @@ module Elastic::Nodes
     end
 
     def handle_result(_raw, _formatter)
-      hits = _raw['hits'] ? _raw['hits']['hits'].map { |h| Elastic::Results::Hit.new h } : []
+      hits = _raw['hits'] ? prepare_hits(_raw['hits']['hits'], _formatter) : []
       Elastic::Results::HitCollection.new(hits)
     end
   end
