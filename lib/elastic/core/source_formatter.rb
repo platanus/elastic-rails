@@ -5,6 +5,12 @@ module Elastic::Core
       @treatment_cache = {}
     end
 
+    def format_field(_field, _value)
+      treatment = treatment_for _field
+      return _value if treatment == :none
+      send(treatment, _value)
+    end
+
     def format(_source, _prefix = nil)
       _source.each do |field, value|
         field_name = _prefix ? "#{_prefix}.#{field}" : field
@@ -34,7 +40,9 @@ module Elastic::Core
     end
 
     def parse_date(_value)
-      Time.parse _value
+      # dates come in two flavors, longs or strings:
+      return Time.parse(_value) if _value.is_a? String
+      Time.at(_value / 1000)
     end
   end
 end

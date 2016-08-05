@@ -34,6 +34,18 @@ RSpec.configure do |config|
     end
   end
 
+  def formatter_double
+    Class.new do
+      def format(_source, _preffix)
+        _source
+      end
+
+      def format_field(_field, _value)
+        _value
+      end
+    end.new
+  end
+
   def build_type(_name, *_columns)
     Class.new(Struct.new(*_columns.map(&:to_sym))) do
       define_singleton_method(:to_s) do
