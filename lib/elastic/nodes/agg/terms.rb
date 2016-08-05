@@ -10,6 +10,10 @@ module Elastic::Nodes::Agg
       end
     end
 
+    def initialize
+      @size = 0
+    end
+
     attr_accessor :field, :size
 
     def clone
