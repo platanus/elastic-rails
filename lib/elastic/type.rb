@@ -82,7 +82,6 @@ module Elastic
     end
 
     def self.load_mapping
-      freeze_index_definition
       Elastic::Core::MappingManager.new(adaptor, definition).tap(&:fetch)
     end
 

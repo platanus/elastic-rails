@@ -10,7 +10,7 @@ module Elastic::Types
     end
 
     def field(_name, _options = {})
-      definition.register_field Elastic::Fields::Value.new(_name, _options)
+      pre_definition.register_field Elastic::Fields::Value.new(_name, _options)
     end
   end
 end

@@ -22,12 +22,14 @@ RSpec.configure do |config|
     end
   end
 
-  def field_double(_name, _mapping = {}, _mapping_inference = true)
+  def field_double(_name, mapping: {}, inference: false, validation_error: nil)
     double(:field).tap do |field|
       allow(field).to receive(:name).and_return _name.to_s
       allow(field).to receive(:expanded_names).and_return [_name.to_s]
-      allow(field).to receive(:mapping_inference_enabled?).and_return _mapping_inference
-      allow(field).to receive(:mapping_options).and_return _mapping
+      allow(field).to receive(:merge!).and_return nil
+      allow(field).to receive(:needs_inference?).and_return inference
+      allow(field).to receive(:validate).and_return validation_error
+      allow(field).to receive(:mapping_options).and_return mapping
       allow(field).to receive(:has_field?).and_return false
       allow(field).to receive(:get_field).and_return nil
       allow(field).to receive(:freeze).and_return nil

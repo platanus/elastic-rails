@@ -24,9 +24,24 @@ describe Elastic::Type do
     root_type.new 1, 'hello world', 1, tags
   end
 
-  describe "mapping" do
+  describe "definition" do
     it "freezes the underlying type definition on first call" do
-      expect { root_index.mapping }.to change { root_index.definition.frozen? }.to true
+      expect { root_index.definition }.to change { root_index.pre_definition.frozen? }.to true
+    end
+
+    it "holds the proper mapping structure" do
+      expect(root_index.definition.as_es_mapping).to eq(
+        'properties' => {
+          'foo' => { 'type' => 'string' },
+          'bar' => { 'type' => 'long' },
+          'tags' => {
+            'type' => 'nested',
+            'properties' => {
+              'name' => { 'type' => 'string', 'index' => 'not_analyzed' }
+            }
+          }
+        }
+      )
     end
   end
 
@@ -42,23 +57,6 @@ describe Elastic::Type do
             { "name" => "baz_tag" },
             { "name" => "qux_tag" }
           ]
-        }
-      )
-    end
-  end
-
-  describe "definition" do
-    it "holds the proper mapping structure" do
-      expect(root_index.definition.as_es_mapping).to eq(
-        'properties' => {
-          'foo' => { 'type' => 'string' },
-          'bar' => { 'type' => 'long' },
-          'tags' => {
-            'type' => 'nested',
-            'properties' => {
-              'name' => { 'type' => 'string', 'index' => 'not_analyzed' }
-            }
-          }
         }
       )
     end

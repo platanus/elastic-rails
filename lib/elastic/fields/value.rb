@@ -12,17 +12,27 @@ module Elastic::Fields
 
     def initialize(_name, _options)
       @name = _name.to_s
-      @options = _options
+      @options = _options.symbolize_keys
       @mapping_inference = true
       @transform = Elastic::Support::Transform.new @options[:transform]
+    end
+
+    def merge!(_options)
+      return if _options.nil?
+      @options.merge! _options.symbolize_keys
+    end
+
+    def validate
+      return "explicit field type for #{@name} required" unless @options.key? :type
+      nil
     end
 
     def expanded_names
       [@name]
     end
 
-    def mapping_inference_enabled?
-      @mapping_inference && !@options.key?(:transform)
+    def needs_inference?
+      mapping_inference_enabled? && !@options.key?(:type)
     end
 
     def disable_mapping_inference
@@ -30,7 +40,7 @@ module Elastic::Fields
     end
 
     def mapping_options
-      process_special_types @options.symbolize_keys.slice(*MAPPING_OPTIONS)
+      process_special_types @options.slice(*MAPPING_OPTIONS)
     end
 
     def has_field?(_name)
@@ -45,10 +55,19 @@ module Elastic::Fields
       @transform.apply _value
     end
 
+    def freeze
+      super
+      @options.freeze
+    end
+
     private
 
+    def mapping_inference_enabled?
+      @mapping_inference && !@options.key?(:transform)
+    end
+
     def process_special_types(_definition)
-      case _definition[:type].try(:to_sym)
+      case @options[:type].try(:to_sym)
       when :term
         _definition[:type] = 'string'
         _definition[:index] = 'not_analyzed'

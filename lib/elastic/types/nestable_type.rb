@@ -8,7 +8,7 @@ module Elastic::Types
 
       using = (_name + '_index').camelize.constantize if using.nil?
 
-      definition.register_field Elastic::Fields::Nested.new(_name, using)
+      pre_definition.register_field Elastic::Fields::Nested.new(_name, using)
     end
   end
 end

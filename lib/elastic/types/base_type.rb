@@ -1,26 +1,27 @@
 module Elastic::Types
   class BaseType < Elastic::Core::Serializer
     def self.target=(_name_or_class)
-      definition.targets = [_name_or_class]
+      pre_definition.targets = [_name_or_class]
     end
 
     def self.targets=(_names_or_classes)
-      definition.targets = _names_or_classes
+      pre_definition.targets = _names_or_classes
     end
 
-    def self.definition
-      @definition ||= Elastic::Core::Definition.new.tap do |definition|
+    def self.pre_definition
+      @pre_definition ||= Elastic::Core::Definition.new.tap do |definition|
         definition.targets = [default_target] unless default_target.nil?
       end
     end
 
-    def self.freeze_index_definition
-      unless definition.frozen?
-        definition.fields.each do |field|
+    def self.definition
+      @definition ||= begin
+        pre_definition.fields.each do |field|
           field.disable_mapping_inference if original_value_occluded? field.name
         end
 
-        definition.freeze
+        pre_definition.freeze
+        pre_definition
       end
     end
 

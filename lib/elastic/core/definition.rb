@@ -43,7 +43,22 @@ module Elastic::Core
       @expanded_field_names ||= @field_map.map { |_, field| field.expanded_names }.flatten
     end
 
+    def freeze
+      unless @frozen
+        complete_and_validate_fields
+        freeze_fields
+        @middleware_options.freeze
+        @frozen = true
+      end
+    end
+
+    def frozen?
+      !!@frozen
+    end
+
     def get_field(_name)
+      ensure_frozen!
+
       _name = _name.to_s
       separator = _name.index '.'
       if separator.nil?
@@ -55,40 +70,20 @@ module Elastic::Core
     end
 
     def has_field?(_name)
+      ensure_frozen!
+
       !get_field(_name).nil?
     end
 
     def as_es_mapping
-      # TODO: Make this a command
+      ensure_frozen!
+
       properties = {}
       @field_map.each_value do |field|
-        field_def = field.mapping_options
-
-        if !field_def.key?(:type) && field.mapping_inference_enabled?
-          inferred = infer_mapping_options(field.name)
-          field_def.merge! inferred.symbolize_keys unless inferred.nil?
-        end
-
-        if Elastic::Configuration.strict_mode && !field_def.key?(:type)
-          raise "explicit field type for #{field.name} required"
-        end
-
-        properties[field.name] = field_def if field_def.key? :type
+        properties[field.name] = field.mapping_options
       end
 
       { 'properties' => properties.as_json }
-    end
-
-    def freeze
-      unless @frozen
-        @field_map.each_value(&:freeze)
-        @frozen = true
-        @middleware_options.freeze
-      end
-    end
-
-    def frozen?
-      !!@frozen
     end
 
     private
@@ -105,6 +100,23 @@ module Elastic::Core
 
         target
       end
+    end
+
+    def complete_and_validate_fields
+      @field_map.each_value do |field|
+        field.merge! infer_mapping_options(field.name) if field.needs_inference?
+
+        error = field.validate
+        raise error unless error.nil?
+      end
+    end
+
+    def ensure_frozen!
+      raise 'definition needs to be frozen' unless @frozen
+    end
+
+    def freeze_fields
+      @field_map.each_value(&:freeze)
     end
 
     def load_target_middleware(_target)

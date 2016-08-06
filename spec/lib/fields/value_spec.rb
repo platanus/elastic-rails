@@ -11,15 +11,12 @@ describe Elastic::Fields::Value do
     it { expect(described_class.new(:foo, {}).name).to eq('foo') }
   end
 
-  describe "mapping_inference_enabled?" do
-    it { expect(field.mapping_inference_enabled?).to be true }
-    it { expect(field_w_transform.mapping_inference_enabled?).to be false }
+  describe "needs_inference?" do
+    it { expect(field.needs_inference?).to be false }
+  end
 
-    context "disable_mapping_inference has been called" do
-      before { field.disable_mapping_inference }
-
-      it { expect(field.mapping_inference_enabled?).to be false }
-    end
+  describe "validate" do
+    it { expect(field.validate).to be nil }
   end
 
   describe "mapping_options" do
@@ -37,5 +34,25 @@ describe Elastic::Fields::Value do
     it { expect(field.prepare_value_for_index(1)).to eq 1 }
     it { expect(field_w_transform.prepare_value_for_index(1)).to eq "1" }
     it { expect(field_w_lambda.prepare_value_for_index(1.9)).to eq 1 }
+  end
+
+  context "field options do not include type" do
+    let(:field) { described_class.new('foo', {}) }
+    let(:field_w_transform) { described_class.new('foo', transform: :to_s) }
+
+    describe "validate" do
+      it { expect(field.validate).to be_a String }
+    end
+
+    describe "needs_inference?" do
+      it { expect(field.needs_inference?).to be true }
+      it { expect(field_w_transform.needs_inference?).to be false }
+
+      context "disable_mapping_inference has been called" do
+        before { field.disable_mapping_inference }
+
+        it { expect(field.needs_inference?).to be false }
+      end
+    end
   end
 end

@@ -11,7 +11,11 @@ module Elastic::Fields
       [@name] + @index.definition.expanded_field_names.map { |n| @name + '.' + n }
     end
 
-    def mapping_inference_enabled?
+    def validate
+      nil
+    end
+
+    def needs_inference?
       false
     end
 
@@ -19,7 +23,7 @@ module Elastic::Fields
     end
 
     def freeze
-      @index.freeze_index_definition
+      @index.definition # calling index.definition freezes it
       super
     end
 

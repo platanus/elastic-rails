@@ -30,10 +30,6 @@ module Elastic
       @config[:coord_similarity]
     end
 
-    def strict_mode
-      @config[:strict_types]
-    end
-
     def logger
       @config[:logger] || default_logger
     end
@@ -45,8 +41,7 @@ module Elastic
         host: '127.0.0.1',
         port: 9200,
         page_size: 20,
-        coord_similarity: true,
-        strict_types: true
+        coord_similarity: true
       }
     end
 
