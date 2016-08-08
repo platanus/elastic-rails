@@ -25,6 +25,10 @@ module Elastic::Types
       end
     end
 
+    def self.freeze_definition
+      definition # calling definition freezes it
+    end
+
     def initialize(_object)
       super(self.class.definition, _object)
     end

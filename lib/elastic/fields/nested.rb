@@ -23,7 +23,7 @@ module Elastic::Fields
     end
 
     def freeze
-      @index.definition # calling index.definition freezes it
+      @index.freeze_definition
       super
     end
 
