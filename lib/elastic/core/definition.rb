@@ -65,7 +65,8 @@ module Elastic::Core
         @field_map[_name]
       else
         parent = @field_map[_name[0...separator]]
-        parent.try(:get_field, _name[separator + 1..-1])
+        return nil if parent.nil?
+        parent.get_field(_name[separator + 1..-1])
       end
     end
 

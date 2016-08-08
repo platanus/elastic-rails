@@ -22,6 +22,10 @@ module Elastic::Fields
       @options.merge! _options.symbolize_keys
     end
 
+    def get_field(_name)
+      nil
+    end
+
     def validate
       return "explicit field type for #{@name} required" unless @options.key? :type
       nil
