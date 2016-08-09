@@ -9,7 +9,7 @@ module Elastic::Results
     end
 
     def [](_key)
-      @aggs[_key.to_s].try(:as_value)
+      @aggs[_key.to_sym].try(:as_value)
     end
 
     def each(&_block)

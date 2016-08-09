@@ -2,7 +2,7 @@ module Elastic::Shims
   class Grouping < Base
     def handle_result(_raw, _formatter)
       groups = []
-      group_recursive(super.aggregations, HashWithIndifferentAccess.new, groups)
+      group_recursive(super.aggregations, Hash.new, groups)
       Elastic::Results::GroupedResult.new groups
     end
 
@@ -16,7 +16,7 @@ module Elastic::Shims
           group_recursive(bucket, _keys.merge(name => bucket.key), _groups)
         end
       else
-        _groups << Elastic::Results::ResultGroup.new(_keys, _agg_context)
+        _groups << Elastic::Results::ResultGroup.new(_keys.freeze, _agg_context)
       end
     end
   end

@@ -37,14 +37,14 @@ module Elastic::Nodes::Concerns
     end
 
     def render_aggs(_into)
-      _into['aggs'] = Hash[aggs.map { |a| [a.name, a.render] }] if has_aggs?
+      _into['aggs'] = Hash[aggs.map { |a| [a.name.to_s, a.render] }] if has_aggs?
       _into
     end
 
     def load_aggs_results(_raw, _formatter)
       {}.tap do |result|
         aggs.each do |node|
-          result[node.name] = node.handle_result(_raw[node.name], _formatter)
+          result[node.name] = node.handle_result(_raw[node.name.to_s], _formatter)
         end
       end
     end

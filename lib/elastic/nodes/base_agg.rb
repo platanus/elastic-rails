@@ -7,11 +7,11 @@ module Elastic::Nodes
     end
 
     def initialize
-      @name = 'default'
+      @name = :default
     end
 
     def name=(_value)
-      @name = _value.to_s
+      @name = _value.to_sym
     end
 
     def clone
