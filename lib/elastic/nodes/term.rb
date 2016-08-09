@@ -31,11 +31,11 @@ module Elastic::Nodes
     end
 
     def render
-      raise ArgumentError, 'must provide at least one term' if !@terms || @terms.empty?
+      raise ArgumentError, "terms not provided for #{@field}" if !@terms
 
       if @terms.length == 1
         { 'term' => { @field.to_s => render_boost('value' => @terms.first) } }
-      elsif @mode == :all
+      elsif @mode == :all && !@terms.empty?
         {
           'bool' => render_boost(
             'must' => @terms.map { |t| { 'term' => { @field.to_s => t } } }

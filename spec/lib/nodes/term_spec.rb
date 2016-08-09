@@ -24,6 +24,12 @@ describe Elastic::Nodes::Term do
       expect(node.render).to eq('term' => { 'foo' => { 'value' => 'foo' } })
     end
 
+    it "renders correctly when empty terms are set" do
+      node.terms = []
+
+      expect(node.render).to eq('terms' => { 'foo' => [] })
+    end
+
     it "renders correctly when boost is set" do
       node.terms = ['foo']
       node.boost = 2.0
