@@ -98,8 +98,8 @@ module Elastic::Fields
       case _name
       when :term
         Elastic::Datatypes::Term
-      # when :date
-      #   Elastic::Datatypes::Date
+      when :date
+        Elastic::Datatypes::Date
       # when :time
       #   Elastic::Datatypes::Time
       else

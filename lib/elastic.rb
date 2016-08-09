@@ -57,6 +57,7 @@ require "elastic/shims/field_picking"
 
 require "elastic/datatypes/default"
 require "elastic/datatypes/term"
+require "elastic/datatypes/date"
 
 require "elastic/fields/value"
 require "elastic/fields/nested"

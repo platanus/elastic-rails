@@ -18,7 +18,7 @@ describe Elastic::Commands::BuildAggFromParams do
 
   it "builds the correct agg node" do
     expect(perform(:foo)).to be_a Elastic::Nodes::Agg::Terms
-    # expect(perform(:bar)).to be_a Elastic::Nodes::Agg::DateHistogram
-    # expect(perform(:bar, interval: '2h').interval).to eq '2h'
+    expect(perform(:bar)).to be_a Elastic::Nodes::Agg::DateHistogram
+    expect(perform(:bar, interval: '2h').interval).to eq '2h'
   end
 end

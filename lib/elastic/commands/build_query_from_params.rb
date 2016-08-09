@@ -92,7 +92,7 @@ module Elastic::Commands
     end
 
     def build_term(_field, _options)
-      terms = Array(_options[:term] || _options[:terms])
+      terms = Array(_options.fetch(:term, _options[:terms]))
 
       Elastic::Nodes::Term.new.tap do |node|
         node.field = _field
