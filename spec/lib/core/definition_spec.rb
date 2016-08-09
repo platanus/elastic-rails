@@ -9,26 +9,6 @@ describe Elastic::Core::Definition do
     allow(Elastic::Core::Middleware).to receive(:wrap) { |t| middleware.new(t) }
   end
 
-  describe "targets" do
-    it "wraps targets using middleware provided by Middleware module" do
-      expect(definition.targets.first).to be_a middleware
-      expect(definition.targets.first.target).to be simple_target
-    end
-
-    it "fails if targets does not use the same elastic_mode" do
-      definition.targets = [
-        Class.new(Elastic::Core::BaseMiddleware) { def mode; :index end; }.new(nil),
-        Class.new(Elastic::Core::BaseMiddleware) { def mode; :storage end; }.new(nil)
-      ]
-
-      expect { definition.targets }.to raise_error RuntimeError
-    end
-  end
-
-  describe "main_target" do
-    it { expect(definition.main_target).to eq definition.targets.first }
-  end
-
   describe "middleware_options" do
     it "holds key -> value pairs with indifferent access" do
       definition.middleware_options[:foo] = 'bar'
@@ -57,12 +37,34 @@ describe Elastic::Core::Definition do
     # nothing to check here...
   end
 
+  describe "freeze" do
+    it "fails if given targets do not use the same elastic_mode" do
+      definition.targets = [
+        Class.new(Elastic::Core::BaseMiddleware) { def mode; :index end; }.new(nil),
+        Class.new(Elastic::Core::BaseMiddleware) { def mode; :storage end; }.new(nil)
+      ]
+
+      expect { definition.freeze }.to raise_error RuntimeError
+    end
+  end
+
   describe "frozen?" do
     it { expect(definition.frozen?).to be false }
   end
 
   context "definition has been frozen" do
     before { definition.freeze }
+
+    describe "main_target" do
+      it { expect(definition.main_target).to eq definition.targets.first }
+    end
+
+    describe "targets" do
+      it "wraps targets using middleware provided by Middleware module" do
+        expect(definition.targets.first).to be_a middleware
+        expect(definition.targets.first.target).to be simple_target
+      end
+    end
 
     describe "register_field" do
       it { expect { definition.register_field field_double(:foo) }.to raise_error RuntimeError }

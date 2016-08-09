@@ -7,11 +7,11 @@ module Elastic::Core
     end
 
     def targets
-      @target_cache ||= load_targets.freeze
+      raise 'attempting to access targets before definition has been frozen' if @target_cache.nil?
+      @target_cache
     end
 
     def targets=(_values)
-      @target_cache = nil
       @targets = _values
     end
 
@@ -26,12 +26,11 @@ module Elastic::Core
     def initialize
       @targets = []
       @field_map = {}
-      @frozen = false
+      @field_cache = {}
       @middleware_options = HashWithIndifferentAccess.new
     end
 
     def register_field(_field)
-      raise 'definition has been frozen' if @frozen
       @field_map[_field.name] = _field
     end
 
@@ -40,34 +39,24 @@ module Elastic::Core
     end
 
     def expanded_field_names
-      @expanded_field_names ||= @field_map.map { |_, field| field.expanded_names }.flatten
+      @field_map.map { |_, field| field.expanded_names }.flatten
     end
 
     def freeze
-      unless @frozen
-        complete_and_validate_fields
-        freeze_fields
-        @middleware_options.freeze
-        @frozen = true
-      end
-    end
-
-    def frozen?
-      !!@frozen
+      return if frozen?
+      cache_targets
+      complete_and_validate_fields
+      freeze_fields
+      @middleware_options.freeze
+      super
     end
 
     def get_field(_name)
       ensure_frozen!
 
       _name = _name.to_s
-      separator = _name.index '.'
-      if separator.nil?
-        @field_map[_name]
-      else
-        parent = @field_map[_name[0...separator]]
-        return nil if parent.nil?
-        parent.get_field(_name[separator + 1..-1])
-      end
+      @field_cache[_name] = resolve_field(_name) unless @field_cache.key? _name
+      @field_cache[_name]
     end
 
     def has_field?(_name)
@@ -88,6 +77,21 @@ module Elastic::Core
     end
 
     private
+
+    def resolve_field(_name)
+      separator = _name.index '.'
+      if separator.nil?
+        @field_map[_name]
+      else
+        parent = @field_map[_name[0...separator]]
+        return nil if parent.nil?
+        parent.get_field(_name[separator + 1..-1])
+      end
+    end
+
+    def cache_targets
+      @target_cache = load_targets.freeze
+    end
 
     def load_targets
       mode = nil
@@ -110,10 +114,12 @@ module Elastic::Core
         error = field.validate
         raise error unless error.nil?
       end
+
+      @field_map.freeze
     end
 
     def ensure_frozen!
-      raise 'definition needs to be frozen' unless @frozen
+      raise 'definition needs to be frozen' unless frozen?
     end
 
     def freeze_fields

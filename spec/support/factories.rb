@@ -64,7 +64,7 @@ RSpec.configure do |config|
     end
 
     klass.class_exec(self, &_block) unless _block.nil?
-    klass.target = target || build_type("#{_name}Target", *klass.definition.fields.map(&:name))
+    klass.target = target || build_type("#{_name}Target", *klass.pre_definition.fields.map(&:name))
     klass.mapping.migrate if migrate
     klass
   end
@@ -73,7 +73,7 @@ RSpec.configure do |config|
     klass = Class.new(Elastic::NestedType)
 
     klass.class_exec(self, &_block) unless _block.nil?
-    klass.target = target || build_type("#{_name}Target", *klass.definition.fields.map(&:name))
+    klass.target = target || build_type("#{_name}Target", *klass.pre_definition.fields.map(&:name))
     klass
   end
 
