@@ -39,7 +39,7 @@ module Elastic::Core
       query.size = 0
 
       last = attach_groups(query)
-      last.aggs = _aggs
+      last.aggregations = _aggs
 
       query = grouped_query(query) if grouped?
       query

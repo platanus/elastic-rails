@@ -1,11 +1,15 @@
 module Elastic::Nodes::Concerns
   module Aggregable
-    def has_aggs?
+    def has_aggregations?
       aggs.count > 0
     end
 
-    def aggs=(_aggs)
+    def aggregations=(_aggs)
       @aggs = _aggs.dup.to_a
+    end
+
+    def aggregations
+      @aggs.each
     end
 
     def aggregate(_node)
@@ -20,13 +24,13 @@ module Elastic::Nodes::Concerns
 
     def clone
       node = super
-      node.aggs = aggs.map(&:clone)
+      node.aggregations = aggs.map(&:clone)
       node
     end
 
     def simplify
       node = super
-      node.aggs = aggs.map(&:simplify)
+      node.aggregations = aggs.map(&:simplify)
       node
     end
 
@@ -37,7 +41,7 @@ module Elastic::Nodes::Concerns
     end
 
     def render_aggs(_into)
-      _into['aggs'] = Hash[aggs.map { |a| [a.name.to_s, a.render] }] if has_aggs?
+      _into['aggs'] = Hash[aggs.map { |a| [a.name.to_s, a.render] }] if has_aggregations?
       _into
     end
 
