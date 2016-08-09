@@ -85,14 +85,6 @@ module Elastic
       Core::QueryConfig.initial_config
     end
 
-    def assembler
-      @assembler ||= Core::QueryAssembler.new(@index, @config)
-    end
-
-    def formatter
-      @formatter ||= Core::SourceFormatter.new(@index.mapping)
-    end
-
     def execute(_query)
       raw = @index.adaptor.query(
         type: @index.definition.types,
@@ -100,6 +92,14 @@ module Elastic
       )
 
       _query.handle_result(raw, formatter)
+    end
+
+    def assembler
+      Core::QueryAssembler.new(@index, @config)
+    end
+
+    def formatter
+      Core::SourceFormatter.new(@index.definition)
     end
 
     class AggregableAdaptor

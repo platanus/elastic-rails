@@ -2,7 +2,7 @@ module Elastic::Commands
   class BuildAggFromParams < Elastic::Support::Command.new(:index, :params)
     def perform
       parse_params
-      raise ArgumentError, "field not mapped: #{@field}" unless index.definition.has_field? @field
+      raise ArgumentError, "field not mapped: #{@field}" if field_definition.nil?
 
       path = parse_nesting_path
       raise NotImplementedError, "nested paths not yet supported in aggregations" if path
@@ -11,10 +11,6 @@ module Elastic::Commands
     end
 
     private
-
-    def agg_name
-      @options.fetch(:as, @field)
-    end
 
     def parse_params
       @field = params[0].to_s
@@ -28,36 +24,46 @@ module Elastic::Commands
     end
 
     def build_node
-      type = @options[:type]
-      type = infer_type_from_options_and_mapping if type.nil?
+      type_options = @options.key?(:type) ? [@options[:type]] : infer_type_options
 
-      send("build_#{type}")
+      default_options = field_definition.select_aggregation type_options
+      if default_options.nil?
+        raise "aggregations not supported by #{@field}" if type_options.empty?
+        raise "#{type_options.first} aggregation not supported by #{@field}"
+      end
+
+      node_options = default_options.merge! @options
+      send("build_#{node_options[:type]}", node_options)
     end
 
-    def infer_type_from_options_and_mapping
-      return :range if @options.key? :ranges
-
-      properties = index.mapping.get_field_options @field
-      return :date_histogram if properties['type'] == 'date'
-      return :histogram if @options.key? :interval
-
-      :terms
+    def infer_type_options
+      return [:range] if @options.key? :ranges
+      return [:histogram, :date_histogram] if @options.key? :interval
+      nil
     end
 
-    def build_range
+    def field_definition
+      @field_definition ||= index.definition.get_field @field
+    end
+
+    def build_range(_options)
       raise NotImplementedError, 'range aggregation not yet implemented'
     end
 
-    def build_histogram
+    def build_histogram(_options)
       raise NotImplementedError, 'histogram aggregation not yet implemented'
     end
 
-    def build_date_histogram
-      Elastic::Nodes::Agg::DateHistogram.build(agg_name, @field, interval: @options[:interval])
+    def build_date_histogram(_options)
+      Elastic::Nodes::Agg::DateHistogram.build(agg_name, @field, interval: _options[:interval])
     end
 
-    def build_terms
-      Elastic::Nodes::Agg::Terms.build(agg_name, @field, size: @options[:size])
+    def build_terms(_options)
+      Elastic::Nodes::Agg::Terms.build(agg_name, @field, size: _options[:size])
+    end
+
+    def agg_name
+      @options.fetch(:as, @field)
     end
   end
 end

@@ -1,14 +1,13 @@
 require 'spec_helper'
 
 describe Elastic::Core::Serializer do
-  let(:foo_field) { Elastic::Fields::Value.new('foo', {}) }
-  let(:bar_field) { Elastic::Fields::Value.new('bar', {}) }
+  let(:foo_field) { field_double 'foo' }
+  let(:bar_field) { field_double 'bar' }
 
   let(:definition) { definition_double(fields: [foo_field, bar_field]) }
 
   let(:serializer) do
-    Class.new(described_class) do
-    end
+    Class.new(described_class)
   end
 
   let(:serializer_w_override) do

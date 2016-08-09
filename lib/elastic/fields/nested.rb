@@ -7,6 +7,10 @@ module Elastic::Fields
       @index = _index
     end
 
+    def merge!(_options)
+      # does nothing
+    end
+
     def expanded_names
       [@name] + @index.definition.expanded_field_names.map { |n| @name + '.' + n }
     end
@@ -20,6 +24,7 @@ module Elastic::Fields
     end
 
     def disable_mapping_inference
+      # does nothing, inference is always disabled
     end
 
     def freeze
@@ -41,6 +46,15 @@ module Elastic::Fields
 
     def prepare_value_for_index(_values)
       _values.map { |v| @index.new(v).as_es_document(only_data: true) }
+    end
+
+    def prepare_value_for_result(_values)
+      formatter = Elastic::Core::SourceFormatter.new @index.definition
+      _values.each { |v| formatter.format(v) }
+    end
+
+    def select_aggregation(_from)
+      nil
     end
   end
 end

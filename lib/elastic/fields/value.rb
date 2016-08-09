@@ -1,20 +1,15 @@
 module Elastic::Fields
   class Value
-    MAPPING_OPTIONS = [
-      :type, :analyzer, :boost, :coerce, :copy_to, :doc_values, :dynamic,
-      :enabled, :fielddata, :geohash, :geohash_precision, :geohash_prefix, :format, :ignore_above,
-      :ignore_malformed, :include_in_all, :index_options, :lat_lon, :index, :fields, :norms,
-      :null_value, :position_increment_gap, :properties, :search_analyzer, :similarity, :store,
-      :term_vector
-    ]
-
     attr_reader :name
 
     def initialize(_name, _options)
       @name = _name.to_s
       @options = _options.symbolize_keys
       @mapping_inference = true
-      @transform = Elastic::Support::Transform.new @options[:transform]
+    end
+
+    def nested?
+      false
     end
 
     def merge!(_options)
@@ -43,41 +38,73 @@ module Elastic::Fields
       @mapping_inference = false
     end
 
-    def mapping_options
-      process_special_types @options.slice(*MAPPING_OPTIONS)
+    def freeze
+      @name.freeze
+      @options.freeze
+      load_transform_and_datatype
+      super
     end
 
-    def has_field?(_name)
-      false
+    def mapping_options
+      @datatype.mapping_options
     end
 
     def prepare_value_for_query(_value)
-      prepare_value_for_index(_value)
+      _value = @transform.apply _value if @transform
+      @datatype.prepare_for_query _value
     end
 
     def prepare_value_for_index(_value)
-      @transform.apply _value
+      _value = @transform.apply _value if @transform
+      @datatype.prepare_for_index _value
     end
 
-    def freeze
-      super
-      @options.freeze
+    def prepare_value_for_result(_value)
+      @datatype.prepare_for_result _value
+    end
+
+    def select_aggregation(_from)
+      return @datatype.supported_aggregations.first if _from.nil?
+
+      @datatype.supported_aggregations.find do |agg|
+        _from.include? agg[:type].to_sym
+      end.try(:dup)
     end
 
     private
+
+    def load_transform_and_datatype
+      @datatype = datatype_class.new(@name, @options)
+      @transform = Elastic::Support::Transform.new @options[:transform] if @options.key? :transform
+    end
 
     def mapping_inference_enabled?
       @mapping_inference && !@options.key?(:transform)
     end
 
-    def process_special_types(_definition)
-      case @options[:type].try(:to_sym)
-      when :term
-        _definition[:type] = 'string'
-        _definition[:index] = 'not_analyzed'
+    def datatype_class
+      case @options[:type]
+      when Symbol, String
+        load_registered_datatype @options[:type].to_sym
+      when nil
+        Elastic::Datatypes::Default
+      else
+        @options[:type]
       end
+    end
 
-      _definition
+    def load_registered_datatype(_name)
+      # TODO: replace this with a datatype registry
+      case _name
+      when :term
+        Elastic::Datatypes::Term
+      # when :date
+      #   Elastic::Datatypes::Date
+      # when :time
+      #   Elastic::Datatypes::Time
+      else
+        Elastic::Datatypes::Default
+      end
     end
   end
 end

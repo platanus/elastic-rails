@@ -18,13 +18,15 @@ RSpec.configure do |config|
       allow(double).to receive(:types).and_return(targets.map(&:to_s))
       allow(double).to receive(:as_es_mapping).and_return(mapping)
       allow(double).to receive(:fields).and_return(fields)
+      allow(double).to receive(:get_field) { |name| fields.find { |f| f.name == name } }
       allow(double).to receive(:expanded_field_names).and_return(expanded_fields)
     end
   end
 
-  def field_double(_name, mapping: {}, inference: false, validation_error: nil)
+  def field_double(_name, mapping: {}, inference: false, validation_error: nil, nested: false)
     double(:field).tap do |field|
       allow(field).to receive(:name).and_return _name.to_s
+      allow(field).to receive(:nested).and_return nested
       allow(field).to receive(:expanded_names).and_return [_name.to_s]
       allow(field).to receive(:merge!).and_return nil
       allow(field).to receive(:needs_inference?).and_return inference
@@ -33,6 +35,9 @@ RSpec.configure do |config|
       allow(field).to receive(:has_field?).and_return false
       allow(field).to receive(:get_field).and_return nil
       allow(field).to receive(:freeze).and_return nil
+      allow(field).to receive(:prepare_value_for_index) { |x| x }
+      allow(field).to receive(:prepare_value_for_query) { |x| x }
+      allow(field).to receive(:prepare_value_for_result) { |x| x }
     end
   end
 
