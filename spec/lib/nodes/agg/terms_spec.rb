@@ -7,7 +7,7 @@ describe Elastic::Nodes::Agg::Terms do
 
   describe "render" do
     it "renders correctly" do
-      expect(node.render).to eq('terms' => { 'field' => 'foo', 'size' => 0 })
+      expect(node.render).to eq('terms' => { 'field' => 'foo' })
     end
 
     it "renders size option correctly" do
@@ -40,7 +40,7 @@ describe Elastic::Nodes::Agg::Terms do
     describe "render" do
       it "renders correctly" do
         expect(node.render)
-          .to eq('terms' => { 'field' => 'foo', 'size' => 0 }, 'aggs' => { 'bar' => 'qux' })
+          .to eq('terms' => { 'field' => 'foo' }, 'aggs' => { 'bar' => 'qux' })
       end
     end
 
