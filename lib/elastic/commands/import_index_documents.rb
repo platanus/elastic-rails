@@ -14,7 +14,7 @@ module Elastic::Commands
     private
 
     def import_collection
-      main_target.collect_for(collection, middleware_options) { |obj| queue obj }
+      main_target.collect_from(collection, middleware_options) { |obj| queue obj }
     end
 
     def import_target(_target)

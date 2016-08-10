@@ -18,7 +18,7 @@ module Elastic::Core
       target.public_send(method, &_block) if method
     end
 
-    def collect_for(_collection, _options, &_block)
+    def collect_from(_collection, _options, &_block)
       method = collect_method_for(_collection)
       raise ArgumentError, "Could not find a method to iterate over collection" if method.nil?
       _collection.public_send(method, &_block)

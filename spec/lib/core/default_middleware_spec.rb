@@ -16,9 +16,9 @@ describe Elastic::Core::DefaultMiddleware do
     it { expect { middleware.collect_all({}) }.not_to raise_error }
   end
 
-  describe 'collect_for' do
-    it { expect { middleware.collect_for(nil, {}) }.to raise_error ArgumentError }
-    it { expect { middleware.collect_for([], {}) }.not_to raise_error }
+  describe 'collect_from' do
+    it { expect { middleware.collect_from(nil, {}) }.to raise_error ArgumentError }
+    it { expect { middleware.collect_from([], {}) }.not_to raise_error }
   end
 
   describe 'build_from_data' do

@@ -22,8 +22,8 @@ module Elastic::Core
       not_supported :collect_all
     end
 
-    def collect_for(_collection, _options, &_block)
-      not_supported :collect_for
+    def collect_from(_collection, _options, &_block)
+      not_supported :collect_from
     end
 
     def find_by_ids(_ids, _options)
