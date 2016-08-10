@@ -42,7 +42,8 @@ module Elastic::Railties
       when :string            then { type: :string, index: 'not_analyzed' }
       when :integer           then { type: :long } # not sure..
       when :float, :decimal   then { type: :double } # not sure..
-      when :datetime, :date   then { type: :date }
+      when :date              then { type: :date }
+      when :datetime          then { type: :time }
       when :boolean           then { type: :boolean }
       end
     end
