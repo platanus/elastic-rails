@@ -213,6 +213,26 @@ describe Elastic::Query do
         end
       end
 
+      describe "[]" do
+        it "allow accessing results by key" do
+          expect(grouped[20].count).to eq 2
+          expect(grouped[30].count).to eq 1
+          expect(grouped[bar: 30].count).to eq 1
+        end
+
+        it "requires explicit key names if more than one segmentation is performed" do
+          new_query = grouped.segment(:foo)
+          expect { new_query[20] }.to raise_error ArgumentError
+          expect(new_query[bar: 20, foo: 'foo'].count).to eq(1)
+        end
+
+        it "allows any key order if more than one segmentation is performed" do
+          new_query = grouped.segment(:foo)
+          expect(new_query[bar: 20, foo: 'bar'].count).to eq(2)
+          expect(new_query[foo: 'bar', bar: 20].count).to eq(2)
+        end
+      end
+
       describe "pick" do
         it "returns grouped field collections" do
           expect(grouped.pick(:foo)).to be_a Elastic::Results::GroupedResult

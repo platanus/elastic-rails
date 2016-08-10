@@ -1,23 +1,32 @@
 module Elastic::Shims
   class Grouping < Base
     def handle_result(_raw, _formatter)
-      groups = []
-      group_recursive(super.aggregations, Hash.new, groups)
-      Elastic::Results::GroupedResult.new groups
+      chain = extract_aggregation_chain
+      groups = group_recursive(super.aggregations, chain)
+      Elastic::Results::GroupedResult.new chain, groups
     end
 
     private
 
-    def group_recursive(_agg_context, _keys, _groups)
-      name, agg = _agg_context.first
+    def extract_aggregation_chain
+      child.pick(Elastic::Nodes::Concerns::Aggregable).map do |node|
+        bucketed = node.aggregations.find { |n| n.is_a? Elastic::Nodes::Concerns::Bucketed }
+        bucketed.try(:name)
+      end.reject(&:nil?)
+    end
 
-      if agg.is_a? Elastic::Results::BucketCollection
+    def group_recursive(_agg_context, _chain, _keys = {}, _groups = [], _idx = 0)
+      if _idx < _chain.length
+        name = _chain[_idx]
+        agg = _agg_context[name] || []
         agg.each do |bucket|
-          group_recursive(bucket, _keys.merge(name => bucket.key), _groups)
+          group_recursive(bucket, _chain, _keys.merge(name => bucket.key), _groups, _idx + 1)
         end
       else
-        _groups << Elastic::Results::ResultGroup.new(_keys.freeze, _agg_context)
+        _groups << Elastic::Results::ResultGroup.new(_keys, _agg_context)
       end
+
+      _groups
     end
   end
 end
