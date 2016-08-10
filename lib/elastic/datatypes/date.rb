@@ -13,9 +13,9 @@ module Elastic::Datatypes
     def prepare_for_result(_value)
       case _value
       when String
-        Time.parse(_value).utc.to_date
+        ::Time.parse(_value).utc.to_date
       when Integer
-        Time.at(_value / 1000).utc.to_date
+        ::Time.at(_value / 1000).utc.to_date
       else
         _value
       end

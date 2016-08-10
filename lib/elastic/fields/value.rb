@@ -100,8 +100,8 @@ module Elastic::Fields
         Elastic::Datatypes::Term
       when :date
         Elastic::Datatypes::Date
-      # when :time
-      #   Elastic::Datatypes::Time
+      when :time
+        Elastic::Datatypes::Time
       else
         Elastic::Datatypes::Default
       end
