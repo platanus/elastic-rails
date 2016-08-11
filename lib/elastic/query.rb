@@ -14,10 +14,6 @@ module Elastic
       @config = _query_config || build_base_config
     end
 
-    def coord_similarity(_enable)
-      with_clone { |config| config.root.query.disable_coord = !_enable }
-    end
-
     def limit(_size)
       with_clone { |config| config.limit = _size }
     end
