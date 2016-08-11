@@ -26,11 +26,11 @@ module Elastic::Nodes
       prepare_clone(super)
     end
 
-    def render
-      query_options = { 'query' => @query }
-      query_options['type'] = @mode.to_s unless @mode.nil? || @mode == :boolean
+    def render(_options = {})
+      hash = { 'query' => @query }
+      hash['type'] = @mode.to_s unless @mode.nil? || @mode == :boolean
 
-      { "match" => { @field.to_s => render_boost(query_options) } }
+      { "match" => { @field.to_s => render_boost(hash) } }
     end
 
     private

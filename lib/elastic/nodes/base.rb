@@ -10,7 +10,7 @@ module Elastic::Nodes
       _block.call(self)
     end
 
-    def render
+    def render(_options = {})
       raise NotImplementedError, 'render must be implemented by each node'
     end
 

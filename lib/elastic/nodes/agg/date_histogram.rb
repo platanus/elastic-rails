@@ -26,11 +26,11 @@ module Elastic::Nodes::Agg
       prepare_clone(super)
     end
 
-    def render
-      options = { 'field' => @field.to_s }
-      options['interval'] = @interval if @interval
+    def render(_options = {})
+      hash = { 'field' => @field.to_s }
+      hash['interval'] = @interval if @interval
 
-      render_aggs 'date_histogram' => options
+      render_aggs({ 'date_histogram' => hash }, _options)
     end
 
     private

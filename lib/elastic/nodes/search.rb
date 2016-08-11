@@ -14,11 +14,11 @@ module Elastic::Nodes
       @query.traverse(&_block)
     end
 
-    def render
-      { "query" => @query.render }.tap do |options|
-        options["from"] = @offset if offset && offset > 0
-        render_hit_options(options)
-        render_aggs(options)
+    def render(_options = {})
+      { "query" => @query.render(_options) }.tap do |hash|
+        hash["from"] = @offset if offset && offset > 0
+        render_hit_options(hash)
+        render_aggs(hash, _options)
       end
     end
 

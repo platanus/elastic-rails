@@ -40,8 +40,8 @@ module Elastic::Nodes::Concerns
       @aggs ||= []
     end
 
-    def render_aggs(_into)
-      _into['aggs'] = Hash[aggs.map { |a| [a.name.to_s, a.render] }] if has_aggregations?
+    def render_aggs(_into, _options)
+      _into['aggs'] = Hash[aggs.map { |a| [a.name.to_s, a.render(_options)] }] if has_aggregations?
       _into
     end
 

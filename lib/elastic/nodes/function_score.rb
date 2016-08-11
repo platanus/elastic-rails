@@ -54,18 +54,18 @@ module Elastic::Nodes
       @query.traverse(&_block)
     end
 
-    def render
-      function_score = { 'query' => @query.render }
-      function_score['boost_mode'] = @boost_mode.to_s if @boost_mode && @boost_mode != :multiply
+    def render(_options = {})
+      hash = { 'query' => @query.render(_options) }
+      hash['boost_mode'] = @boost_mode.to_s if @boost_mode && @boost_mode != :multiply
 
       if @functions.length > 1
-        function_score['score_mode'] = @score_mode.to_s if @score_mode && @score_mode != :multiply
-        function_score['functions'] = @functions
+        hash['score_mode'] = @score_mode.to_s if @score_mode && @score_mode != :multiply
+        hash['functions'] = @functions
       elsif @functions.length == 1
-        function_score.merge! @functions.first
+        hash.merge! @functions.first
       end
 
-      { 'function_score' => render_boost(function_score) }
+      { 'function_score' => render_boost(hash) }
     end
 
     alias :super_clone :clone

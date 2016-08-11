@@ -94,7 +94,7 @@ RSpec.configure do |config|
         self.class.new @query
       end
 
-      def render
+      def render(_options = {})
         @query
       end
 

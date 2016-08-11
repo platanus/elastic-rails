@@ -22,11 +22,11 @@ module Elastic::Nodes
       prepare_clone super, @child.simplify
     end
 
-    def render
+    def render(_options = {})
       {
         "nested" => {
           "path" => @path,
-          "query" => @child.render
+          "query" => @child.render(_options)
         }
       }
     end

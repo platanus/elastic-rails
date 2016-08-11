@@ -20,11 +20,11 @@ module Elastic::Nodes::Agg
       prepare_clone(super)
     end
 
-    def render
-      options = { 'field' => @field.to_s }
-      options['size'] = @size if @size
+    def render(_options = {})
+      hash = { 'field' => @field.to_s }
+      hash['size'] = @size if @size
 
-      render_aggs 'terms' => options
+      render_aggs({ 'terms' => hash }, _options)
     end
 
     private

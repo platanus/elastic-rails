@@ -48,16 +48,15 @@ module Elastic::Nodes
       @musts.each { |c| c.traverse(&_block) }
     end
 
-    def render
-      options = {}.tap do |boolean|
-        boolean['must'] = @musts.map(&:render) if !@musts.empty?
-        boolean['should'] = @shoulds.map(&:render) if !@shoulds.empty?
-        boolean['minimum_should_match'] = minimum_should_match unless minimum_should_match.nil?
-        boolean['disable_coord'] = true if disable_coord
-        render_boost(boolean)
-      end
+    def render(_options = {})
+      hash = {}
+      hash['must'] = @musts.map { |n| n.render(_options) } if !@musts.empty?
+      hash['should'] = @shoulds.map { |n| n.render(_options) } if !@shoulds.empty?
+      hash['minimum_should_match'] = minimum_should_match unless minimum_should_match.nil?
+      hash['disable_coord'] = true if disable_coord
+      render_boost(hash)
 
-      { "bool" => options }
+      { "bool" => hash }
     end
 
     def clone

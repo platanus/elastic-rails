@@ -48,8 +48,8 @@ module Elastic::Nodes
       end
     end
 
-    def render
-      hash = child.render
+    def render(_options = {})
+      hash = child.render(_options)
       hash['sort'] = render_sorts
       hash
     end

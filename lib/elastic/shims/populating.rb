@@ -6,7 +6,7 @@ module Elastic::Shims
       @config = _config
     end
 
-    def render
+    def render(_options = {})
       disable_hits_source if populate_by_id?
       super
     end

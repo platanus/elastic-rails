@@ -12,14 +12,14 @@ module Elastic::Nodes
       prepare_clone(super)
     end
 
-    def render
-      options = {}
-      options['gte'] = @gte unless @gte.nil?
-      options['gt'] = @gt unless @gt.nil?
-      options['lte'] = @lte unless @lte.nil?
-      options['lt'] = @lt unless @lt.nil?
+    def render(_options = {})
+      hash = {}
+      hash['gte'] = @gte unless @gte.nil?
+      hash['gt'] = @gt unless @gt.nil?
+      hash['lte'] = @lte unless @lte.nil?
+      hash['lt'] = @lt unless @lt.nil?
 
-      { "range" => { @field.to_s => render_boost(options) } }
+      { "range" => { @field.to_s => render_boost(hash) } }
     end
 
     private

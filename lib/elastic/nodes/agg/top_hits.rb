@@ -2,11 +2,11 @@ module Elastic::Nodes
   class TopHits < BaseAgg
     include Concerns::HitProvider
 
-    def render
-      options = {}
-      render_hit_options options
+    def render(_options = {})
+      hash = {}
+      render_hit_options hash
 
-      { 'top_hits' => options }
+      { 'top_hits' => hash }
     end
 
     def handle_result(_raw, _formatter)

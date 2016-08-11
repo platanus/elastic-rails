@@ -30,7 +30,7 @@ module Elastic::Nodes
       prepare_clone(super)
     end
 
-    def render
+    def render(_options = {})
       raise ArgumentError, "terms not provided for #{@field}" if !@terms
 
       if @terms.length == 1

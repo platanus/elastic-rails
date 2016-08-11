@@ -1,6 +1,6 @@
 module Elastic::Shims::Concerns
   module HitPicker
-    def render
+    def render(_options = {})
       set_hits_source unless required_source_fields.nil?
       super
     end

@@ -12,8 +12,8 @@ module Elastic::Shims
       @child.traverse(&_block)
     end
 
-    def render
-      @child.render
+    def render(_options = {})
+      @child.render(_options)
     end
 
     def handle_result(_raw, _formatter)

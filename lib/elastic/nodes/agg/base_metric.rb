@@ -17,11 +17,11 @@ module Elastic::Nodes::Agg
       prepare_clone super
     end
 
-    def render
-      options = { 'field' => @field.to_s }
-      options['missing'] = @missing if @missing
+    def render(_options = {})
+      hash = { 'field' => @field.to_s }
+      hash['missing'] = @missing if @missing
 
-      { metric => options }
+      { metric => hash }
     end
 
     def handle_result(_raw, _formatter)

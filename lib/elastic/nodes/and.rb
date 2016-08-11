@@ -27,8 +27,8 @@ module Elastic::Nodes
       prepare_clone(super, new_children)
     end
 
-    def render
-      { operation => @children.map(&:render) }
+    def render(_options = {})
+      { operation => @children.map { |c| c.render(_options) } }
     end
 
     private
