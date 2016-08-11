@@ -1,8 +1,9 @@
 module Elastic::Nodes
   class Range < Base
     include Concerns::Boostable
+    include Concerns::FieldQuery
 
-    attr_accessor :field, :gte, :gt, :lte, :lt
+    attr_accessor :gte, :gt, :lte, :lt
 
     def clone
       prepare_clone(super)
@@ -19,7 +20,7 @@ module Elastic::Nodes
       hash['lte'] = @lte unless @lte.nil?
       hash['lt'] = @lt unless @lt.nil?
 
-      { "range" => { @field.to_s => render_boost(hash) } }
+      { "range" => { render_field(_options) => render_boost(hash) } }
     end
 
     private

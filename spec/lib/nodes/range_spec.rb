@@ -26,6 +26,14 @@ describe Elastic::Nodes::Range do
 
       expect(node.render).to eq('range' => { 'foo' => { 'gt' => 20, 'boost' => 2.0 } })
     end
+
+    it "renders correctly when query_path option is given" do
+      node.gt = 20
+      node.lt = 30
+
+      expect(node.render(query_path: 'qux'))
+        .to eq('range' => { 'qux.foo' => { 'gt' => 20, 'lt' => 30 } })
+    end
   end
 
   describe "clone" do

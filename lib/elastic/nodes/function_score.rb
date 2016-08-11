@@ -58,6 +58,7 @@ module Elastic::Nodes
       hash = { 'query' => @query.render(_options) }
       hash['boost_mode'] = @boost_mode.to_s if @boost_mode && @boost_mode != :multiply
 
+      # TODO: add support for the query_path option
       if @functions.length > 1
         hash['score_mode'] = @score_mode.to_s if @score_mode && @score_mode != :multiply
         hash['functions'] = @functions

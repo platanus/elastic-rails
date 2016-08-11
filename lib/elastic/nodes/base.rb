@@ -32,3 +32,5 @@ require "elastic/nodes/concerns/hit_provider"
 require "elastic/nodes/concerns/aggregable"
 require "elastic/nodes/concerns/bucketed"
 require "elastic/nodes/concerns/boostable"
+require "elastic/nodes/concerns/field_query"
+

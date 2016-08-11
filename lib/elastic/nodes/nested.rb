@@ -23,10 +23,13 @@ module Elastic::Nodes
     end
 
     def render(_options = {})
+      path = @path
+      path = "#{_options[:query_path]}.@path" if _options.key? :query_path
+
       {
         "nested" => {
-          "path" => @path,
-          "query" => @child.render(_options)
+          "path" => path,
+          "query" => @child.render(_options.merge(query_path: path))
         }
       }
     end

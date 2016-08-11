@@ -1,6 +1,7 @@
 module Elastic::Nodes
   class Term < Base
     include Concerns::Boostable
+    include Concerns::FieldQuery
 
     BOOLEAN_MODE = [:any, :all]
 
@@ -34,15 +35,15 @@ module Elastic::Nodes
       raise ArgumentError, "terms not provided for #{@field}" if !@terms
 
       if @terms.length == 1
-        { 'term' => { @field.to_s => render_boost('value' => @terms.first) } }
+        { 'term' => { render_field(_options) => render_boost('value' => @terms.first) } }
       elsif @mode == :all && !@terms.empty?
         {
           'bool' => render_boost(
-            'must' => @terms.map { |t| { 'term' => { @field.to_s => t } } }
+            'must' => @terms.map { |t| { 'term' => { render_field(_options) => t } } }
           )
         }
       else
-        { 'terms' => render_boost(@field.to_s => @terms) }
+        { 'terms' => render_boost(render_field(_options) => @terms) }
       end
     end
 

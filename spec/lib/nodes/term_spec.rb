@@ -62,5 +62,12 @@ describe Elastic::Nodes::Term do
         }
       )
     end
+
+    it "renders correctly when query_path option is given" do
+      node.terms = ['foo']
+
+      expect(node.render(query_path: 'qux'))
+        .to eq('term' => { 'qux.foo' => { 'value' => 'foo' } })
+    end
   end
 end

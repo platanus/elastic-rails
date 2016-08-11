@@ -47,5 +47,11 @@ describe Elastic::Nodes::Match do
       expect(node.render)
         .to eq('match' => { 'foo' => { 'query' => 'hello world', 'boost' => 2.0 } })
     end
+
+    it "renders correctly when query_path option is given" do
+      node.query = 'hello world'
+      expect(node.render(query_path: 'qux'))
+        .to eq('match' => { 'qux.foo' => { 'query' => 'hello world' } })
+    end
   end
 end

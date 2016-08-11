@@ -1,10 +1,11 @@
 module Elastic::Nodes
   class Match < Base
     include Concerns::Boostable
+    include Concerns::FieldQuery
 
     MATCH_MODES = [:boolean, :phrase, :phrase_prefix]
 
-    attr_accessor :field, :query
+    attr_accessor :query
     attr_reader :mode
 
     def query=(_query)
@@ -30,7 +31,7 @@ module Elastic::Nodes
       hash = { 'query' => @query }
       hash['type'] = @mode.to_s unless @mode.nil? || @mode == :boolean
 
-      { "match" => { @field.to_s => render_boost(hash) } }
+      { "match" => { render_field(_options) => render_boost(hash) } }
     end
 
     private
