@@ -37,6 +37,10 @@ module Elastic::Datatypes
       ]
     end
 
+    def supported_queries
+      [:term, :range]
+    end
+
     private
 
     attr_reader :name, :user_options

@@ -1,6 +1,6 @@
 module Elastic::Fields
   class Value
-    attr_reader :name
+    attr_reader :name, :datatype
 
     def initialize(_name, _options)
       @name = _name.to_s
@@ -98,6 +98,8 @@ module Elastic::Fields
       case _name
       when :term
         Elastic::Datatypes::Term
+      when :string
+        Elastic::Datatypes::String
       when :date
         Elastic::Datatypes::Date
       when :time

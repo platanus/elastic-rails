@@ -26,7 +26,7 @@ RSpec.configure do |config|
   def field_double(_name, mapping: {}, inference: false, validation_error: nil, nested: false)
     double(:field).tap do |field|
       allow(field).to receive(:name).and_return _name.to_s
-      allow(field).to receive(:nested).and_return nested
+      allow(field).to receive(:nested?).and_return nested
       allow(field).to receive(:expanded_names).and_return [_name.to_s]
       allow(field).to receive(:merge!).and_return nil
       allow(field).to receive(:needs_inference?).and_return inference

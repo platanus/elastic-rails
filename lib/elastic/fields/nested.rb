@@ -23,6 +23,10 @@ module Elastic::Fields
       false
     end
 
+    def nested?
+      true
+    end
+
     def disable_mapping_inference
       # does nothing, inference is always disabled
     end
@@ -38,10 +42,6 @@ module Elastic::Fields
 
     def get_field(_name)
       @index.definition.get_field _name
-    end
-
-    def prepare_value_for_query(_value)
-      _value
     end
 
     def prepare_value_for_index(_values)
