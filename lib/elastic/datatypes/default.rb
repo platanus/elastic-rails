@@ -25,7 +25,7 @@ module Elastic::Datatypes
       _value
     end
 
-    def prepare_for_result(_value)
+    def prepare_value_for_result(_value)
       _value
     end
 

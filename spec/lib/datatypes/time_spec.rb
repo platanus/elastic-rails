@@ -11,13 +11,13 @@ describe Elastic::Datatypes::Time do
     end
   end
 
-  describe "prepare_for_result" do
+  describe "prepare_value_for_result" do
     let(:es_date_str) { '2016-07-14T19:40:00.000-04:00' }
     let(:es_date_long) { 1468539600000 }
 
     it "parses string and long timestamps" do
-      expect(datatype.prepare_for_result(es_date_str)).to eq Time.new(2016, 7, 14, 19, 40)
-      expect(datatype.prepare_for_result(es_date_long)).to eq Time.new(2016, 7, 14, 19, 40)
+      expect(datatype.prepare_value_for_result(es_date_str)).to eq Time.new(2016, 7, 14, 19, 40)
+      expect(datatype.prepare_value_for_result(es_date_long)).to eq Time.new(2016, 7, 14, 19, 40)
     end
   end
 

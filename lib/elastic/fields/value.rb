@@ -1,6 +1,10 @@
 module Elastic::Fields
   class Value
-    attr_reader :name, :datatype
+    extend Forwardable
+
+    attr_reader :name
+
+    def_delegators :@datatype, :mapping_options, :prepare_value_for_result, :supported_queries
 
     def initialize(_name, _options)
       @name = _name.to_s
@@ -42,11 +46,6 @@ module Elastic::Fields
       @name.freeze
       @options.freeze
       load_transform_and_datatype
-      super
-    end
-
-    def mapping_options
-      @datatype.mapping_options
     end
 
     def prepare_value_for_query(_value)
@@ -59,16 +58,18 @@ module Elastic::Fields
       @datatype.prepare_for_index _value
     end
 
-    def prepare_value_for_result(_value)
-      @datatype.prepare_for_result _value
-    end
-
     def select_aggregation(_from)
       return @datatype.supported_aggregations.first if _from.nil?
 
       @datatype.supported_aggregations.find do |agg|
         _from.include? agg[:type].to_sym
       end.try(:dup)
+    end
+
+    def default_options_for_query(_query_type)
+      method_name = "#{_query_type}_query_defaults"
+      return {} unless @datatype.respond_to? method_name
+      @datatype.public_send(method_name)
     end
 
     private

@@ -14,18 +14,18 @@ describe Elastic::Datatypes::Date do
     end
   end
 
-  describe "prepare_for_result" do
+  describe "prepare_value_for_result" do
     let(:es_date_str) { '2016-07-14T19:40:27.000-04:00' }
     let(:es_problem_date_str) { '2016-07-14T20:40:27.000-04:00' }
     let(:es_date_long) { 1468525227000 }
 
     it "transforms string timestamp to date" do
-      expect(datatype.prepare_for_result(es_date_str)).to eq Date.new(2016, 7, 14)
-      expect(datatype.prepare_for_result(es_problem_date_str)).to eq Date.new(2016, 7, 15)
+      expect(datatype.prepare_value_for_result(es_date_str)).to eq Date.new(2016, 7, 14)
+      expect(datatype.prepare_value_for_result(es_problem_date_str)).to eq Date.new(2016, 7, 15)
     end
 
     it "transforms long timestamp to date" do
-      expect(datatype.prepare_for_result(1468525227000)).to eq Date.new(2016, 7, 14)
+      expect(datatype.prepare_value_for_result(1468525227000)).to eq Date.new(2016, 7, 14)
     end
   end
 

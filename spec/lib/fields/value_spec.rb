@@ -6,7 +6,7 @@ describe Elastic::Fields::Value do
       allow(d).to receive(:mapping_options).and_return :foo
       allow(d).to receive(:prepare_for_index) { |v| v + ' bar' }
       allow(d).to receive(:prepare_for_query) { |v| v + ' baz' }
-      allow(d).to receive(:prepare_for_result) { |v| v + ' qux' }
+      allow(d).to receive(:prepare_value_for_result) { |v| v + ' qux' }
       allow(d).to receive(:supported_aggregations).and_return(
         [{ type: 'terms' }, { type: 'histogram', interval: 10 }, { type: 'foo' }]
       )
@@ -62,10 +62,7 @@ describe Elastic::Fields::Value do
     end
 
     describe "mapping_options" do
-      it "calls datatype mapping_options" do
-        expect(datatype).to receive(:mapping_options)
-        expect(field.mapping_options).to eq :foo
-      end
+      it { expect(field).to forward(:mapping_options, to: datatype) }
     end
 
     describe "prepare_value_for_index" do
@@ -93,9 +90,18 @@ describe Elastic::Fields::Value do
     end
 
     describe "prepare_value_for_result" do
-      it "calls datatype prepare_for_result" do
-        expect(datatype).to receive(:prepare_for_result).with 'hello'
-        expect(field.prepare_value_for_result('hello')).to eq 'hello qux'
+      it { expect(field).to forward(:prepare_value_for_result, to: datatype) }
+    end
+
+    describe "supported_queries" do
+      it { expect(field).to forward(:supported_queries, to: datatype) }
+    end
+
+    describe "default_options_for_query" do
+      it "attemps to call datatype's *_query_defaults" do
+        expect(field.default_options_for_query(:term)).to eq({})
+        expect(datatype).to receive(:term_query_defaults).and_return(foo: :bar)
+        expect(field.default_options_for_query(:term)).to eq(foo: :bar)
       end
     end
 

@@ -39,10 +39,10 @@ module Elastic::Commands
       if definition.nested?
         build_nested_query(_field, definition.index, _options)
       else
-        query_type = infer_query_type definition.datatype, _options
+        query_type = infer_query_type definition, _options
         raise "query not supported by #{_field}" if query_type.nil?
         _options = option_to_hash(query_type, _options) unless _options.is_a? Hash
-        _options = apply_query_defaults(definition.datatype, query_type, _options)
+        _options = apply_query_defaults definition, query_type, _options
 
         send("build_#{query_type}", definition, _options)
       end
@@ -54,17 +54,18 @@ module Elastic::Commands
       definition
     end
 
-    def infer_query_type(_datatype, _options)
+    def infer_query_type(_definition, _options)
       alternatives = infer_query_type_from_options(_options)
       if alternatives.nil?
-        _datatype.supported_queries.first
+        _definition.supported_queries.first
       else
-        _datatype.supported_queries.find { |q| alternatives.include? q }
+        _definition.supported_queries.find { |q| alternatives.include? q }
       end
     end
 
     def build_nested_query(_path, _index, _options)
       _options = [_options] unless _options.is_a? Array
+
       nested_query = BuildQueryFromParams.for(index: _index, params: _options)
       Elastic::Nodes::Nested.build _path, nested_query
     end
@@ -99,13 +100,8 @@ module Elastic::Commands
       end
     end
 
-    def apply_query_defaults(_datatype, _query_type, _options)
-      method_name = "#{_query_type}_query_defaults"
-      if _datatype.respond_to? method_name
-        _datatype.public_send(method_name).merge _options
-      else
-        _options
-      end
+    def apply_query_defaults(_definition, _query_type, _options)
+      _definition.default_options_for_query(_query_type).merge(_options)
     end
 
     # NOTE: the following methods could be placed in separate factories.

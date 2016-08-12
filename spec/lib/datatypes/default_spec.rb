@@ -24,9 +24,9 @@ describe Elastic::Datatypes::Default do
     end
   end
 
-  describe "prepare_for_result" do
+  describe "prepare_value_for_result" do
     it "does nothing" do
-      expect(datatype.prepare_for_result(:foo)).to eq(:foo)
+      expect(datatype.prepare_value_for_result(:foo)).to eq(:foo)
     end
   end
 
