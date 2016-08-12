@@ -97,27 +97,14 @@ describe Elastic::Fields::Value do
       it { expect(field).to forward(:supported_queries, to: datatype) }
     end
 
-    describe "default_options_for_query" do
-      it "attemps to call datatype's *_query_defaults" do
-        expect(field.default_options_for_query(:term)).to eq({})
-        expect(datatype).to receive(:term_query_defaults).and_return(foo: :bar)
-        expect(field.default_options_for_query(:term)).to eq(foo: :bar)
-      end
-    end
-
-    describe "select_aggregation" do
-      it "calls datatype supported_aggregation" do
-        expect(datatype).to receive(:supported_aggregations)
-        field.select_aggregation(nil)
-      end
-
-      it "returns the first supported aggregation if nil is given" do
-        expect(field.select_aggregation(nil)).to eq(type: 'terms')
-      end
-
-      it "returns the first matching aggregation" do
-        expect(field.select_aggregation([:histogram])).to eq(type: 'histogram', interval: 10)
-      end
+    describe "default_options" do
+      it { expect(field).to forward(:term_query_defaults, to: datatype) }
+      it { expect(field).to forward(:range_query_defaults, to: datatype) }
+      it { expect(field).to forward(:match_query_defaults, to: datatype) }
+      it { expect(field).to forward(:terms_aggregation_defaults, to: datatype) }
+      it { expect(field).to forward(:date_histogram_aggregation_defaults, to: datatype) }
+      it { expect(field).to forward(:histogram_aggregation_defaults, to: datatype) }
+      it { expect(field).to forward(:range_aggregation_defaults, to: datatype) }
     end
   end
 end

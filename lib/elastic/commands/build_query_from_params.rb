@@ -42,7 +42,7 @@ module Elastic::Commands
         query_type = infer_query_type definition, _options
         raise "query not supported by #{_field}" if query_type.nil?
         _options = option_to_hash(query_type, _options) unless _options.is_a? Hash
-        _options = apply_query_defaults definition, query_type, _options
+        _options = definition.public_send("#{query_type}_query_defaults").merge(_options)
 
         send("build_#{query_type}", definition, _options)
       end
@@ -98,10 +98,6 @@ module Elastic::Commands
       when :range
         { gte: _value.begin, (_value.exclude_end? ? :lt : :lte) => _value.end }
       end
-    end
-
-    def apply_query_defaults(_definition, _query_type, _options)
-      _definition.default_options_for_query(_query_type).merge(_options)
     end
 
     # NOTE: the following methods could be placed in separate factories.

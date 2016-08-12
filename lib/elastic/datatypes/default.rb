@@ -30,15 +30,41 @@ module Elastic::Datatypes
     end
 
     def supported_aggregations
-      [
-        { type: 'terms', size: 0 },
-        { type: 'histogram' },
-        { type: 'range' }
-      ]
+      [:terms, :histogram, :range]
     end
 
     def supported_queries
       [:term, :range]
+    end
+
+    # default configurations
+
+    def term_query_defaults
+      {}
+    end
+
+    def match_query_defaults
+      {}
+    end
+
+    def range_query_defaults
+      {}
+    end
+
+    def terms_aggregation_defaults
+      { size: 0 }
+    end
+
+    def date_histogram_aggregation_defaults
+      {}
+    end
+
+    def histogram_aggregation_defaults
+      {}
+    end
+
+    def range_aggregation_defaults
+      {}
     end
 
     private

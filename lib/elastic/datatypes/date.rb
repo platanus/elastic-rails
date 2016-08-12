@@ -22,9 +22,11 @@ module Elastic::Datatypes
     end
 
     def supported_aggregations
-      [
-        { type: :date_histogram, interval: '1w' }
-      ] + super
+      [:date_histogram] + super
+    end
+
+    def date_histogram_aggregation_defaults
+      { interval: '1w' }
     end
   end
 end

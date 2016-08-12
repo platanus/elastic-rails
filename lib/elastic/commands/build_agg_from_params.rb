@@ -2,7 +2,8 @@ module Elastic::Commands
   class BuildAggFromParams < Elastic::Support::Command.new(:index, :params)
     def perform
       parse_params
-      raise ArgumentError, "field not mapped: #{@field}" if field_definition.nil?
+      raise ArgumentError, "#{@field} not mapped" if field_definition.nil?
+      raise ArgumentError, "cant aggregate on #{@field}" if field_definition.nested?
 
       path = parse_nesting_path
       raise NotImplementedError, "nested paths not yet supported in aggregations" if path
@@ -24,22 +25,32 @@ module Elastic::Commands
     end
 
     def build_node
-      type_options = @options.key?(:type) ? [@options[:type]] : infer_type_options
+      agg_type = infer_agg_type
+      raise "aggregation not supported by #{@field}" if agg_type.nil?
 
-      default_options = field_definition.select_aggregation type_options
-      if default_options.nil?
-        raise "aggregations not supported by #{@field}" if type_options.empty?
-        raise "#{type_options.first} aggregation not supported by #{@field}"
+      node_options = field_definition.public_send("#{agg_type}_aggregation_defaults")
+      node_options = node_options.merge(@options)
+      send("build_#{agg_type}", node_options)
+    end
+
+    def infer_agg_type
+      alternatives = infer_type_options
+      if alternatives.nil?
+        field_definition.supported_aggregations.first
+      else
+        field_definition.supported_aggregations.find { |q| alternatives.include? q }
       end
-
-      node_options = default_options.merge! @options
-      send("build_#{node_options[:type]}", node_options)
     end
 
     def infer_type_options
+      return [@options[:type].to_sym] if @options.key? :type
       return [:range] if @options.key? :ranges
       return [:histogram, :date_histogram] if @options.key? :interval
       nil
+    end
+
+    def apply_query_defaults(_agg_type, _options)
+      _definition.default_options_for(query: _query_type).merge(_options)
     end
 
     def field_definition

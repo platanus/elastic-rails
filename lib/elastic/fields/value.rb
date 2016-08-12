@@ -4,7 +4,12 @@ module Elastic::Fields
 
     attr_reader :name
 
-    def_delegators :@datatype, :mapping_options, :prepare_value_for_result, :supported_queries
+    def_delegators :@datatype, :mapping_options, :prepare_value_for_result, :supported_queries,
+      :supported_aggregations
+
+    def_delegators :@datatype, :term_query_defaults, :match_query_defaults, :range_query_defaults,
+      :terms_aggregation_defaults, :date_histogram_aggregation_defaults,
+      :histogram_aggregation_defaults, :range_aggregation_defaults
 
     def initialize(_name, _options)
       @name = _name.to_s
@@ -56,20 +61,6 @@ module Elastic::Fields
     def prepare_value_for_index(_value)
       _value = @transform.apply _value if @transform
       @datatype.prepare_for_index _value
-    end
-
-    def select_aggregation(_from)
-      return @datatype.supported_aggregations.first if _from.nil?
-
-      @datatype.supported_aggregations.find do |agg|
-        _from.include? agg[:type].to_sym
-      end.try(:dup)
-    end
-
-    def default_options_for_query(_query_type)
-      method_name = "#{_query_type}_query_defaults"
-      return {} unless @datatype.respond_to? method_name
-      @datatype.public_send(method_name)
     end
 
     private
