@@ -19,7 +19,14 @@ module Elastic::Nodes
     end
 
     def simplify
-      prepare_clone super, @child.simplify
+      new_child = @child.simplify
+      if new_child.is_a? Nested
+        prepare_clone(super, new_child.child).tap do |clone|
+          clone.path = "#{clone.path}.#{new_child.path}"
+        end
+      else
+        prepare_clone super, new_child
+      end
     end
 
     def render(_options = {})
