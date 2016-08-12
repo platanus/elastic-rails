@@ -24,7 +24,7 @@ module Elastic::Nodes
 
     def render(_options = {})
       path = @path
-      path = "#{_options[:query_path]}.@path" if _options.key? :query_path
+      path = "#{_options[:query_path]}.#{path}" if _options.key? :query_path
 
       {
         "nested" => {
