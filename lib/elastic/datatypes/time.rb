@@ -9,9 +9,9 @@ module Elastic::Datatypes
     def prepare_for_result(_value)
       # TODO: set timezone
       case _value
-      when String
+      when ::String
         ::Time.parse(_value)
-      when Integer
+      when ::Integer
         ::Time.at(_value / 1000)
       else
         _value

@@ -56,6 +56,7 @@ require "elastic/shims/id_picking"
 require "elastic/shims/field_picking"
 
 require "elastic/datatypes/default"
+require "elastic/datatypes/string"
 require "elastic/datatypes/term"
 require "elastic/datatypes/date"
 require "elastic/datatypes/time"
