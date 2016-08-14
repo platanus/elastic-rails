@@ -1,12 +1,11 @@
 module Elastic::Core
   class QueryConfig
-    attr_accessor :root, :groups, :limit, :offset, :sort, :middleware_options
+    attr_accessor :query, :groups, :limit, :offset, :sort, :middleware_options
 
     def self.initial_config
       new.tap do |config|
-        config.root = Elastic::Nodes::Search.new
-        config.root.query = Elastic::Nodes::Boolean.new
-        config.root.query.disable_coord = true unless Elastic::Configuration.coord_similarity
+        config.query = Elastic::Nodes::Boolean.new
+        config.query.disable_coord = true unless Elastic::Configuration.coord_similarity
         config.groups = []
         config.middleware_options = HashWithIndifferentAccess.new
       end
@@ -14,7 +13,7 @@ module Elastic::Core
 
     def clone
       self.class.new.tap do |clone|
-        clone.root = @root.clone
+        clone.query = @query.clone
         clone.groups = @groups.dup
         clone.limit = @limit
         clone.offset = @offset

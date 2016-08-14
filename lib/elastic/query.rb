@@ -69,7 +69,7 @@ module Elastic
     end
 
     def with_bool_query(&_block)
-      with_clone { |config| _block.call(config.root.query) }
+      with_clone { |config| _block.call(config.query) }
     end
 
     def with_aggregable_for_metric(&_block)

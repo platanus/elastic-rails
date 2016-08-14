@@ -48,7 +48,7 @@ module Elastic::Core
     private
 
     def build_base_query
-      @config.root.simplify
+      Elastic::Nodes::Search.build @config.query.simplify
     end
 
     def build_hit_query
