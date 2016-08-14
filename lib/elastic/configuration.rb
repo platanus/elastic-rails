@@ -1,6 +1,18 @@
 module Elastic
   module Configuration
+    DEFAULT = {
+      host: '127.0.0.1',
+      port: 9200,
+      page_size: 20,
+      coord_similarity: true
+    }
+
     extend self
+
+    def reset
+      @config = nil
+      self
+    end
 
     def configure(_options = nil, &_block)
       if _options.nil?
@@ -8,6 +20,7 @@ module Elastic
       else
         @config = config.merge _options.symbolize_keys
       end
+      self
     end
 
     def api_client
@@ -37,12 +50,7 @@ module Elastic
     private
 
     def config
-      @config ||= {
-        host: '127.0.0.1',
-        port: 9200,
-        page_size: 20,
-        coord_similarity: true
-      }
+      @config ||= DEFAULT
     end
 
     def default_logger

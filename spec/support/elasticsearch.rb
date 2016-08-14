@@ -10,10 +10,12 @@ RSpec.configure do |config|
     )
   end
 
-  Elastic.configure(
-    client: spec_es_client,
-    index: spec_es_index
-  )
+  config.before(:example) do
+    Elastic::Configuration.reset.configure(
+      client: spec_es_client,
+      index: spec_es_index
+    )
+  end
 
   config.after(:example) do
     spec_es_client.indices.delete(index: spec_es_index + '*')
