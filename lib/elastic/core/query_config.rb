@@ -5,7 +5,6 @@ module Elastic::Core
     def self.initial_config
       new.tap do |config|
         config.query = Elastic::Nodes::Boolean.new
-        config.query.disable_coord = true unless Elastic::Configuration.coord_similarity
         config.groups = []
         config.middleware_options = HashWithIndifferentAccess.new
       end

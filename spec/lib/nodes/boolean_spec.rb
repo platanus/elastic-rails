@@ -17,6 +17,13 @@ describe Elastic::Nodes::Boolean do
   let(:single_must) { build_boolean(must: [child_a]) }
   let(:single_should) { build_boolean(should: [child_a]) }
 
+  describe "disable_coord" do
+    it "is set to true by default if coord_similarity is disabled in configuration" do
+      expect { Elastic.configure coord_similarity: false }
+        .to change { build_boolean.disable_coord }.to true
+    end
+  end
+
   describe "render" do
     it "renders correctly" do
       expect(node.render)

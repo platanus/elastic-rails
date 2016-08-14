@@ -16,6 +16,7 @@ module Elastic::Nodes
       super
       @musts = []
       @shoulds = []
+      @disable_coord = !Elastic::Configuration.coord_similarity
     end
 
     def must(_node)
