@@ -1,7 +1,15 @@
 require 'spec_helper'
 
 describe Elastic::Commands::BuildQueryFromParams do
+  let!(:bar_index) do
+    build_nested_index('BarIndex') do
+      field :field, type: :string
+    end
+  end
+
   let!(:foo_index) do
+    nested_index = bar_index
+
     build_index('FooIndex', migrate: true) do
       field :foo, type: :string
       field :bar, type: :string, transform: -> { "transform(#{self})" }
@@ -9,9 +17,7 @@ describe Elastic::Commands::BuildQueryFromParams do
       field :string, type: :string
       field :long, type: :long
 
-      nested :nested do
-        field :field, type: :string
-      end
+      nested :nested, using: nested_index
     end
   end
 
@@ -56,6 +62,20 @@ describe Elastic::Commands::BuildQueryFromParams do
     expect(perform(bar: { lt: 'lt' })).to be_a Elastic::Nodes::Range
   end
 
+  it "injects query as subquery if from the same type" do
+    expect(perform({ foo: 'foo' }, foo_index.must(bar: 'tag')).shoulds.count).to eq 2
+    expect(perform({ foo: 'foo' }, foo_index.must(bar: 'tag')).shoulds.to_a.last)
+      .to eq foo_index.must(bar: 'tag').as_query_node.simplify
+  end
+
+  it "fails if provided injected query is from other type" do
+    qux_index = build_index('QuxIndex', migrate: true) do
+      field :foo, type: :string
+    end
+
+    expect { perform({ foo: 'foo' }, qux_index.must(foo: 'tag')) }.to raise_error ArgumentError
+  end
+
   it "applies type transform to nodes values" do
     expect(perform(bar: { term: 'tag' }).terms.to_a).to eq ["transform(tag)"]
     expect(perform(bar: { matches: 'phrase' }).query).to eq "transform(phrase)"
@@ -73,5 +93,14 @@ describe Elastic::Commands::BuildQueryFromParams do
   it "builds the correct nested node if a nested query is provided" do
     expect(perform(nested: { field: 'tag' })).to be_a Elastic::Nodes::Nested
     expect(perform(nested: { field: 'tag' }).child).to be_a Elastic::Nodes::Match
+    expect(perform(nested: bar_index.must(field: 'tag')).child).to be_a Elastic::Nodes::Match
+  end
+
+  it "fails if provided nested query is from different type" do
+    qux_index = build_nested_index('QuxIndex') do
+      field :field, type: :string
+    end
+
+    expect { perform(nested: qux_index.must(field: 'tag')) }.to raise_error ArgumentError
   end
 end

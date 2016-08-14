@@ -82,9 +82,11 @@ require "elastic/dsl/metric_builder"
 require "elastic/types/base_type"
 require "elastic/types/faceted_type"
 require "elastic/types/nestable_type"
+
 require "elastic/type"
 require "elastic/nested_type"
 require "elastic/query"
+require "elastic/nested_query"
 
 module Elastic
   def self.configure(*_args)

@@ -6,7 +6,7 @@ module Elastic::Types
         using.target = (target || _name.to_s.singularize.camelize.constantize) rescue nil
       end
 
-      using = (_name + '_index').camelize.constantize if using.nil?
+      using = (_name.to_s + '_index').camelize.constantize if using.nil?
 
       pre_definition.register_field Elastic::Fields::Nested.new(_name, using)
     end

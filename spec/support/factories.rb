@@ -74,8 +74,12 @@ RSpec.configure do |config|
     klass
   end
 
-  def build_nested_index(target: nil, &_block)
-    klass = Class.new(Elastic::NestedType)
+  def build_nested_index(_name, target: nil, &_block)
+    klass = Class.new(Elastic::NestedType) do
+      define_singleton_method(:to_s) do
+        _name
+      end
+    end
 
     klass.class_exec(self, &_block) unless _block.nil?
     klass.target = target || build_type("#{_name}Target", *klass.pre_definition.fields.map(&:name))

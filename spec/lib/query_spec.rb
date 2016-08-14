@@ -77,6 +77,12 @@ describe Elastic::Query do
     end
   end
 
+  describe "as_query_node" do
+    it "returns the underlying boolean node" do
+      expect(query.as_query_node).to be_a Elastic::Nodes::Boolean
+    end
+  end
+
   context "some documents have been added (integration)" do
     before do
       tag_1 = tag_type.new('baz_tag')

@@ -4,11 +4,7 @@ module Elastic::Commands
       if block
         # TODO: builder mode, support nesting through first parameter
       else
-        node = Elastic::Nodes::Boolean.build_or(params.map do |part|
-          Elastic::Nodes::Boolean.build_and(part.map do |field, options|
-            build_query_node field, options
-          end)
-        end)
+        node = build_or_node(params)
       end
 
       node.simplify
@@ -16,12 +12,36 @@ module Elastic::Commands
 
     private
 
+    def build_or_node(_array)
+      Elastic::Nodes::Boolean.build_or(_array.map do |part|
+        case part
+        when Elastic::Query
+          extract_query_node part
+        when Hash
+          build_and_node part
+        else
+          raise ArgumentError, "expected hash or query but got #{part.class}"
+        end
+      end)
+    end
+
+    def extract_query_node(_query)
+      raise ArgumentError, "query type mismatch, expected #{index.class}" if _query.index != index
+      _query.as_query_node
+    end
+
+    def build_and_node(_hash)
+      Elastic::Nodes::Boolean.build_and(_hash.map do |field, options|
+        build_query_node field, options
+      end)
+    end
+
     def build_query_node(_field, _options)
       path, field = split_nesting_path(_field.to_s)
       if path
         definition = resolve_field_defintion! path
         raise ArgumentError, "invalid nesting path #{path}" unless definition.nested?
-        build_nested_query(path, definition.index, field => _options)
+        build_nested_query(path, definition, field => _options)
       else
         build_regular_query(field, _options)
       end
@@ -37,7 +57,7 @@ module Elastic::Commands
       definition = resolve_field_defintion!(_field)
 
       if definition.nested?
-        build_nested_query(_field, definition.index, _options)
+        build_nested_query(_field, definition, _options)
       else
         query_type = infer_query_type definition, _options
         raise "query not supported by #{_field}" if query_type.nil?
@@ -63,11 +83,24 @@ module Elastic::Commands
       end
     end
 
-    def build_nested_query(_path, _index, _options)
-      _options = [_options] unless _options.is_a? Array
+    def build_nested_query(_path, _definition, _query)
+      case _query
+      when Elastic::NestedQuery
+        if _query.index != _definition.index
+          raise ArgumentError,
+            "query type mismatch for #{_path}, expected #{_definition.index.class}"
+        end
 
-      nested_query = BuildQueryFromParams.for(index: _index, params: _options)
-      Elastic::Nodes::Nested.build _path, nested_query
+        nested_node = _query.as_query_node
+      when Hash
+        _query = [_query]
+      end
+
+      if nested_node.nil?
+        nested_node = BuildQueryFromParams.for(index: _definition.index, params: _query)
+      end
+
+      Elastic::Nodes::Nested.build _path, nested_node
     end
 
     def infer_query_type_from_options(_options)

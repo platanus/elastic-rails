@@ -56,6 +56,10 @@ module Elastic
       @result ||= execute(assembler.assemble)
     end
 
+    def as_query_node
+      @config.query.clone
+    end
+
     def as_es_query
       assembler.assemble.render
     end
