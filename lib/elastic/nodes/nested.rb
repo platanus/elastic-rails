@@ -1,5 +1,7 @@
 module Elastic::Nodes
   class Nested < Base
+    SCORE_MODES = [:avg, :sum, :min, :max, :none]
+
     def self.build(_path, _child)
       new.tap do |node|
         node.path = _path
@@ -8,6 +10,7 @@ module Elastic::Nodes
     end
 
     attr_accessor :path, :child
+    attr_reader :score_mode
 
     def traverse(&_block)
       super
@@ -16,6 +19,11 @@ module Elastic::Nodes
 
     def clone
       prepare_clone super, @child.clone
+    end
+
+    def score_mode=(_value)
+      raise ArgumentError, "invalid score mode #{_value}" if _value && !SCORE_MODES.include?(_value)
+      @score_mode = _value
     end
 
     def simplify
@@ -33,12 +41,14 @@ module Elastic::Nodes
       path = @path
       path = "#{_options[:query_path]}.#{path}" if _options.key? :query_path
 
-      {
-        "nested" => {
-          "path" => path,
-          "query" => @child.render(_options.merge(query_path: path))
-        }
+      hash = {
+        'path' => path,
+        'query' => @child.render(_options.merge(query_path: path))
       }
+
+      hash['score_mode'] = @score_mode.to_s if @score_mode && @score_mode != :avg
+
+      { "nested" => hash }
     end
 
     private
@@ -46,6 +56,7 @@ module Elastic::Nodes
     def prepare_clone(_clone, _child)
       _clone.path = @path
       _clone.child = _child
+      _clone.score_mode = @score_mode
       _clone
     end
   end

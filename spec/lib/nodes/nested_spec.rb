@@ -12,6 +12,13 @@ describe Elastic::Nodes::Nested do
     it "renders correctly" do
       expect(node.render).to eq('nested' => { 'path' => 'foo', 'query' => :foo })
     end
+
+    it "renders correctly when score_mode options is set" do
+      node.score_mode = :sum
+
+      expect(node.render)
+        .to eq('nested' => { 'path' => 'foo', 'query' => :foo, 'score_mode' => 'sum' })
+    end
   end
 
   describe "simplify" do
