@@ -91,15 +91,12 @@ module Elastic::Commands
             "query type mismatch for #{_path}, expected #{_definition.index.class}"
         end
 
-        nested_node = _query.as_query_node
+        return _query.as_node.tap { |node| node.path = _path }
       when Hash
         _query = [_query]
       end
 
-      if nested_node.nil?
-        nested_node = BuildQueryFromParams.for(index: _definition.index, params: _query)
-      end
-
+      nested_node = BuildQueryFromParams.for(index: _definition.index, params: _query)
       Elastic::Nodes::Nested.build _path, nested_node
     end
 
