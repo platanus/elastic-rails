@@ -41,8 +41,7 @@ module Elastic::Railties
     end
 
     def index_later
-      # TODO: ActiveJob support
-      index_now
+      IndexingJob.set(queue: Elastic::Configuration.active_job_queue).perform_later(self)
     end
   end
 end

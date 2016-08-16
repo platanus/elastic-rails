@@ -1,8 +1,10 @@
 require "elastic/railties/utils"
 require "elastic/railties/ar_helpers"
 require "elastic/railties/ar_middleware"
+require "elastic/railties/configuration_extensions"
 require "elastic/railties/type_extensions"
 require "elastic/railties/query_extensions"
+require "elastic/railties/indexing_job"
 require "elastic/railties/indexable_record"
 
 module Elastic
@@ -25,6 +27,11 @@ end
 # Expose railties utils at Elastic namespace
 module Elastic
   extend Elastic::Railties::Utils
+end
+
+# Add activerecord related configuration parameters
+module Elastic::Configuration
+  include Elastic::Railties::ConfigurationExtensions
 end
 
 # Add activerecord related index helpers
