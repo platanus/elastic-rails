@@ -15,6 +15,7 @@ module Elastic::Nodes
     def initialize
       super
       @musts = []
+      @must_nots = []
       @shoulds = []
       @filters = []
       @disable_coord = !Elastic::Configuration.coord_similarity
@@ -22,6 +23,10 @@ module Elastic::Nodes
 
     def must(_node)
       @musts << _node
+    end
+
+    def must_not(_node)
+      @must_nots << _node
     end
 
     def should(_node)
@@ -38,6 +43,14 @@ module Elastic::Nodes
 
     def musts
       @musts.each
+    end
+
+    def must_nots=(_nodes)
+      @must_nots = _nodes.dup.to_a
+    end
+
+    def must_nots
+      @must_nots.each
     end
 
     def shoulds=(_nodes)
@@ -65,6 +78,7 @@ module Elastic::Nodes
     def render(_options = {})
       hash = {}
       hash['must'] = @musts.map { |n| n.render(_options) } if !@musts.empty?
+      hash['must_not'] = @must_nots.map { |n| n.render(_options) } if !@must_nots.empty?
       hash['should'] = @shoulds.map { |n| n.render(_options) } if !@shoulds.empty?
       hash['filters'] = @filters.map { |n| n.render(_options) } if !@filters.empty?
       hash['minimum_should_match'] = minimum_should_match unless minimum_should_match.nil?
@@ -75,28 +89,37 @@ module Elastic::Nodes
     end
 
     def clone
-      prepare_clone super, @musts.map(&:clone), @shoulds.map(&:clone), @filters.map(&:clone)
+      prepare_clone(
+        super,
+        @musts.map(&:clone),
+        @must_nots.map(&:clone),
+        @shoulds.map(&:clone),
+        @filters.map(&:clone)
+      )
     end
 
     def simplify
       new_must = @musts.map(&:simplify)
+      new_must_not = @must_nots.map(&:simplify)
       new_should = @shoulds.map(&:simplify)
       new_filter = @filters.map(&:simplify)
 
       # TODO: detect must elements with boost = 0 and move them to "filter"
 
-      if boost.nil? && (new_must.length + new_should.length + new_filter.length) == 1
-        return new_must.first unless new_must.empty?
-        return new_should.first unless new_should.empty? # at least 1 should match
+      total_nodes = new_must.length + new_must_not.length + new_should.length + new_filter.length
+      if boost.nil? && total_nodes == 1
+        return new_must.first if !new_must.empty?
+        return new_should.first if !new_should.empty? # at least 1 should match
       end
 
-      prepare_clone(super, new_must, new_should, new_filter)
+      prepare_clone(super, new_must, new_must_not, new_should, new_filter)
     end
 
     private
 
-    def prepare_clone(_clone, _musts, _shoulds, _filters)
+    def prepare_clone(_clone, _musts, _must_nots, _shoulds, _filters)
       _clone.musts = _musts
+      _clone.must_nots = _must_nots
       _clone.shoulds = _shoulds
       _clone.filters = _filters
       _clone.minimum_should_match = @minimum_should_match
