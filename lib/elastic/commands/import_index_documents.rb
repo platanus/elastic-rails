@@ -3,12 +3,14 @@ module Elastic::Commands
     :index, collection: nil, batch_size: 10000, verbose: false
   )
     def perform
-      if collection.present?
-        import_collection
-      else
-        targets.each { |target| import_target(target) }
+      index.adaptor.with_settings(refresh_interval: -1) do
+        if collection.present?
+          import_collection
+        else
+          targets.each { |target| import_target(target) }
+        end
+        flush
       end
-      flush
     end
 
     private

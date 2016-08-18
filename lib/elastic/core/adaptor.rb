@@ -1,5 +1,10 @@
 module Elastic::Core
   class Adaptor
+    DEFAULT_SETTINGS = {
+      refresh_interval: '1s',
+      number_of_replicas: 1
+    }
+
     def initialize(_suffix)
       @suffix = _suffix
     end
@@ -63,15 +68,21 @@ module Elastic::Core
     end
 
     def bulk_index(_documents)
-      body = _documents.map do |doc|
-        { 'index' => doc.merge('_index' => index_name) }
-      end
+      body = _documents.map { |doc| { 'index' => doc } }
 
       retry_on_temporary_error('bulk indexing') do
-        api_client.bulk body: body
+        api_client.bulk build_options(body: body)
       end
 
       self
+    end
+
+    def with_settings(_options)
+      _options = DEFAULT_SETTINGS.merge _options
+      api_client.indices.put_settings build_options(body: { index: _options })
+      yield
+    ensure
+      api_client.indices.put_settings build_options(body: { index: DEFAULT_SETTINGS })
     end
 
     def refresh
