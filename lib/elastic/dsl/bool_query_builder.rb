@@ -6,19 +6,22 @@ module Elastic::Dsl
 
     def must(*_queries)
       with_bool_query do |query|
-        query.must build_query_from_params(_queries)
+        node = build_query_from_params(_queries)
+        query.must node unless node.nil?
       end
     end
 
     def must_not(*_queries)
       with_bool_query do |query|
-        query.must_not build_query_from_params(_queries)
+        node = build_query_from_params(_queries)
+        query.must_not node unless node.nil?
       end
     end
 
     def should(*_queries)
       with_bool_query do |query|
-        query.should build_query_from_params(_queries)
+        node = build_query_from_params(_queries)
+        query.should node unless node.nil?
       end
     end
 

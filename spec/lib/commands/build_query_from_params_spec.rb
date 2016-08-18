@@ -25,6 +25,10 @@ describe Elastic::Commands::BuildQueryFromParams do
     described_class.for index: foo_index, params: _params
   end
 
+  it "returns nil if no params are given" do
+    expect(perform({})).to be nil
+  end
+
   it "builds the correct compound node depending on params structure" do
     expect(perform(foo: 'foo', bar: 'bar')).to be_a Elastic::Nodes::Boolean
     expect(perform(foo: 'foo', bar: 'bar').musts.count).to eq 2

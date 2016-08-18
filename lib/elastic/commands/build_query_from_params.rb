@@ -7,33 +7,39 @@ module Elastic::Commands
         node = build_or_node(params)
       end
 
-      node.simplify
+      node.try(:simplify)
     end
 
     private
 
     def build_or_node(_array)
-      Elastic::Nodes::Boolean.build_or(_array.map do |part|
+      parts = _array.map do |part|
         case part
-        when Elastic::Query
-          extract_query_node part
         when Hash
           build_and_node part
+        when Elastic::Query
+          extract_query_node part
         else
           raise ArgumentError, "expected hash or query but got #{part.class}"
         end
-      end)
+      end.reject(&:nil?)
+
+      return nil if parts.empty?
+      Elastic::Nodes::Boolean.build_or(parts)
+    end
+
+    def build_and_node(_hash)
+      parts = _hash.map do |field, options|
+        build_query_node field, options
+      end.reject(&:nil?)
+
+      return nil if parts.empty?
+      Elastic::Nodes::Boolean.build_and(parts)
     end
 
     def extract_query_node(_query)
       raise ArgumentError, "query type mismatch, expected #{index.class}" if _query.index != index
       _query.as_query_node
-    end
-
-    def build_and_node(_hash)
-      Elastic::Nodes::Boolean.build_and(_hash.map do |field, options|
-        build_query_node field, options
-      end)
     end
 
     def build_query_node(_field, _options)
