@@ -10,6 +10,12 @@ module Elastic::Dsl
       end
     end
 
+    def must_not(*_queries)
+      with_bool_query do |query|
+        query.must_not build_query_from_params(_queries)
+      end
+    end
+
     def should(*_queries)
       with_bool_query do |query|
         query.should build_query_from_params(_queries)
