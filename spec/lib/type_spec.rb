@@ -96,6 +96,34 @@ describe Elastic::Type do
       it "stores a batch of objects" do
         expect { root_index.import(objects) }.to change { root_index.adaptor.refresh.count }.by 2
       end
+
+      it "allows setting the batch size using the :batch_size option" do
+        expect(Elastic::Commands::ImportIndexDocuments)
+          .to receive(:for).with(index: root_index, collection: [], batch_size: :foo)
+          .and_return(nil)
+
+        root_index.import [], batch_size: :foo
+      end
+
+      it "allows setting the batch size by setting the index import_batch_size property" do
+        root_index.import_batch_size = :bar
+
+        expect(Elastic::Commands::ImportIndexDocuments)
+          .to receive(:for).with(index: root_index, collection: [], batch_size: :bar)
+          .and_return(nil)
+
+        root_index.import []
+      end
+
+      it "allows setting the batch size by setting Configuration.import_batch_size property" do
+        Elastic::Configuration.configure(import_batch_size: :qux)
+
+        expect(Elastic::Commands::ImportIndexDocuments)
+          .to receive(:for).with(index: root_index, collection: [], batch_size: :qux)
+          .and_return(nil)
+
+        root_index.import []
+      end
     end
 
     describe "drop" do

@@ -4,7 +4,8 @@ module Elastic
       host: '127.0.0.1',
       port: 9200,
       page_size: 20,
-      coord_similarity: true
+      coord_similarity: true,
+      import_batch_size: 10_000
     }
 
     extend self
@@ -45,6 +46,10 @@ module Elastic
 
     def logger
       @config[:logger] || default_logger
+    end
+
+    def import_batch_size
+      @config[:import_batch_size]
     end
 
     private

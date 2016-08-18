@@ -18,6 +18,14 @@ module Elastic
       @suffix = _value
     end
 
+    def self.import_batch_size
+      @import_batch_size || Configuration.import_batch_size
+    end
+
+    def self.import_batch_size=(_value)
+      @import_batch_size = _value
+    end
+
     def self.adaptor
       @adaptor ||= Elastic::Core::Adaptor.new(suffix)
     end
@@ -26,17 +34,31 @@ module Elastic
       @mapping ||= load_mapping
     end
 
-    def self.reindex(verbose: true)
+    def self.reindex(verbose: true, batch_size: nil)
       drop
       mapping.migrate
-      Commands::ImportIndexDocuments.for index: self, verbose: verbose
+      batch_size = batch_size || import_batch_size
+
+      Commands::ImportIndexDocuments.for(
+        index: self,
+        verbose: verbose,
+        batch_size: batch_size
+      )
+
       ensure_full_mapping
       self
     end
 
-    def self.import(_collection)
+    def self.import(_collection, batch_size: nil)
       enforce_mapping!
-      Commands::ImportIndexDocuments.for index: self, collection: _collection
+      batch_size = batch_size || import_batch_size
+
+      Commands::ImportIndexDocuments.for(
+        index: self,
+        collection: _collection,
+        batch_size: batch_size
+      )
+
       ensure_full_mapping
       self
     end

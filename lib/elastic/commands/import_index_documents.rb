@@ -1,6 +1,6 @@
 module Elastic::Commands
   class ImportIndexDocuments < Elastic::Support::Command.new(
-    :index, collection: nil, cache_size: 10000, verbose: false
+    :index, collection: nil, batch_size: 10000, verbose: false
   )
     def perform
       if collection.present?
@@ -27,7 +27,7 @@ module Elastic::Commands
 
     def queue(_object)
       cache << render_for_es(_object)
-      flush if cache.length >= cache_size
+      flush if cache.length >= batch_size
     end
 
     def flush
