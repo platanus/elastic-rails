@@ -67,7 +67,10 @@ module Elastic::Core
         { 'index' => doc.merge('_index' => index_name) }
       end
 
-      api_client.bulk body: body
+      retry_on_temporary_error('bulk indexing') do
+        api_client.bulk body: body
+      end
+
       self
     end
 
@@ -89,6 +92,17 @@ module Elastic::Core
     end
 
     private
+
+    def retry_on_temporary_error(_action, retries: 3)
+      return yield
+    rescue Elasticsearch::Transport::Transport::Errors::ServiceUnavailable,
+           Elasticsearch::Transport::Transport::Errors::GatewayTimeout => exc
+      raise if retries <= 0
+
+      Configuration.logger.warn("#{exc.class} error during '#{_action}', retrying!")
+      retries -= 1
+      retry
+    end
 
     def api_client
       Elastic::Configuration.api_client
