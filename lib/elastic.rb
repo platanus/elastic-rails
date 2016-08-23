@@ -11,6 +11,7 @@ require "elastic/commands/import_index_documents"
 require "elastic/commands/build_query_from_params"
 require "elastic/commands/build_agg_from_params"
 require "elastic/commands/build_sort_from_params"
+require "elastic/commands/compare_mappings"
 
 require "elastic/results/base"
 require "elastic/results/scored_item"
