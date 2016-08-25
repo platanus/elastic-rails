@@ -2,6 +2,7 @@ require "elasticsearch"
 
 require "elastic/version"
 require "elastic/configuration"
+require "elastic/errors"
 
 require "elastic/support/command"
 require "elastic/support/transform"
@@ -65,6 +66,7 @@ require "elastic/datatypes/time"
 require "elastic/fields/value"
 require "elastic/fields/nested"
 
+require "elastic/core/connector"
 require "elastic/core/definition"
 require "elastic/core/adaptor"
 require "elastic/core/mapping_manager"
