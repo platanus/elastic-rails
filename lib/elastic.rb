@@ -68,8 +68,6 @@ require "elastic/fields/nested"
 
 require "elastic/core/connector"
 require "elastic/core/definition"
-require "elastic/core/adaptor"
-require "elastic/core/mapping_manager"
 require "elastic/core/serializer"
 require "elastic/core/middleware"
 require "elastic/core/base_middleware"

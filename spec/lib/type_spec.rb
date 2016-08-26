@@ -62,26 +62,30 @@ describe Elastic::Type do
     end
   end
 
-  describe "save" do
-    it "fails if mapping is out of sync" do
-      expect { root_index.new(object).save }.to raise_error RuntimeError
-    end
-  end
+  context "whiny_indices option is enabled" do
+    before { allow(Elastic::Configuration).to receive(:whiny_indices).and_return true }
 
-  describe "import" do
-    it "fails if mapping is out of sync" do
-      expect { root_index.import [] }.to raise_error RuntimeError
+    describe "save" do
+      it "fails if mapping is out of sync" do
+        expect { root_index.new(object).save }.to raise_error RuntimeError
+      end
+    end
+
+    describe "import" do
+      it "fails if mapping is out of sync" do
+        expect { root_index.import [object] }.to raise_error RuntimeError
+      end
     end
   end
 
   context "mapping is synced" do
-    before { root_index.mapping.migrate }
+    before { root_index.connector.migrate }
 
     describe "save" do
       it "stores the new document in index using the object id" do
         root_index.new(object).save
 
-        expect(root_index.adaptor.find(object.id, type: 'RootType')).not_to be nil
+        expect(es_find_by_id(root_index.es_index_name, object.id, type: 'RootType')).not_to be nil
       end
     end
 
@@ -94,7 +98,8 @@ describe Elastic::Type do
       end
 
       it "stores a batch of objects" do
-        expect { root_index.import(objects) }.to change { root_index.adaptor.refresh.count }.by 2
+        expect { root_index.import(objects) }
+          .to change { es_index_count(root_index.es_index_name) }.by 2
       end
 
       it "allows setting the batch size using the :batch_size option" do
@@ -128,7 +133,8 @@ describe Elastic::Type do
 
     describe "drop" do
       it "deletes the index" do
-        expect { root_index.drop }.to change { root_index.adaptor.exists? }.to false
+        expect { root_index.drop }
+          .to change { es_index_exists?(root_index.es_index_name) }.to false
       end
     end
   end

@@ -12,7 +12,7 @@ module Elastic::Railties
       logger.info "Migrating all indices" if _index.nil?
       indices(_index).each do |index|
         logger.info "Migrating index #{index.suffix}"
-        handle_errors { index.mapping.migrate }
+        handle_errors { index.connector.migrate }
       end
     end
 

@@ -22,8 +22,18 @@ RSpec.configure do |config|
     example.run
   end
 
-  def es_index_count(_index)
-    spec_es_client.count(index: _index)['count']
+  def es_index_count(_index, type: nil)
+    spec_es_client.indices.refresh index: _index
+    spec_es_client.count(index: _index, type: type)['count']
+  end
+
+  def es_find_by_id(_index, _id, type: nil)
+    spec_es_client.indices.refresh index: _index
+    spec_es_client.get index: _index, id: _id, type: type
+  end
+
+  def es_index_exists?(_index)
+    spec_es_client.indices.exists? index: _index
   end
 
   def es_index_mappings(_index, _type = nil)

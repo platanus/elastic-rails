@@ -5,7 +5,8 @@ module Elastic
       port: 9200,
       page_size: 20,
       coord_similarity: true,
-      import_batch_size: 10_000
+      import_batch_size: 10_000,
+      whiny_indices: false
     }
 
     extend self
@@ -50,6 +51,10 @@ module Elastic
 
     def import_batch_size
       @config[:import_batch_size]
+    end
+
+    def whiny_indices
+      @config[:whiny_indices]
     end
 
     private

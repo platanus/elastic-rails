@@ -86,7 +86,7 @@ module Elastic
     end
 
     def execute(_query)
-      raw = @index.adaptor.query(
+      raw = @index.connector.query(
         type: @index.definition.types,
         query: _query.render
       )

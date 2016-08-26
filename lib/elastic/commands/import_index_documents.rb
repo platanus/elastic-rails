@@ -3,14 +3,12 @@ module Elastic::Commands
     :index, collection: nil, batch_size: 10000, verbose: false
   )
     def perform
-      index.adaptor.with_settings(refresh_interval: -1) do
-        if collection.present?
-          import_collection
-        else
-          targets.each { |target| import_target(target) }
-        end
-        flush
+      if collection.present?
+        import_collection
+      else
+        targets.each { |target| import_target(target) }
       end
+      flush
     end
 
     private
@@ -34,7 +32,7 @@ module Elastic::Commands
 
     def flush
       unless cache.empty?
-        index.adaptor.bulk_index(cache)
+        index.connector.bulk_index(cache)
         log_flush(cache.size) if verbose
         cache.clear
       end
