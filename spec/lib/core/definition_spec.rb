@@ -148,18 +148,6 @@ describe Elastic::Core::Definition do
           )
         end
       end
-
-      describe "expanded_field_names" do
-        it "calls registered fields 'expanded_names' method" do
-          definition.expanded_field_names
-          expect(foo_field).to have_received(:expanded_names)
-          expect(bar_field).to have_received(:expanded_names)
-        end
-
-        it "returns an array of names" do
-          expect(definition.expanded_field_names).to eq ['foo', 'bar']
-        end
-      end
     end
   end
 

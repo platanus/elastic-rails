@@ -11,10 +11,6 @@ module Elastic::Fields
       # does nothing
     end
 
-    def expanded_names
-      [@name] + @index.definition.expanded_field_names.map { |n| @name + '.' + n }
-    end
-
     def validate
       nil
     end

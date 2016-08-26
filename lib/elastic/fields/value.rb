@@ -35,10 +35,6 @@ module Elastic::Fields
       nil
     end
 
-    def expanded_names
-      [@name]
-    end
-
     def needs_inference?
       mapping_inference_enabled? && !@options.key?(:type)
     end

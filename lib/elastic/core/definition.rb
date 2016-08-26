@@ -38,10 +38,6 @@ module Elastic::Core
       @field_map.each_value
     end
 
-    def expanded_field_names
-      @field_map.map { |_, field| field.expanded_names }.flatten
-    end
-
     def freeze
       return if frozen?
       cache_targets
