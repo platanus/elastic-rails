@@ -79,13 +79,13 @@ describe Elastic::Type do
   end
 
   context "mapping is synced" do
-    before { root_index.connector.migrate }
+    before { root_index.migrate }
 
     describe "save" do
       it "stores the new document in index using the object id" do
         root_index.new(object).save
 
-        expect(es_find_by_id(root_index.es_index_name, object.id, type: 'RootType')).not_to be nil
+        expect(es_find_by_id(root_index.index_name, object.id, type: 'RootType')).not_to be nil
       end
     end
 
@@ -99,7 +99,7 @@ describe Elastic::Type do
 
       it "stores a batch of objects" do
         expect { root_index.import(objects) }
-          .to change { es_index_count(root_index.es_index_name) }.by 2
+          .to change { es_index_count(root_index.index_name) }.by 2
       end
 
       it "allows setting the batch size using the :batch_size option" do
@@ -134,7 +134,7 @@ describe Elastic::Type do
     describe "drop" do
       it "deletes the index" do
         expect { root_index.drop }
-          .to change { es_index_exists?(root_index.es_index_name) }.to false
+          .to change { es_index_exists?(root_index.index_name) }.to false
       end
     end
   end

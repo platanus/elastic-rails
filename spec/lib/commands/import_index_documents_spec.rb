@@ -26,11 +26,11 @@ describe Elastic::Commands::ImportIndexDocuments do
 
   it "calls collection.each if collection is given" do
     expect { perform(collection) }
-      .to change { es_index_count(foo_index.es_index_name, type: 'FooType') }.by(2)
+      .to change { es_index_count(foo_index.index_name, type: 'FooType') }.by(2)
   end
 
   it "indexes returned documents" do
     expect { perform }
-      .to change { es_index_count(foo_index.es_index_name, type: 'FooType') }.by(1)
+      .to change { es_index_count(foo_index.index_name, type: 'FooType') }.by(1)
   end
 end

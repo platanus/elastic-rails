@@ -10,6 +10,10 @@ module Elastic
         :coord_similarity, :limit, :offset, :pluck, :ids, :total
     end
 
+    def self.default_suffix
+      to_s.underscore
+    end
+
     def self.suffix
       @suffix || default_suffix
     end
@@ -27,25 +31,37 @@ module Elastic
     end
 
     def self.connector
-      @connector ||= load_connector
+      @connector ||= begin
+        Elastic::Core::Connector.new(
+          suffix,
+          definition.types,
+          definition.as_es_mapping
+        ).tap do |conn|
+          if Configuration.whiny_indices && conn.status != :ready
+            raise 'elastic index out of sync, try migrating'
+          end
+        end
+      end
     end
 
-    def self.es_index_name
+    def self.index_name
       connector.index_name
     end
 
-    def self.reindex(verbose: true, batch_size: nil)
-      drop
-      connector.migrate
-      batch_size = batch_size || import_batch_size
+    def self.migrate
+      connector.migrate(batch_size: import_batch_size)
+      self
+    end
 
-      Commands::ImportIndexDocuments.for(
-        index: self,
-        verbose: verbose,
-        batch_size: batch_size
-      )
+    def self.reindex(verbose: true)
+      connector.rollover do
+        Commands::ImportIndexDocuments.for(
+          index: self,
+          verbose: verbose,
+          batch_size: import_batch_size
+        )
+      end
 
-      ensure_full_mapping
       self
     end
 
@@ -84,27 +100,5 @@ module Elastic
         klass.connector.index as_es_document
       end
     end
-
-    def self.load_connector
-      connector = Elastic::Core::Connector.new(
-        suffix,
-        definition.types,
-        definition.as_es_mapping
-      )
-
-      if Configuration.whiny_indices && connector.status != :ready
-        raise 'elastic index out of sync, run `rake es:migrate`'
-      end
-
-      connector
-    end
-
-    private_class_method :load_connector
-
-    def self.default_suffix
-      to_s.underscore
-    end
-
-    private_class_method :default_suffix
   end
 end
