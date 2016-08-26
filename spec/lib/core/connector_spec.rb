@@ -27,9 +27,9 @@ describe Elastic::Core::Connector do
       it { expect(connector.status).to be :not_available }
     end
 
-    describe "migrate" do
+    describe "remap" do
       it "creates the new index with the provided mapping" do
-        expect { connector.migrate }
+        expect { connector.remap }
           .to change { api.indices.exists? index: index_name }.to true
 
         expect(es_index_mappings(index_name, 'type_a')).to eq mapping
@@ -47,9 +47,9 @@ describe Elastic::Core::Connector do
       it { expect(connector.status).to be :not_synchronized }
     end
 
-    describe "migrate" do
+    describe "remap" do
       it "updates index mappings" do
-        expect { connector.migrate }
+        expect { connector.remap }
           .to change { es_index_mappings(index_name, 'type_a') }.to mapping
       end
     end
@@ -92,9 +92,9 @@ describe Elastic::Core::Connector do
       it { expect(connector.status).to be :not_synchronized }
     end
 
-    describe "migrate" do
+    describe "remap" do
       it "updates index mappings" do
-        expect { connector.migrate }
+        expect { connector.remap }
           .to change { es_index_mappings(index_name, 'type_a') }.to mapping
       end
     end
@@ -114,15 +114,15 @@ describe Elastic::Core::Connector do
       it { expect(connector.status).to be :not_synchronized }
     end
 
-    describe "migrate" do
-      it "fails" do
-        expect { connector.migrate }.to raise_error Elastic::MigrationError
+    describe "remap" do
+      it "returns false" do
+        expect(connector.remap).to be false
       end
     end
 
-    describe "remap" do
+    describe "migrate" do
       it "regenerates index with new map and moves records to new index" do
-        expect { connector.remap }.to change { es_indexes_for_alias(index_name) }
+        expect { connector.migrate }.to change { es_indexes_for_alias(index_name) }
         expect(es_index_mappings(index_name, 'type_a')).to eq mapping
         expect(es_index_count(index_name)).to eq 2
       end

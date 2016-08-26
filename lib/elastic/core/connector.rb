@@ -27,9 +27,10 @@ module Elastic::Core
 
     def drop
       api.indices.delete index: "#{index_name}:*"
+      nil
     end
 
-    def migrate(remap_on_error: false, remap_batch_size: nil)
+    def remap
       case status
       when :not_available
         create_from_scratch
@@ -37,16 +38,21 @@ module Elastic::Core
         begin
           setup_index_types resolve_actual_index_name
         rescue Elasticsearch::Transport::Transport::Errors::BadRequest
-          raise Elastic::MigrationError, 'mapping cant be changed, call remap' unless remap_on_error
-          remap(remap_batch_size: remap_batch_size)
+          return false
         end
       end
+
+      true
     end
 
-    def remap(batch_size: nil)
-      rollover do
-        copy_documents(read_index_name, write_index_name, batch_size || default_batch_size)
+    def migrate(batch_size: nil)
+      unless remap
+        rollover do
+          copy_documents(read_index_name, write_index_name, batch_size || default_batch_size)
+        end
       end
+
+      nil
     end
 
     def index(_document)
@@ -201,8 +207,10 @@ module Elastic::Core
         size: _batch_size
       )
 
+      count = 0
       while !r['hits']['hits'].empty?
-        logger.info "Processing #{r['hits']['hits'].count} docs"
+        count += r['hits']['hits'].count
+        logger.info "Copied #{count} docs"
 
         body = r['hits']['hits'].map { |h| { 'index' => transform_hit_to_doc(h) } }
         api.bulk(index: _to, body: body)
