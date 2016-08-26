@@ -1,19 +1,25 @@
 namespace :es do
   desc "Elastic: Updates indices mappings"
-  task migrate: :environment do
+  task :remap, [:index] => :environment do |_, args|
     Elastic.configure logger: Logger.new(STDOUT)
-    Elastic.migrate
+    Elastic.remap args.index
+  end
+
+  desc "Elastic: Updates indices mappings, rebuilding index if necessary"
+  task :migrate, [:index] => :environment do |_, args|
+    Elastic.configure logger: Logger.new(STDOUT)
+    Elastic.migrate args.index
   end
 
   desc "Elastic: Rebuilds indices from source data"
-  task reindex: :environment do
+  task :reindex, [:index] => :environment do |_, args|
     Elastic.configure logger: Logger.new(STDOUT)
-    Elastic.reindex
+    Elastic.reindex args.index
   end
 
   desc "Elastic: Lists indices stats"
-  task stats: :environment do
+  task :stats, [:index] => :environment do |_, args|
     Elastic.configure logger: Logger.new(STDOUT)
-    Elastic.stats
+    Elastic.stats args.index
   end
 end

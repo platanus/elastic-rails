@@ -8,11 +8,23 @@ module Elastic::Railties
       end
     end
 
+    def remap(_index = nil)
+      logger.info "Remapping all indices" if _index.nil?
+      indices(_index).each do |index|
+        logger.info "Remapping index #{index.suffix}"
+        handle_errors do
+          unless index.connector.remap
+            logger.info 'Mapping couldnt be changed, make sure you call migrate'
+          end
+        end
+      end
+    end
+
     def migrate(_index = nil)
       logger.info "Migrating all indices" if _index.nil?
       indices(_index).each do |index|
         logger.info "Migrating index #{index.suffix}"
-        handle_errors { index.connector.migrate }
+        handle_errors { index.migrate }
       end
     end
 
