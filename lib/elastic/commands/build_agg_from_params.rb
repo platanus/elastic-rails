@@ -66,11 +66,20 @@ module Elastic::Commands
     end
 
     def build_date_histogram(_options)
-      Elastic::Nodes::Agg::DateHistogram.build(agg_name, @field, interval: _options[:interval])
+      Elastic::Nodes::Agg::DateHistogram.build(
+        agg_name,
+        @field,
+        interval: _options[:interval],
+        time_zone: _options[:time_zone]
+      )
     end
 
     def build_terms(_options)
-      Elastic::Nodes::Agg::Terms.build(agg_name, @field, size: _options[:size])
+      Elastic::Nodes::Agg::Terms.build(
+        agg_name,
+        @field,
+        size: _options[:size]
+      )
     end
 
     def agg_name
