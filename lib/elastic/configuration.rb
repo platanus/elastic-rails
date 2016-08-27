@@ -8,11 +8,12 @@ module Elastic
       import_batch_size: 10_000,
       whiny_indices: false,
       api_client: nil, # set by method
-      logger: nil # set by method
+      logger: nil, # set by method
+      time_zone: nil # set by method
     }
 
     attr_accessor :host, :port, :api_client, :index, :page_size, :coord_similarity, :logger,
-      :import_batch_size, :whiny_indices
+      :import_batch_size, :whiny_indices, :time_zone
 
     def initialize
       assign_attributes DEFAULTS
@@ -35,6 +36,15 @@ module Elastic
       @logger || default_logger
     end
 
+    def time_zone
+      @time_zone || default_time_zone
+    end
+
+    def time_zone=(_value)
+      _value = ActiveSupport::TimeZone.new(_value) if _value.is_a? String
+      @time_zone = _value
+    end
+
     private
 
     def default_api_client
@@ -43,6 +53,10 @@ module Elastic
 
     def default_logger
       @default_logger ||= Logger.new(STDOUT)
+    end
+
+    def default_time_zone
+      @default_time_zone ||= ActiveSupport::TimeZone.new('UTC')
     end
   end
 end
