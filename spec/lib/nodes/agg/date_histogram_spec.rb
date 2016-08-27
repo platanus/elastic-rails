@@ -13,6 +13,14 @@ describe Elastic::Nodes::Agg::DateHistogram do
     end
   end
 
+  describe "time_zone=" do
+    it "validates value is a TimeZone object" do
+      expect { histogram.time_zone = '+00:00' }.to raise_error ArgumentError
+      expect { histogram.time_zone = ActiveSupport::TimeZone.new('UTC') }.not_to raise_error
+      expect { histogram.time_zone = nil }.not_to raise_error
+    end
+  end
+
   describe "render" do
     it "renders correctly" do
       expect(histogram.render).to eq('date_histogram' => { 'field' => 'foo' })
@@ -21,6 +29,12 @@ describe Elastic::Nodes::Agg::DateHistogram do
     it "renders interval option correctly" do
       histogram.interval = '1d'
       expect(histogram.render).to eq('date_histogram' => { 'field' => 'foo', 'interval' => '1d' })
+    end
+
+    it "renders time_zone option correctly" do
+      histogram.time_zone = ActiveSupport::TimeZone.new('UTC')
+      expect(histogram.render)
+        .to eq('date_histogram' => { 'field' => 'foo', 'time_zone' => '+00:00' })
     end
   end
 
