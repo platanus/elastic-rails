@@ -1,13 +1,10 @@
 module Elastic::Railties
   module ConfigurationExtensions
     def self.included(_klass)
-      _klass.extend ClassMethods
+      _klass::DEFAULTS[:active_job_queue] = :default
+      _klass::DEFAULTS[:indices_path] = 'app/indices'
     end
 
-    module ClassMethods
-      def active_job_queue
-        config[:active_job_queue] || :default
-      end
-    end
+    attr_accessor :active_job_queue, :indices_path
   end
 end

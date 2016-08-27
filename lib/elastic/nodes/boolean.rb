@@ -18,7 +18,7 @@ module Elastic::Nodes
       @must_nots = []
       @shoulds = []
       @filters = []
-      @disable_coord = !Elastic::Configuration.coord_similarity
+      @disable_coord = !Elastic.config.coord_similarity
     end
 
     def must(_node)

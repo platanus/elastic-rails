@@ -41,7 +41,7 @@ module Elastic::Commands
     def log_flush(_size)
       @total ||= 0
       @total += _size
-      Elastic::Configuration.logger.info "Imported #{@total} documents"
+      Elastic.logger.info "Imported #{@total} documents"
     end
 
     def render_for_es(_object)

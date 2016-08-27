@@ -63,7 +63,7 @@ describe Elastic::Type do
   end
 
   context "whiny_indices option is enabled" do
-    before { allow(Elastic::Configuration).to receive(:whiny_indices).and_return true }
+    before { allow(Elastic.config).to receive(:whiny_indices).and_return true }
 
     describe "save" do
       it "fails if mapping is out of sync" do
@@ -121,7 +121,7 @@ describe Elastic::Type do
       end
 
       it "allows setting the batch size by setting Configuration.import_batch_size property" do
-        Elastic::Configuration.configure(import_batch_size: :qux)
+        Elastic.configure(import_batch_size: :qux)
 
         expect(Elastic::Commands::ImportIndexDocuments)
           .to receive(:for).with(index: root_index, collection: [], batch_size: :qux)

@@ -30,7 +30,7 @@ module Elastic
 end
 
 # Add activerecord related configuration parameters
-module Elastic::Configuration
+class Elastic::Configuration
   include Elastic::Railties::ConfigurationExtensions
 end
 

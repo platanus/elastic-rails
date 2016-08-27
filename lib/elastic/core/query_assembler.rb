@@ -55,7 +55,7 @@ module Elastic::Core
       query = build_base_query
 
       if !grouped?
-        query.size = (@config.limit || Elastic::Configuration.page_size)
+        query.size = (@config.limit || Elastic.config.page_size)
         query.offset = @config.offset
         query = sort_node(query)
       else

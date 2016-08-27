@@ -41,7 +41,7 @@ module Elastic::Railties
     end
 
     def index_later
-      IndexingJob.set(queue: Elastic::Configuration.active_job_queue).perform_later(self)
+      IndexingJob.set(queue: Elastic.config.active_job_queue).perform_later(self)
     end
   end
 end

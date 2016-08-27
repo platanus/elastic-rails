@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Elastic::Core::Connector do
-  let(:api) { Elastic::Configuration.api_client }
+  let(:api) { Elastic.config.api_client }
 
   let(:mapping) do
     {

@@ -23,7 +23,7 @@ module Elastic
     end
 
     def self.import_batch_size
-      @import_batch_size || Configuration.import_batch_size
+      @import_batch_size || Elastic.config.import_batch_size
     end
 
     def self.import_batch_size=(_value)
@@ -37,7 +37,7 @@ module Elastic
           definition.types,
           definition.as_es_mapping
         ).tap do |conn|
-          if Configuration.whiny_indices && conn.status != :ready
+          if Elastic.config.whiny_indices && conn.status != :ready
             raise 'elastic index out of sync, try migrating'
           end
         end

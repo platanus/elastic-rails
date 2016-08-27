@@ -57,7 +57,7 @@ module Elastic::Railties
     end
 
     def indices_paths
-      Rails.root.join(Elastic::Configuration.indices_path)
+      Rails.root.join(Elastic.config.indices_path)
     end
 
     def handle_errors
@@ -68,7 +68,7 @@ module Elastic::Railties
     end
 
     def logger
-      Elastic::Configuration.logger
+      Elastic.logger
     end
   end
 end

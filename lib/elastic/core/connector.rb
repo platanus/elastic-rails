@@ -7,7 +7,7 @@ module Elastic::Core
     end
 
     def index_name
-      @index_name ||= "#{Elastic::Configuration.index_name}_#{@name}"
+      @index_name ||= "#{Elastic.config.index}_#{@name}"
     end
 
     def read_index_name
@@ -120,7 +120,7 @@ module Elastic::Core
     private
 
     def api
-      Elastic::Configuration.api_client
+      Elastic.config.api_client
     end
 
     def perform_optimized_write_on(_index)
@@ -210,7 +210,7 @@ module Elastic::Core
       count = 0
       while !r['hits']['hits'].empty?
         count += r['hits']['hits'].count
-        logger.info "Copied #{count} docs"
+        Elastic.logger.info "Copied #{count} docs"
 
         body = r['hits']['hits'].map { |h| { 'index' => transform_hit_to_doc(h) } }
         api.bulk(index: _to, body: body)
@@ -241,13 +241,9 @@ module Elastic::Core
            Elasticsearch::Transport::Transport::Errors::GatewayTimeout => exc
       raise if retries <= 0
 
-      Configuration.logger.warn("#{exc.class} error during '#{_action}', retrying!")
+      Elastic.logger.warn("#{exc.class} error during '#{_action}', retrying!")
       retries -= 1
       retry
-    end
-
-    def logger
-      Elastic::Configuration.logger
     end
   end
 end
