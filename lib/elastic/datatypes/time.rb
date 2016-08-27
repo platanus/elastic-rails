@@ -23,8 +23,10 @@ module Elastic::Datatypes
     end
 
     def date_histogram_aggregation_defaults
-      { interval: '1h' }
+      { interval: '1h', time_zone: time_zone }
     end
+
+    private
 
     def time_zone
       # TODO: user_options[:timezone]

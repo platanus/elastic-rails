@@ -13,9 +13,9 @@ module Elastic::Datatypes
     def prepare_value_for_result(_value)
       case _value
       when ::String
-        ::Time.parse(_value).utc.to_date
+        time_zone.parse(_value).to_date
       when ::Integer
-        ::Time.at(_value / 1000).utc.to_date
+        time_zone.at(_value / 1000).to_date
       else
         _value
       end
@@ -26,7 +26,13 @@ module Elastic::Datatypes
     end
 
     def date_histogram_aggregation_defaults
-      { interval: '1w' }
+      { interval: '1w', time_zone: time_zone }
+    end
+
+    private
+
+    def time_zone
+      @time_zone ||= ActiveSupport::TimeZone.new('UTC') # dates are always UTC
     end
   end
 end
