@@ -22,6 +22,12 @@ describe Elastic::Datatypes::Time do
       expect(datatype.prepare_value_for_result(es_date_long))
         .to eq Time.new(2016, 7, 14, 19, 40, 0, '-04:00')
     end
+
+    it "returns time in configured timezone" do
+      expect(datatype.prepare_value_for_result(es_date_str).zone).to eq 'UTC'
+      Elastic.config.time_zone = 'Santiago'
+      expect(datatype.prepare_value_for_result(es_date_str).zone).to eq 'CLT'
+    end
   end
 
   describe "supported_aggregations" do

@@ -10,9 +10,9 @@ module Elastic::Datatypes
       # TODO: set timezone
       case _value
       when ::String
-        ::Time.parse(_value)
+        time_zone.parse(_value)
       when ::Integer
-        ::Time.at(_value / 1000)
+        time_zone.at(_value / 1000)
       else
         _value
       end
@@ -24,6 +24,11 @@ module Elastic::Datatypes
 
     def date_histogram_aggregation_defaults
       { interval: '1h' }
+    end
+
+    def time_zone
+      # TODO: user_options[:timezone]
+      Elastic.config.time_zone
     end
   end
 end
