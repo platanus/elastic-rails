@@ -62,6 +62,19 @@ describe Elastic::Type do
     end
   end
 
+  describe "delete" do
+    it "calls connector.delete with object type and id" do
+      object = root_type.new(2, 'hello world', 1, [])
+      expect(root_index.connector).to receive(:delete).with('RootType', 2).and_return nil
+      root_index.delete(object)
+    end
+
+    it "fails if object does not provide an id" do
+      object = root_type.new(nil, 'hello world', 1, [])
+      expect { root_index.delete(object) }.to raise_error ArgumentError
+    end
+  end
+
   context "whiny_indices option is enabled" do
     before { allow(Elastic.config).to receive(:whiny_indices).and_return true }
 

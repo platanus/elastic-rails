@@ -81,6 +81,19 @@ module Elastic
       new(_object).save
     end
 
+    def self.delete(_object)
+      wrapper = new(_object)
+      id = wrapper.read_elastic_id
+      raise ArgumentError, 'index does not provide an id' if id.nil?
+
+      connector.delete(
+        wrapper.read_elastic_type,
+        wrapper.read_elastic_id
+      )
+
+      nil
+    end
+
     def self.query
       Query.new self
     end
