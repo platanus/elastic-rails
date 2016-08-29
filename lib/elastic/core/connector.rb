@@ -80,8 +80,12 @@ module Elastic::Core
       api.indices.refresh index: read_index_name
     end
 
-    def find(_id, type: '_all')
-      api.get(index: read_index_name, type: type, id: _id)
+    def find(_type, _id)
+      api.get(index: write_index_name, type: _type, id: _id)
+    end
+
+    def delete(_type, _id)
+      api.delete(index: write_index_name, type: _type, id: _id)
     end
 
     def count(query: nil, type: nil)

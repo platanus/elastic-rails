@@ -79,6 +79,21 @@ describe Elastic::Core::Connector do
           .to change { api.indices.exists? index: "#{index_name}:dummy" }.to false
       end
     end
+
+    context "and some objects have already been indexed" do
+      before do
+        connector.index('_id' => 'foo', '_type' => 'type_a', 'data' => { foo: 'hello' })
+        connector.index('_id' => 'bar', '_type' => 'type_a', 'data' => { foo: 'world' })
+      end
+
+      describe "delete" do
+        it "removes existing documents from index" do
+          expect do
+            connector.delete('type_a', 'bar')
+          end.to change { es_index_count(index_name) }.by(-1)
+        end
+      end
+    end
   end
 
   context "when index already exists and mapping is not synchronized" do
