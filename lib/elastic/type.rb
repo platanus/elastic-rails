@@ -97,7 +97,7 @@ module Elastic
 
     def save
       self.class.tap do |klass|
-        klass.connector.index as_es_document
+        klass.connector.index as_elastic_document
       end
     end
   end

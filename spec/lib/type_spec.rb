@@ -45,9 +45,9 @@ describe Elastic::Type do
     end
   end
 
-  describe "as_es_document" do
+  describe "as_elastic_document" do
     it "renders the document according the field definition" do
-      expect(root_index.new(object).as_es_document).to eq(
+      expect(root_index.new(object).as_elastic_document).to eq(
         '_type' => 'RootType',
         '_id' => 1,
         'data' => {

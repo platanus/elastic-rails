@@ -16,7 +16,17 @@ module Elastic::Core
       @definition.fields
     end
 
-    def as_es_document(only_data: false)
+    def read_elastic_type
+      object.class.to_s
+    end
+
+    def read_elastic_id
+      if has_attribute_for_indexing?(:id)
+        read_attribute_for_indexing(:id)
+      end
+    end
+
+    def as_elastic_document(only_data: false)
       data = {}.tap do |hash|
         fields.each do |field|
           value = read_attribute_for_indexing(field.name)
@@ -27,8 +37,12 @@ module Elastic::Core
 
       return data if only_data
 
-      result = { '_type' => object.class.to_s, 'data' => data }
-      result['_id'] = read_attribute_for_indexing(:id) if has_attribute_for_indexing?(:id)
+      result = {
+        '_type' => read_elastic_type,
+        'data' => data
+      }
+
+      read_elastic_id.tap { |id| result['_id'] = id unless id.nil? }
       result
     end
 

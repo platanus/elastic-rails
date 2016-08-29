@@ -45,7 +45,7 @@ module Elastic::Commands
     end
 
     def render_for_es(_object)
-      index.new(_object).as_es_document
+      index.new(_object).as_elastic_document
     end
 
     def main_target
