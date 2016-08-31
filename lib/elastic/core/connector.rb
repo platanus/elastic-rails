@@ -150,6 +150,15 @@ module Elastic::Core
       end
     end
 
+    def remove_orphaned_indices
+      _, rolling_index = resolve_write_indices
+
+      unless rolling_index.nil?
+        Elastic.logger.info "Removing orphan index #{rolling_index}"
+        api.indices.delete index: rolling_index
+      end
+    end
+
     private
 
     def wait_for_index_to_stabilize

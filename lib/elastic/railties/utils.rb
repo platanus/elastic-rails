@@ -28,6 +28,11 @@ module Elastic::Railties
       end
     end
 
+    def cleanup
+      logger.info "Searching for orphan indices"
+      indices.each { |index| index.connector.remove_orphaned_indices }
+    end
+
     def drop(_index = nil)
       logger.info "Dropping all indices" if _index.nil?
       indices(_index).each &:drop

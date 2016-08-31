@@ -17,6 +17,12 @@ namespace :es do
     Elastic.reindex args.index
   end
 
+  desc "Elastic: Cleanups orphan indices"
+  task cleanup: :environment do
+    Elastic.configure logger: Logger.new(STDOUT)
+    Elastic.cleanup
+  end
+
   desc "Elastic: Lists indices stats"
   task :stats, [:index] => :environment do |_, args|
     Elastic.configure logger: Logger.new(STDOUT)
