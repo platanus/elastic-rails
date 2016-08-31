@@ -50,14 +50,11 @@ module Elastic::Core
 
     def index(_document)
       # TODO: validate document type
-      write_indices.each do |write_index|
-        api.index(
-          index: write_index,
-          id: _document['_id'],
-          type: _document['_type'],
-          body: _document['data']
-        )
+      operations = write_indices.map do |write_index|
+        { 'index' => _document.merge('_index' => write_index) }
       end
+
+      api.bulk(body: operations)
     end
 
     def bulk_index(_documents)
@@ -71,13 +68,29 @@ module Elastic::Core
       end
     end
 
-    def refresh
-      api.indices.refresh index: index_name
+    def delete(_type, _id)
+      write_index, rolling_index = write_indices
+
+      operations = [
+        { 'delete' => { '_index' => write_index, '_type' => _type, '_id' => _id } }
+      ]
+
+      if rolling_index
+        operations << {
+          'index' => {
+            '_index' => rolling_index,
+            '_type' => _type,
+            '_id' => _id,
+            'data' => { '_mark_for_deletion' => true }
+          }
+        }
+      end
+
+      api.bulk(body: operations)
     end
 
-    def delete(_type, _id)
-      # TODO: delete will not work during rollover
-      api.delete(index: index_name, type: _type, id: _id)
+    def refresh
+      api.indices.refresh index: index_name
     end
 
     def find(_type, _id)
@@ -93,26 +106,23 @@ module Elastic::Core
     end
 
     def rollover(&_block) # rubocop:disable Metrics/MethodLength
-      all_indices = resolve_write_indices
+      actual_index, rolling_index = resolve_write_indices
 
-      if all_indices.count > 1
+      unless rolling_index.nil?
         raise Elastic::RolloverError, 'rollover process already in progress'
       end
 
-      actual_index = all_indices.first
       new_index = create_index_w_mapping
 
       begin
         transfer_alias(write_index_alias, to: new_index)
         wait_for_index_to_stabilize
         perform_optimized_write_on(new_index, &_block)
+        delete_marked_for_deletion new_index
         transfer_alias(index_name, from: actual_index, to: new_index)
-
-        if actual_index
-          transfer_alias(write_index_alias, from: actual_index)
-          wait_for_index_to_stabilize
-          api.indices.delete index: actual_index
-        end
+        transfer_alias(write_index_alias, from: actual_index)
+        wait_for_index_to_stabilize
+        api.indices.delete index: actual_index
       rescue
         api.indices.delete index: new_index
         raise
@@ -145,8 +155,8 @@ module Elastic::Core
 
     def wait_for_index_to_stabilize
       return if @settling_time == 0
-      Elastic.logger.info "Waiting for write indices to stabilize ..."
-      sleep @settling_time
+      Elastic.logger.info "Waiting #{@settling_time * 1.2}s for write indices to stabilize ..."
+      sleep(@settling_time * 1.2)
     end
 
     def api
@@ -180,10 +190,14 @@ module Elastic::Core
       @write_indices ||= begin
         result = api.indices.get_alias(name: write_index_alias)
         @write_indices_expiration = @settling_time.from_now
-        result.keys
+        result.keys.sort # lower timestamp first (actual)
       rescue Elasticsearch::Transport::Transport::Errors::NotFound
         raise Elastic::MissingIndexError, 'index does not exist, call migrate first'
       end
+    end
+
+    def delete_marked_for_deletion(_index)
+      api.delete_by_query(index: _index, body: { query: { term: { _mark_for_deletion: true } } })
     end
 
     def write_indices_expired?
@@ -262,10 +276,6 @@ module Elastic::Core
 
     def default_batch_size
       1_000
-    end
-
-    def small_batch_size
-      500
     end
 
     def retry_on_temporary_error(_action, retries: 3)

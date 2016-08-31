@@ -30,6 +30,8 @@ RSpec.configure do |config|
   def es_find_by_id(_index, _id, type: nil)
     spec_es_client.indices.refresh index: _index
     spec_es_client.get index: _index, id: _id, type: type
+  rescue Elasticsearch::Transport::Transport::Errors::NotFound
+    nil
   end
 
   def es_index_exists?(_index)

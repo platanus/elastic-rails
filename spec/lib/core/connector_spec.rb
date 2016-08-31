@@ -84,7 +84,7 @@ describe Elastic::Core::Connector do
     describe "drop" do
       it "removes index" do
         expect { connector.drop }
-          .to change { api.indices.exists? index: "#{index_name}:dummy" }.to false
+          .to change { api.indices.exists? index: "#{index_name}:12345" }.to false
       end
     end
 
@@ -154,13 +154,15 @@ describe Elastic::Core::Connector do
         expect(connector).to receive(:copy_to).and_wrap_original do |m, *args|
           Thread.new do # inject insertion just before copy is initiated
             connector.index('_id' => 'foo', '_type' => 'type_a', 'data' => { foo: 'inside' })
+            connector.delete('type_a', 'bar')
           end.join
 
           m.call(*args)
         end
 
         connector.migrate
-        expect(api.get(index: index_name, id: 'foo')['_source']).to eq('foo' => 'inside')
+        expect(es_find_by_id(index_name, 'foo')['_source']).to eq('foo' => 'inside')
+        expect(es_find_by_id(index_name, 'bar')).to be nil
       end
     end
   end
@@ -216,8 +218,25 @@ describe Elastic::Core::Connector do
         end
 
         api.indices.refresh(index: index_name)
-        expect(api.get(index: index_name, id: 'foo')['_source']).to eq('foo' => 'outside')
-        expect(api.get(index: index_name, id: 'bar')['_source']).to eq('foo' => 'inside')
+        expect(es_find_by_id(index_name, 'foo')['_source']).to eq('foo' => 'outside')
+        expect(es_find_by_id(index_name, 'bar')['_source']).to eq('foo' => 'inside')
+      end
+    end
+
+    describe "delete" do
+      it "removes existing documents from index" do
+        connector.index('_id' => 'foo', '_type' => 'type_a', 'data' => { foo: 'outside' })
+
+        connector.rollover do
+          connector.index('_id' => 'bar', '_type' => 'type_a', 'data' => { foo: 'inside' })
+
+          Thread.new do
+            connector.delete('type_a', 'foo')
+            connector.delete('type_a', 'bar')
+          end.join
+        end
+
+        expect(es_index_count(index_name)).to be 0
       end
     end
 
@@ -233,7 +252,7 @@ describe Elastic::Core::Connector do
   # Some helpers
 
   def prepare_index(mapping: nil, records: nil)
-    actual_index = "#{index_name}:dummy"
+    actual_index = "#{index_name}:12345"
 
     api.indices.create index: actual_index
     api.cluster.health wait_for_status: 'yellow'
