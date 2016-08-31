@@ -8,7 +8,7 @@ module Elastic::Railties
         _collection = _collection.send(scope) if scope
         _collection.find_each(&_block)
       elsif _collection.respond_to? :each
-        ActiveRecord::Associations::Preloader.new.preload(_collection, *includes) if includes
+        ActiveRecord::Associations::Preloader.new.preload(_collection, includes) if includes
         _collection.each(&_block)
       else
         raise 'Elastic ActiveRecord importing is only supported for collection types'
