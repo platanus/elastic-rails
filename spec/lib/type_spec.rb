@@ -65,7 +65,8 @@ describe Elastic::Type do
   describe "delete" do
     it "calls connector.delete with object type and id" do
       object = root_type.new(2, 'hello world', 1, [])
-      expect(root_index.connector).to receive(:delete).with('RootType', 2).and_return nil
+      expect(root_index.connector).to receive(:delete)
+        .with('_type' => 'RootType', '_id' => 2).and_return nil
       root_index.delete(object)
     end
 
@@ -78,9 +79,9 @@ describe Elastic::Type do
   context "whiny_indices option is enabled" do
     before { allow(Elastic.config).to receive(:whiny_indices).and_return true }
 
-    describe "save" do
+    describe "index" do
       it "fails if mapping is out of sync" do
-        expect { root_index.new(object).save }.to raise_error RuntimeError
+        expect { root_index.index(object) }.to raise_error RuntimeError
       end
     end
 
@@ -94,9 +95,9 @@ describe Elastic::Type do
   context "mapping is synced" do
     before { root_index.migrate }
 
-    describe "save" do
+    describe "index" do
       it "stores the new document in index using the object id" do
-        root_index.new(object).save
+        root_index.index(object)
 
         expect(es_find_by_id(root_index.index_name, object.id, type: 'RootType')).not_to be nil
       end

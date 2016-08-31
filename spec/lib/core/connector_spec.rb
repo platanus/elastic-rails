@@ -97,7 +97,7 @@ describe Elastic::Core::Connector do
       describe "delete" do
         it "removes existing documents from index" do
           expect do
-            connector.delete('type_a', 'bar')
+            connector.delete('_id' => 'bar', '_type' => 'type_a')
           end.to change { es_index_count(index_name) }.by(-1)
         end
       end
@@ -154,7 +154,7 @@ describe Elastic::Core::Connector do
         expect(connector).to receive(:copy_to).and_wrap_original do |m, *args|
           Thread.new do # inject insertion just before copy is initiated
             connector.index('_id' => 'foo', '_type' => 'type_a', 'data' => { foo: 'inside' })
-            connector.delete('type_a', 'bar')
+            connector.delete('_id' => 'bar', '_type' => 'type_a')
           end.join
 
           m.call(*args)
@@ -231,8 +231,8 @@ describe Elastic::Core::Connector do
           connector.index('_id' => 'bar', '_type' => 'type_a', 'data' => { foo: 'inside' })
 
           Thread.new do
-            connector.delete('type_a', 'foo')
-            connector.delete('type_a', 'bar')
+            connector.delete('_id' => 'foo', '_type' => 'type_a')
+            connector.delete('_id' => 'bar', '_type' => 'type_a')
           end.join
         end
 

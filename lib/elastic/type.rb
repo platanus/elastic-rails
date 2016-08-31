@@ -78,20 +78,13 @@ module Elastic
     end
 
     def self.index(_object)
-      new(_object).save
+      connector.index new(_object).as_elastic_document
+      self
     end
 
     def self.delete(_object)
-      wrapper = new(_object)
-      id = wrapper.read_elastic_id
-      raise ArgumentError, 'index does not provide an id' if id.nil?
-
-      connector.delete(
-        wrapper.read_elastic_type,
-        wrapper.read_elastic_id
-      )
-
-      nil
+      connector.delete new(_object).as_elastic_document(only_meta: true)
+      self
     end
 
     def self.query
@@ -106,12 +99,6 @@ module Elastic
     def self.refresh
       connector.refresh
       self
-    end
-
-    def save
-      self.class.tap do |klass|
-        klass.connector.index as_elastic_document
-      end
     end
   end
 end

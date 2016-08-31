@@ -68,21 +68,20 @@ module Elastic::Core
       end
     end
 
-    def delete(_type, _id)
+    def delete(_document)
+      raise ArgumentError, 'document must provide an id' unless _document['_id']
+      raise ArgumentError, 'document must provide a type' unless _document['_type']
+
       write_index, rolling_index = write_indices
 
-      operations = [
-        { 'delete' => { '_index' => write_index, '_type' => _type, '_id' => _id } }
-      ]
+      operations = [{ 'delete' => _document.merge('_index' => write_index) }]
 
       if rolling_index
         operations << {
-          'index' => {
+          'index' => _document.merge(
             '_index' => rolling_index,
-            '_type' => _type,
-            '_id' => _id,
             'data' => { '_mark_for_deletion' => true }
-          }
+          )
         }
       end
 
