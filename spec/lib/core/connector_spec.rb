@@ -13,7 +13,7 @@ describe Elastic::Core::Connector do
   end
 
   let(:connector) do
-    described_class.new('idx_name', ['type_a', 'type_b'], mapping)
+    described_class.new('idx_name', ['type_a', 'type_b'], mapping, settling_time: 0.seconds)
   end
 
   let(:index_name) { connector.index_name }
@@ -34,6 +34,14 @@ describe Elastic::Core::Connector do
 
         expect(es_index_mappings(index_name, 'type_a')).to eq mapping
         expect(es_index_mappings(index_name, 'type_b')).to eq mapping
+      end
+    end
+
+    describe "index" do
+      it "fails with index missing error" do
+        expect do
+          connector.index('_id' => 'qux', '_type' => 'type_a', 'data' => { foo: 'world' })
+        end.to raise_error Elastic::MissingIndexError
       end
     end
   end
@@ -141,14 +149,40 @@ describe Elastic::Core::Connector do
         expect(es_index_mappings(index_name, 'type_a')).to eq mapping
         expect(es_index_count(index_name)).to eq 2
       end
+
+      it "calls copy_to and does not overwrites documents changed during migration" do
+        expect(connector).to receive(:copy_to).and_wrap_original do |m, *args|
+          Thread.new do # inject insertion just before copy is initiated
+            connector.index('_id' => 'foo', '_type' => 'type_a', 'data' => { foo: 'inside' })
+          end.join
+
+          m.call(*args)
+        end
+
+        connector.migrate
+        expect(api.get(index: index_name, id: 'foo')['_source']).to eq('foo' => 'inside')
+      end
     end
   end
 
   context "when rollover block is being called" do
     before { prepare_index mapping: mapping }
 
+    it "removes new index on failure" do
+      rollover_index = nil
+
+      expect do
+        connector.rollover do |new_index|
+          rollover_index = new_index
+          raise "some error"
+        end
+      end.to raise_error RuntimeError
+
+      expect(es_index_exists?(rollover_index)).to be false
+    end
+
     describe "index" do
-      it "makes stored document available only after block has finished" do
+      it "makes documents indexed inside rollover block available only after block has finished" do
         connector.rollover do
           connector.index('_id' => 'foo', '_type' => 'type_a', 'data' => { foo: 'world' })
 
@@ -159,17 +193,39 @@ describe Elastic::Core::Connector do
         expect(es_index_count(index_name)).to eq 1
       end
 
-      it "give docs indexed outside rollover higher priority than docs added by the rollover" do
+      it "makes documents indexed outside rollover block available inmediately" do
         connector.rollover do
           Thread.new do
+            connector.index('_id' => 'foo', '_type' => 'type_a', 'data' => { foo: 'world' })
+            api.indices.refresh index: index_name
+            expect(es_index_count(index_name)).to eq 1
+          end.join
+        end
+      end
+
+      it "executes index operations in the proper order independent of calling thread" do
+        connector.rollover do
+          connector.index('_id' => 'foo', '_type' => 'type_a', 'data' => { foo: 'inside' })
+
+          Thread.new do
             connector.index('_id' => 'foo', '_type' => 'type_a', 'data' => { foo: 'outside' })
+            connector.index('_id' => 'bar', '_type' => 'type_a', 'data' => { foo: 'outside' })
           end.join
 
-          connector.index('_id' => 'foo', '_type' => 'type_a', 'data' => { foo: 'inside' })
+          connector.index('_id' => 'bar', '_type' => 'type_a', 'data' => { foo: 'inside' })
         end
 
-        expect(api.search(index: index_name)['hits']['hits'].first['_source'])
-          .to eq('foo' => 'outside')
+        api.indices.refresh(index: index_name)
+        expect(api.get(index: index_name, id: 'foo')['_source']).to eq('foo' => 'outside')
+        expect(api.get(index: index_name, id: 'bar')['_source']).to eq('foo' => 'inside')
+      end
+    end
+
+    describe "rollover" do
+      it "fails if called inside rollover" do
+        connector.rollover do
+          expect { connector.rollover {} }.to raise_error Elastic::RolloverError
+        end
       end
     end
   end

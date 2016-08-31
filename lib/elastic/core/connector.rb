@@ -1,21 +1,14 @@
 module Elastic::Core
   class Connector
-    def initialize(_name, _types, _mapping)
+    def initialize(_name, _types, _mapping, settling_time: 10.seconds)
       @name = _name
       @types = _types
       @mapping = _mapping
+      @settling_time = settling_time
     end
 
     def index_name
       @index_name ||= "#{Elastic.config.index}_#{@name}"
-    end
-
-    def read_index_name
-      index_name
-    end
-
-    def write_index_name
-      Thread.current[write_index_thread_override] || write_index_alias
     end
 
     def status
@@ -47,8 +40,8 @@ module Elastic::Core
 
     def migrate(batch_size: nil)
       unless remap
-        rollover do
-          copy_documents(read_index_name, write_index_name, batch_size || default_batch_size)
+        rollover do |new_index|
+          copy_to new_index, batch_size: batch_size
         end
       end
 
@@ -57,84 +50,121 @@ module Elastic::Core
 
     def index(_document)
       # TODO: validate document type
-
-      api.index(
-        index: write_index_name,
-        id: _document['_id'],
-        type: _document['_type'],
-        body: _document['data']
-      )
+      write_indices.each do |write_index|
+        api.index(
+          index: write_index,
+          id: _document['_id'],
+          type: _document['_type'],
+          body: _document['data']
+        )
+      end
     end
 
     def bulk_index(_documents)
       # TODO: validate documents type
-
       body = _documents.map { |doc| { 'index' => doc } }
 
-      retry_on_temporary_error('bulk indexing') do
-        api.bulk(index: write_index_name, body: body)
+      write_indices.each do |write_index|
+        retry_on_temporary_error('bulk indexing') do
+          api.bulk(index: write_index, body: body)
+        end
       end
     end
 
     def refresh
-      api.indices.refresh index: read_index_name
-    end
-
-    def find(_type, _id)
-      api.get(index: write_index_name, type: _type, id: _id)
+      api.indices.refresh index: index_name
     end
 
     def delete(_type, _id)
-      api.delete(index: write_index_name, type: _type, id: _id)
+      # TODO: delete will not work during rollover
+      api.delete(index: index_name, type: _type, id: _id)
+    end
+
+    def find(_type, _id)
+      api.get(index: index_name, type: _type, id: _id)
     end
 
     def count(query: nil, type: nil)
-      api.count(index: read_index_name, type: type, body: query)['count']
+      api.count(index: index_name, type: type, body: query)['count']
     end
 
     def query(query: nil, type: nil)
-      api.search(index: read_index_name, type: type, body: query)
+      api.search(index: index_name, type: type, body: query)
     end
 
-    def rollover(&_block) # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+    def rollover(&_block) # rubocop:disable Metrics/MethodLength
+      all_indices = resolve_write_indices
+
+      if all_indices.count > 1
+        raise Elastic::RolloverError, 'rollover process already in progress'
+      end
+
+      actual_index = all_indices.first
       new_index = create_index_w_mapping
-      tmp_index = create_index_w_mapping('tmp')
-      actual_index = resolve_actual_index_name
 
       begin
-        transfer_alias(write_index_alias, from: actual_index, to: tmp_index)
-
+        transfer_alias(write_index_alias, to: new_index)
+        wait_for_index_to_stabilize
         perform_optimized_write_on(new_index, &_block)
-
         transfer_alias(index_name, from: actual_index, to: new_index)
-        transfer_alias(write_index_alias, from: tmp_index, to: new_index)
-        api.indices.delete index: actual_index if actual_index
+
+        if actual_index
+          transfer_alias(write_index_alias, from: actual_index)
+          wait_for_index_to_stabilize
+          api.indices.delete index: actual_index
+        end
       rescue
-        transfer_alias(write_index_alias, from: tmp_index, to: actual_index)
         api.indices.delete index: new_index
-      ensure
-        # rollback
-        # TODO: what would happen if the following fails? O.O
-        copy_documents(tmp_index, write_index_name, small_batch_size)
-        api.indices.delete index: tmp_index
-        api.indices.refresh index: index_name
+        raise
+      end
+    end
+
+    def copy_to(_to, batch_size: nil) # rubocop:disable Metrics/AbcSize
+      api.indices.refresh index: index_name
+
+      r = api.search(
+        index: index_name,
+        body: { sort: ['_doc'] },
+        scroll: '5m',
+        size: batch_size || default_batch_size
+      )
+
+      count = 0
+      while !r['hits']['hits'].empty?
+        count += r['hits']['hits'].count
+        Elastic.logger.info "Copied #{count} docs"
+
+        body = r['hits']['hits'].map { |h| transform_hit_to_create(h) }
+        api.bulk(index: _to, body: body)
+
+        r = api.scroll scroll: '5m', scroll_id: r['_scroll_id']
       end
     end
 
     private
 
+    def wait_for_index_to_stabilize
+      return if @settling_time == 0
+      Elastic.logger.info "Waiting for write indices to stabilize ..."
+      sleep @settling_time
+    end
+
     def api
       Elastic.config.api_client
     end
 
+    def write_indices
+      Thread.current[write_index_thread_override] || resolve_write_indices
+    end
+
     def perform_optimized_write_on(_index)
-      old_index = Thread.current[write_index_thread_override]
-      Thread.current[write_index_thread_override] = _index
+      old_indices = Thread.current[write_index_thread_override]
+      Thread.current[write_index_thread_override] = [_index]
       configure_index(_index, refresh_interval: -1)
-      yield
+      yield _index
     ensure
       configure_index(_index, refresh_interval: '1s')
-      Thread.current[write_index_thread_override] = old_index
+      Thread.current[write_index_thread_override] = old_indices
     end
 
     def write_index_thread_override
@@ -142,7 +172,22 @@ module Elastic::Core
     end
 
     def write_index_alias
-      @write_index_alias = "#{index_name}.w"
+      @write_index_alias ||= "#{index_name}.w"
+    end
+
+    def resolve_write_indices
+      @write_indices = nil if write_indices_expired?
+      @write_indices ||= begin
+        result = api.indices.get_alias(name: write_index_alias)
+        @write_indices_expiration = @settling_time.from_now
+        result.keys
+      rescue Elasticsearch::Transport::Transport::Errors::NotFound
+        raise Elastic::MissingIndexError, 'index does not exist, call migrate first'
+      end
+    end
+
+    def write_indices_expired?
+      @write_indices_expiration && @write_indices_expiration < Time.current
     end
 
     def resolve_actual_index_name
@@ -152,8 +197,8 @@ module Elastic::Core
       nil
     end
 
-    def create_index_w_mapping(_role = 'main')
-      new_name = "#{index_name}:#{_role}:#{Time.now.to_i}"
+    def create_index_w_mapping
+      new_name = "#{index_name}:#{Time.now.to_i}"
       api.indices.create index: new_name
       api.cluster.health wait_for_status: 'yellow'
       setup_index_types new_name
@@ -201,34 +246,18 @@ module Elastic::Core
       api.indices.update_aliases body: { actions: actions }
     end
 
-    def copy_documents(_from, _to, _batch_size)
-      api.indices.refresh index: _from
-
-      r = api.search(
-        index: _from,
-        body: { sort: ['_doc'] },
-        scroll: '5m',
-        size: _batch_size
-      )
-
-      count = 0
-      while !r['hits']['hits'].empty?
-        count += r['hits']['hits'].count
-        Elastic.logger.info "Copied #{count} docs"
-
-        body = r['hits']['hits'].map { |h| { 'index' => transform_hit_to_doc(h) } }
-        api.bulk(index: _to, body: body)
-
-        r = api.scroll scroll: '5m', scroll_id: r['_scroll_id']
-      end
-    end
-
     def configure_index(_index, _settings)
       api.indices.put_settings index: _index, body: { index: _settings }
     end
 
-    def transform_hit_to_doc(_hit)
-      { '_id' => _hit['_id'], '_type' => _hit['_type'], 'data' => _hit['_source'] }
+    def transform_hit_to_create(_hit)
+      {
+        'create' => {
+          '_id' => _hit['_id'],
+          '_type' => _hit['_type'],
+          'data' => _hit['_source']
+        }
+      }
     end
 
     def default_batch_size
