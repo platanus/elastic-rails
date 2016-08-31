@@ -18,32 +18,28 @@ module Elastic::Railties
         @constantized_index_class ||= index_class.constantize
       end
 
-      def index(on: nil, unindex: true, delayed: false)
-        raise NotImplementedError, 'delayed indexing not implemented' if delayed
+      def index(on: nil, unindex: true, delayed: true)
+        index_m, unindex_m = delayed ? [:index_later, :unindex_later] : [:index_now, :unindex_now]
 
         if on == :create
-          index_on_create
+          after_create { public_send(index_m) }
         elsif on == :save
-          index_on_save
+          after_save { public_send(index_m) }
         else
           raise ArgumentError, 'must provide an indexing target when calling index \
 (ie: `index on: :save`)'
         end
 
-        unindex_on_destroy if unindex
+        before_destroy { public_send(unindex_m) } if unindex
       end
+    end
 
-      def index_on_create(_options = {})
-        after_create(_options) { index_now }
-      end
+    def index_later
+      self.class.constantized_index_class.index_later self
+    end
 
-      def index_on_save(_options = {})
-        after_save(_options) { index_now }
-      end
-
-      def unindex_on_destroy(_options = {})
-        before_destroy(_options) { unindex_now }
-      end
+    def unindex_later
+      self.class.constantized_index_class.delete_later self
     end
 
     def index_now

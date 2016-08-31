@@ -4,7 +4,8 @@ require "elastic/railties/ar_middleware"
 require "elastic/railties/configuration_extensions"
 require "elastic/railties/type_extensions"
 require "elastic/railties/query_extensions"
-# disabled for now: require "elastic/railties/indexing_job"
+require "elastic/railties/jobs/indexing_job"
+require "elastic/railties/jobs/deleting_job"
 require "elastic/railties/indexable_record"
 
 module Elastic
