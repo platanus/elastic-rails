@@ -1,15 +1,22 @@
-# Elastic
+# Elastic Rails
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/elastic`. To experiment with that code, run `bin/console` for an interactive prompt.
+Elasticsearch + Ruby on Rails made easy.
 
-TODO: Delete this and the text above, and describe your gem
+## Features
+
+* Easy setup
+* Chainable query DSL
+* Easy to use results
+* Seamless rails integration
+* Multiple enviroment support
+* Zero downtime index migrations
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'elastic'
+gem 'elastic-rails'
 ```
 
 And then execute:
@@ -18,22 +25,107 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install elastic
+    $ gem install elastic-rails
 
-## Usage
+Finally execute the initialization script to generate configuration files:
 
-TODO: Write usage instructions here
+    $ rails g es:init
 
-## Development
+## Usage overview
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+[For detailed usage reference check out the GUIDE]
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+Suppose that you already have a model called `Bike`, start by creating an index for it:
+
+    rails g es:index Bike
+
+This will generate a new index definition file in `app/indices/bike_index.rb`
+
+Add some fields to the index:
+
+```ruby
+class BikeIndex < ElasticType
+  # field types are extracted from the target model
+  fields :brand_id, :model, :year, :price
+
+  # you can also explicitly set the field type
+  field :category, type: :term
+  field :description, type: :string
+  field :created_at, type: :time
+
+  # you can also have nested documents, the following will require a nested PartIndex to be defined.
+  nested :parts
+
+  # you can override fields or create new ones
+  def year
+    object.batch.year
+  end
+end
+```
+
+Every time you create or change and index you will neeed to synchronize the Elasticsearch index mappings:
+
+     rake es:remap
+
+If you already have some data that needs to be indexed then run the reindex task:
+
+     rake es:reindex
+
+To add additional data call the index `import` or the model's `index_now` or `index_later` methods:
+
+```ruby
+some_bike.index_now # this will reindex only one record
+some_bike.index_later # this will queue a reindexing job on the record
+BikeIndex.import([bike_1, bike_2, bike_3]) # this will perform a bulk insertion
+```
+
+You can also setup automatic indexation/unindexation for a given model:
+
+```ruby
+class Bike < ActiveRecord::Base
+  index on: :save
+end
+```
+
+After some data has been added you can start quering:
+
+```ruby
+# List bikes of brand Trek or Cannondale, preferably 2015 or later models:
+BikeIndex
+  .must(brand: ['Trek', 'Cannondale'])
+  .should(year: { gte: 2015 })
+  .to_a
+
+# List bikes of brand Trek, preferably 2015 or 2016, give higher score to 2016 models:
+BikeIndex
+  .must(brand: ['Trek', 'Cannondale'])
+  .should(year: 2015)
+  .boost(2.0) { should(year: 2016) }
+  .to_a
+
+# More score manipulation:
+BikeIndex
+  .coord_similarity(false) # disable coord similarity (no score normalization)
+  .boost(0.0) { must(brand: ['Trek', 'Cannondale']) } # no score
+  .boost(fixed: 1.0) { should(year: 2015) } # fixed score
+  .boost(fixed: 2.0) { should(year: 2016) }
+  .each_with_score { |bike, score| puts "#{bike.name} got score: #{score}" }
+
+# Get average bike price by year and category, for bikes newer than 2014
+BikeIndex
+  .must(year: { gte: 2014 })
+  .segment(:year)
+  .segment(:category)
+  .average(:price)
+  .each { |keys, price| puts "#{keys[:year]}/#{keys[:category]} => #{price}" }
+
+# Search bikes ids that have shimano parts:
+BikeIndex.must(parts: { brand: 'shimano' }).ids
+```
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/elastic. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
-
+Bug reports and pull requests are welcome on GitHub at https://github.com/platanus/elastic-rails. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 ## License
 
