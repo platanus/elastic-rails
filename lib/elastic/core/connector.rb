@@ -12,6 +12,8 @@ module Elastic::Core
     end
 
     def status
+      return :ready if Elastic.config.disable_indexing
+
       actual_name = resolve_actual_index_name
       return :not_available if actual_name.nil?
       return :not_synchronized unless mapping_synchronized? actual_name
@@ -49,6 +51,8 @@ module Elastic::Core
     end
 
     def index(_document)
+      return if Elastic.config.disable_indexing
+
       # TODO: validate document type
       operations = write_indices.map do |write_index|
         { 'index' => _document.merge('_index' => write_index) }
@@ -58,6 +62,8 @@ module Elastic::Core
     end
 
     def bulk_index(_documents)
+      return if Elastic.config.disable_indexing
+
       # TODO: validate documents type
       body = _documents.map { |doc| { 'index' => doc } }
 
@@ -71,6 +77,8 @@ module Elastic::Core
     def delete(_document)
       raise ArgumentError, 'document must provide an id' unless _document['_id']
       raise ArgumentError, 'document must provide a type' unless _document['_type']
+
+      return if Elastic.config.disable_indexing
 
       write_index, rolling_index = write_indices
 
