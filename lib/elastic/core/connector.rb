@@ -171,7 +171,7 @@ module Elastic::Core
 
     def wait_for_index_to_stabilize
       return if @settling_time == 0
-      Elastic.logger.info "Waiting #{@settling_time * 1.2}s for write indices to stabilize ..."
+      Elastic.logger.info "Waiting #{@settling_time * 1.2}s for write indices to catch up ..."
       sleep(@settling_time * 1.2)
     end
 
@@ -202,7 +202,7 @@ module Elastic::Core
     end
 
     def resolve_write_indices
-      @write_indices = nil if write_indices_expired?
+      @write_indices = nil if Elastic.config.disable_index_name_caching || write_indices_expired?
       @write_indices ||= begin
         result = api.indices.get_alias(name: write_index_alias)
         @write_indices_expiration = @settling_time.from_now

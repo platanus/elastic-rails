@@ -10,11 +10,12 @@ module Elastic
       api_client: nil, # set by method
       logger: nil, # set by method
       time_zone: nil, # set by method
-      disable_indexing: false
+      disable_indexing: false,
+      disable_index_name_caching: false
     }
 
     attr_accessor :host, :port, :api_client, :index, :page_size, :coord_similarity, :logger,
-      :import_batch_size, :whiny_indices, :time_zone, :disable_indexing
+      :import_batch_size, :whiny_indices, :time_zone, :disable_indexing, :disable_index_name_caching
 
     def initialize
       assign_attributes DEFAULTS
