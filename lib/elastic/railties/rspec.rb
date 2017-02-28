@@ -4,7 +4,7 @@ RSpec.configure do |config|
       Elastic.drop
       Elastic.migrate
       Elastic.config.disable_indexing = false
-      Elastic.config.disable_index_caching = true
+      Elastic.config.disable_index_name_caching = true
     else
       Elastic.config.disable_indexing = true
     end
