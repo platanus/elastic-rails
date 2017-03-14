@@ -3,6 +3,13 @@ rvm:
   - 2.4.0
   - 2.3.3
   - 2.2.6
+addons:
+  apt:
+    sources:
+      - elasticsearch-5.x
+    packages:
+    - oracle-java8-installer
+    - oracle-java8-set-default
+    - elasticsearch
 services:
   - elasticsearch
-before_install: gem install bundler -v 1.12.5
