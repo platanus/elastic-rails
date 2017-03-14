@@ -1,5 +1,7 @@
 # Elastic Rails
 
+[![Build Status](https://travis-ci.org/platanus/elastic-rails.svg?branch=master)](https://travis-ci.org/platanus/elastic-rails)
+
 Elasticsearch + Ruby on Rails made easy.
 
 ## Features
