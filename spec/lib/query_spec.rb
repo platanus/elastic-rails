@@ -210,6 +210,8 @@ describe Elastic::Query do
         expect(new_query.average(:bar)).to eq 25
         expect(new_query.maximum(:bar)).to eq 30
         expect(new_query.minimum(:bar)).to eq 20
+        expect(new_query.opening(:foo, by: :id)).to eq 'foo'
+        expect(new_query.closing(:foo, by: :id)).to eq 'foo bar'
       end
     end
 

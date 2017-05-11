@@ -20,6 +20,24 @@ module Elastic::Dsl
       aggregate_metric(Elastic::Nodes::Agg::Stats, _field, _options, '%s_stats')
     end
 
+    def opening(_field, _options = {})
+      by = _options.delete :by
+      raise ArgumentError, 'must provide a sorting column' if by.nil?
+
+      aggregate_metric(Elastic::Nodes::Agg::Top, _field, _options, 'open_%s') do |node|
+        node.add_sort(by, order: :asc)
+      end
+    end
+
+    def closing(_field, _options = {})
+      by = _options.delete :by
+      raise ArgumentError, 'must provide a sorting column' if by.nil?
+
+      aggregate_metric(Elastic::Nodes::Agg::Top, _field, _options, 'close_%s') do |node|
+        node.add_sort(by, order: :desc)
+      end
+    end
+
     private
 
     def aggregate_metric(_klass, _field, _options, _default_name, &_block)

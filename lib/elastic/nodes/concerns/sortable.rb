@@ -23,7 +23,7 @@ module Elastic::Nodes::Concerns
       options['mode'] = mode.to_s if mode.present?
       options['missing'] = missing if missing.present?
 
-      registered_sorts << { _field => options.freeze }.freeze
+      registered_sorts << { _field.to_s => options.freeze }.freeze
       self
     end
 
