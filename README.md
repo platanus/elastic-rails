@@ -121,9 +121,27 @@ BikeIndex
   .average(:price)
   .each { |keys, price| puts "#{keys[:year]}/#{keys[:category]} => #{price}" }
 
+# Get average and maximum bike price for bikes newer than 2014
+BikeIndex
+  .must(year: { gte: 2014 })
+  .compose do |c|
+    c.average(:price)
+    c.maximum(:price)
+  end
+
 # Search bikes ids that have shimano parts:
 BikeIndex.must(parts: { brand: 'shimano' }).ids
 ```
+
+## Missing features
+
+The following are some features that we plan to implement in the future:
+
+* Highlighting support
+* Suggesters support
+* Geo fields and queries support
+* Custom analizers support
+* More queries types support (multi-match, common-terms, wildcard, fuzzy, etc)
 
 ## Contributing
 

@@ -30,11 +30,16 @@ module Elastic::Core
     end
 
     def assemble_metric(_node)
-      query = assemble_metrics([_node])
-      reduced_query query
+      query = assemble_aggregated([_node])
+      single_aggregation_query query
     end
 
-    def assemble_metrics(_aggs)
+    def assemble_metrics(_nodes)
+      query = assemble_aggregated(_nodes)
+      multiple_aggregation_query query
+    end
+
+    def assemble_aggregated(_aggs)
       query = build_base_query
       query.size = 0
 
@@ -64,7 +69,7 @@ module Elastic::Core
         last.aggregate sort_node Elastic::Nodes::TopHits.build('default')
 
         query = grouped_query query
-        query = reduced_query query
+        query = single_aggregation_query query
       end
 
       query
@@ -93,8 +98,12 @@ module Elastic::Core
       Elastic::Shims::Grouping.new(_query)
     end
 
-    def reduced_query(_query)
-      Elastic::Shims::Reducing.new(_query)
+    def single_aggregation_query(_query)
+      Elastic::Shims::SingleAggregation.new(_query)
+    end
+
+    def multiple_aggregation_query(_query)
+      Elastic::Shims::MultipleAggregation.new(_query)
     end
 
     def populated_query(_query)

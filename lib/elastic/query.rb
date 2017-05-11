@@ -43,10 +43,6 @@ module Elastic
       execute assembler.assemble_pick(_field)
     end
 
-    def aggregate(_name = nil, _node = nil, &_block)
-      # TODO
-    end
-
     def total
       execute assembler.assemble_total
     end
@@ -64,6 +60,16 @@ module Elastic
       assembler.assemble.render
     end
 
+    def compose(&_block)
+      agg_nodes = []
+      Dsl::ResultComposer.new(agg_nodes).tap(&_block)
+      execute assembler.assemble_metrics agg_nodes
+    end
+
+    def aggregate(_node)
+      execute assembler.assemble_metric _node
+    end
+
     private
 
     def with_clone(&_block)
@@ -74,11 +80,6 @@ module Elastic
 
     def with_bool_query(&_block)
       with_clone { |config| _block.call(config.query) }
-    end
-
-    def with_aggregable_for_metric(&_block)
-      adaptor = AggregableAdaptor.new.tap(&_block)
-      execute assembler.assemble_metric(adaptor.agg)
     end
 
     def build_base_config
@@ -100,14 +101,6 @@ module Elastic
 
     def formatter
       Core::SourceFormatter.new(@index.definition)
-    end
-
-    class AggregableAdaptor
-      attr_accessor :agg
-
-      def aggregate(_node)
-        self.agg = _node
-      end
     end
   end
 end

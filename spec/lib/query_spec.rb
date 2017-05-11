@@ -180,6 +180,30 @@ describe Elastic::Query do
       end
     end
 
+    describe "compose" do
+      it "returns a a aggregation result if query is not grouped" do
+        result = query.should('tags.name' => 'baz_tag').compose do |c|
+          c.minimum(:bar)
+          c.maximum(:bar)
+        end
+
+        expect(result).to be_a Elastic::Results::Aggregations
+        expect(result[:min_bar]).to eq 20
+        expect(result[:max_bar]).to eq 30
+      end
+
+      it "returns a grouped result if query is grouped" do
+        result = query.segment('id').compose do |c|
+          c.minimum(:bar)
+          c.maximum(:bar)
+        end
+
+        expect(result).to be_a Elastic::Results::GroupedResult
+        expect(result[id: 1][:min_bar]).to eq 30
+        expect(result[id: 2][:max_bar]).to eq 20
+      end
+    end
+
     describe "various metrics" do
       it "returns the required metric" do
         new_query = query.should('tags.name' => 'baz_tag')

@@ -1,13 +1,13 @@
 module Elastic::Shims
-  class Reducing < Base
+  class MultipleAggregation < Base
     def handle_result(_raw, _formatter)
       result = super
 
       case result
       when Elastic::Results::Root
-        result.aggregations.first.last.as_value
+        result.aggregations
       when Elastic::Results::GroupedResult
-        result.map_to_group { |b| b.first.last }
+        result
       else
         raise "unable to reduce result of type #{result.class}"
       end

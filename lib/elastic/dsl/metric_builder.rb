@@ -22,13 +22,12 @@ module Elastic::Dsl
 
     private
 
-    def aggregate_metric(_klass, _field, _options, _default_name)
-      with_aggregable_for_metric do |agg|
-        # TODO: detect nested name and wrap node
-        name = _options[:as] || sprintf(_default_name, _field)
-        node = _klass.build(name, _field, missing: _options[:missing])
-        agg.aggregate node
-      end
+    def aggregate_metric(_klass, _field, _options, _default_name, &_block)
+      # TODO: detect nested name and wrap node
+      name = _options.delete(:as) || sprintf(_default_name, _field)
+      node = _klass.build(name, _field, _options)
+      _block.call node unless _block.nil?
+      aggregate node
     end
   end
 end
