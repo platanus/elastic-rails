@@ -33,4 +33,4 @@ require "elastic/nodes/concerns/aggregable"
 require "elastic/nodes/concerns/bucketed"
 require "elastic/nodes/concerns/boostable"
 require "elastic/nodes/concerns/field_query"
-
+require "elastic/nodes/concerns/sortable"
