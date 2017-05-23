@@ -26,7 +26,8 @@ module Elastic::Nodes::Agg
     end
 
     def handle_result(_raw, _formatter)
-      raw_value = _raw['hits'] ? _raw['hits']['hits'].first['_source'][@field.to_s] : nil
+      hit = _raw['hits']['hits'].first
+      raw_value = hit ? hit['_source'][@field.to_s] : nil
 
       # TODO: apply formatter to value
       Elastic::Results::Metric.new raw_value

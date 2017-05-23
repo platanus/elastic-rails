@@ -213,6 +213,13 @@ describe Elastic::Query do
         expect(new_query.opening(:foo, by: :id)).to eq 'foo'
         expect(new_query.closing(:foo, by: :id)).to eq 'foo bar'
       end
+
+      it "properly handles empty results" do
+        new_query = query.must('tags.name' => 'not_found')
+
+        expect(new_query.average(:bar)).to be nil
+        expect(new_query.opening(:foo, by: :id)).to be nil
+      end
     end
 
     describe "segment" do
