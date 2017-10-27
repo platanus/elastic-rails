@@ -27,24 +27,24 @@ describe Elastic::Configuration do
   end
 
   context 'when assign custom attributes' do
-    it 'custom api_client' do
+    it 'api_client' do
       config.api_client = custom_api_client
       expect(config.api_client).to be(custom_api_client)
     end
 
-    it 'custom logger' do
+    it 'logger' do
       config.logger = custom_logger
       expect(config.logger).to be(custom_logger)
     end
 
-    it 'custom time_zone' do
+    it 'time_zone' do
       config.time_zone = custom_time_zone
       expect(config.time_zone).to be(custom_time_zone)
     end
 
     # Just test assignations because this parameters are
-    # sended to Elasticsearch::Client.new
-    it 'custom host and port' do
+    # sended to Elasticsearch::Transport::Client
+    it 'host and port' do
       config.host = '192.168.1.23'
       config.port = 9201
       expect(config.host).to eq('192.168.1.23')
