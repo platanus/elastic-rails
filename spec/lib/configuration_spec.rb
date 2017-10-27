@@ -50,6 +50,11 @@ describe Elastic::Configuration do
       expect(config.host).to eq('192.168.1.23')
       expect(config.port).to eq(9201)
     end
+
+    it 'adapter' do
+      config.adapter = :patron
+      expect(config.adapter).to eq(:patron)
+    end
   end
 
   # Helpers
