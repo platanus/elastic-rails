@@ -61,7 +61,11 @@ module Elastic
     private
 
     def default_api_client
-      @default_api_client ||= Elasticsearch::Client.new host: @host, port: @port
+      @default_api_client ||= Elasticsearch::Client.new(
+        host: @host,
+        port: @port,
+        adapter: @adapter
+      )
     end
 
     def default_logger
