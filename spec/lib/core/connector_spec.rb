@@ -6,7 +6,7 @@ describe Elastic::Core::Connector do
   let(:mapping) do
     {
       'properties' => {
-        'foo' => { 'type' => 'string', 'index' => 'not_analyzed' },
+        'foo' => { 'type' => 'keyword' },
         'bar' => { 'type' => 'integer' }
       }
     }
@@ -31,7 +31,6 @@ describe Elastic::Core::Connector do
       it "creates the new index with the provided mapping" do
         expect { connector.remap }
           .to change { api.indices.exists? index: index_name }.to true
-
         expect(es_index_mappings(index_name, 'type_a')).to eq mapping
         expect(es_index_mappings(index_name, 'type_b')).to eq mapping
       end
@@ -229,13 +228,11 @@ describe Elastic::Core::Connector do
 
         connector.rollover do
           connector.index('_id' => 'bar', '_type' => 'type_a', 'data' => { foo: 'inside' })
-
           Thread.new do
             connector.delete('_id' => 'foo', '_type' => 'type_a')
             connector.delete('_id' => 'bar', '_type' => 'type_a')
           end.join
         end
-
         expect(es_index_count(index_name)).to be 0
       end
     end

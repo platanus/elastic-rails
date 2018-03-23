@@ -8,7 +8,7 @@ describe Elastic::Query do
   let(:root_index) do
     build_index('RootIndex', target: root_type, migrate: true) do
       field :id, type: :long
-      field :foo, type: :string
+      field :foo, type: :text, fielddata: true
       field :bar, type: :long
       nested :tags do
         field :name, type: :term
@@ -31,7 +31,7 @@ describe Elastic::Query do
     it "adds a new 'should' query element" do
       new_query = query.should(foo: 'teapot')
       expect(new_query.as_es_query).to eq(
-        "query" => { "match" => { "foo" => { "query" => "teapot" } } },
+        "query" => { "term" => { "foo" => { "value" => "teapot" } } },
         "size" => 20
       )
     end
@@ -68,7 +68,7 @@ describe Elastic::Query do
               { "term" => { "bar" => { "value" => 20, "boost" => 2.0 } } }
             ],
             "should" => [
-              { "match" => { "foo" => { "query" => "teapot", "boost" => 2.0 } } }
+              { "term" => { "foo" => { "value" => "teapot", "boost" => 2.0 } } }
             ]
           }
         },
@@ -95,7 +95,7 @@ describe Elastic::Query do
 
     describe "limit" do
       it "limits returned results" do
-        enum = query.limit(1).each
+        enum = query.sort(:id).limit(1).each
         expect(enum).to be_a Enumerator
         expect(enum.to_a.length).to eq 1
         expect(enum.to_a.first.id).to eq 1
@@ -104,7 +104,7 @@ describe Elastic::Query do
 
     describe "offset" do
       it "offset returned results" do
-        enum = query.offset(1).each
+        enum = query.sort(:id).offset(1).each
         expect(enum).to be_a Enumerator
         expect(enum.to_a.length).to eq 2
         expect(enum.to_a.first.id).to eq 2

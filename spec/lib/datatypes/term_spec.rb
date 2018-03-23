@@ -7,7 +7,7 @@ describe Elastic::Datatypes::Term do
 
   describe "mapping_options" do
     it "sets special term options" do
-      expect(datatype.mapping_options).to eq(type: 'string', index: 'not_analyzed')
+      expect(datatype.mapping_options).to eq(type: 'keyword')
     end
   end
 

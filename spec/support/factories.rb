@@ -65,7 +65,6 @@ RSpec.configure do |config|
         _name
       end
     end
-
     klass.class_exec(self, &_block) unless _block.nil?
     klass.target = target || build_type("#{_name}Target", *klass.pre_definition.fields.map(&:name))
     klass.connector.migrate if migrate

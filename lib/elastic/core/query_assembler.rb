@@ -11,7 +11,7 @@ module Elastic::Core
 
     def assemble_total
       query = build_base_query
-      query.size = 0
+      query.size = 10000
 
       if grouped?
         attach_groups(query)
@@ -36,7 +36,7 @@ module Elastic::Core
 
     def assemble_metrics(_aggs)
       query = build_base_query
-      query.size = 0
+      query.size = 10000
 
       last = attach_groups(query)
       last.aggregations = _aggs
@@ -59,7 +59,7 @@ module Elastic::Core
         query.offset = @config.offset
         query = sort_node(query)
       else
-        query.size = 0
+        query.size = 10000
         last = attach_groups query
         last.aggregate sort_node Elastic::Nodes::TopHits.build('default')
 

@@ -52,7 +52,7 @@ module Elastic::Datatypes
     end
 
     def terms_aggregation_defaults
-      { size: 0 }
+      { size: 10000 }
     end
 
     def date_histogram_aggregation_defaults

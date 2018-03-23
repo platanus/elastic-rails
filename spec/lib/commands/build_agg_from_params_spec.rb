@@ -3,11 +3,11 @@ require 'spec_helper'
 describe Elastic::Commands::BuildAggFromParams do
   let!(:foo_index) do
     build_index('FooIndex', migrate: true) do
-      field :foo, type: :string
+      field :foo, type: :text
       field :bar, type: :date
 
       nested :nested do
-        field :field, type: :string
+        field :field, type: :text
       end
     end
   end

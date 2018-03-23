@@ -46,7 +46,6 @@ module Elastic::Core
           copy_to new_index, batch_size: batch_size
         end
       end
-
       nil
     end
 
@@ -86,13 +85,11 @@ module Elastic::Core
 
       if rolling_index
         operations << {
-          'index' => _document.merge(
-            '_index' => rolling_index,
-            'data' => { '_mark_for_deletion' => true }
+          'delete' => _document.merge(
+            '_index' => rolling_index
           )
         }
       end
-
       api.bulk(body: operations)
     end
 
@@ -118,14 +115,12 @@ module Elastic::Core
       unless rolling_index.nil?
         raise Elastic::RolloverError, 'rollover process already in progress'
       end
-
       new_index = create_index_w_mapping
 
       begin
         transfer_alias(write_index_alias, to: new_index)
         wait_for_index_to_stabilize
         perform_optimized_write_on(new_index, &_block)
-        delete_marked_for_deletion new_index
         transfer_alias(index_name, from: actual_index, to: new_index)
         transfer_alias(write_index_alias, from: actual_index)
         wait_for_index_to_stabilize
@@ -210,10 +205,6 @@ module Elastic::Core
       rescue Elasticsearch::Transport::Transport::Errors::NotFound
         raise Elastic::MissingIndexError, 'index does not exist, call migrate first'
       end
-    end
-
-    def delete_marked_for_deletion(_index)
-      api.delete_by_query(index: _index, body: { query: { term: { _mark_for_deletion: true } } })
     end
 
     def write_indices_expired?
