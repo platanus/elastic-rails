@@ -6,7 +6,7 @@ rvm:
 addons:
   apt:
     sources:
-      - elasticsearch-5.x
+      - elasticsearch-6.x
     packages:
     - oracle-java8-installer
     - oracle-java8-set-default
