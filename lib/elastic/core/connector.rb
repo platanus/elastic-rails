@@ -1,8 +1,9 @@
 module Elastic::Core
   class Connector
-    def initialize(_name, _types, _mapping, settling_time: 10.seconds)
+    DEFAULT_TYPE = '_doc'
+
+    def initialize(_name, _mapping, settling_time: 10.seconds)
       @name = _name
-      @types = _types
       @mapping = _mapping
       @settling_time = settling_time
     end
@@ -17,6 +18,7 @@ module Elastic::Core
       actual_name = resolve_actual_index_name
       return :not_available if actual_name.nil?
       return :not_synchronized unless mapping_synchronized? actual_name
+
       :ready
     end
 
@@ -31,7 +33,7 @@ module Elastic::Core
         create_from_scratch
       when :not_synchronized
         begin
-          setup_index_types resolve_actual_index_name
+          setup_index_mapping resolve_actual_index_name
         rescue Elasticsearch::Transport::Transport::Errors::BadRequest
           return false
         end
@@ -46,7 +48,6 @@ module Elastic::Core
           copy_to new_index, batch_size: batch_size
         end
       end
-
       nil
     end
 
@@ -55,7 +56,7 @@ module Elastic::Core
 
       # TODO: validate document type
       operations = write_indices.map do |write_index|
-        { 'index' => _document.merge('_index' => write_index) }
+        { 'index' => _document.merge('_index' => write_index, '_type' => DEFAULT_TYPE) }
       end
 
       api.bulk(body: operations)
@@ -65,7 +66,7 @@ module Elastic::Core
       return if Elastic.config.disable_indexing
 
       # TODO: validate documents type
-      body = _documents.map { |doc| { 'index' => doc } }
+      body = _documents.map { |doc| { 'index' => doc.merge('_type' => DEFAULT_TYPE) } }
 
       write_indices.each do |write_index|
         retry_on_temporary_error('bulk indexing') do
@@ -76,20 +77,18 @@ module Elastic::Core
 
     def delete(_document)
       raise ArgumentError, 'document must provide an id' unless _document['_id']
-      raise ArgumentError, 'document must provide a type' unless _document['_type']
 
       return if Elastic.config.disable_indexing
 
       write_index, rolling_index = write_indices
 
-      operations = [{ 'delete' => _document.merge('_index' => write_index) }]
+      operations = [{
+        'delete' => _document.merge('_index' => write_index, '_type' => DEFAULT_TYPE)
+      }]
 
       if rolling_index
         operations << {
-          'index' => _document.merge(
-            '_index' => rolling_index,
-            'data' => { '_mark_for_deletion' => true }
-          )
+          'delete' => _document.merge('_index' => rolling_index, '_type' => DEFAULT_TYPE)
         }
       end
 
@@ -100,16 +99,16 @@ module Elastic::Core
       api.indices.refresh index: index_name
     end
 
-    def find(_type, _id)
-      api.get(index: index_name, type: _type, id: _id)
+    def find(_id)
+      api.get(index: index_name, id: _id)
     end
 
-    def count(query: nil, type: nil)
-      api.count(index: index_name, type: type, body: query)['count']
+    def count(query: nil)
+      api.count(index: index_name, body: query)['count']
     end
 
-    def query(query: nil, type: nil)
-      api.search(index: index_name, type: type, body: query)
+    def query(query: nil)
+      api.search(index: index_name, body: query)
     end
 
     def rollover(&_block) # rubocop:disable Metrics/MethodLength
@@ -125,12 +124,11 @@ module Elastic::Core
         transfer_alias(write_index_alias, to: new_index)
         wait_for_index_to_stabilize
         perform_optimized_write_on(new_index, &_block)
-        delete_marked_for_deletion new_index
         transfer_alias(index_name, from: actual_index, to: new_index)
         transfer_alias(write_index_alias, from: actual_index)
         wait_for_index_to_stabilize
         api.indices.delete index: actual_index
-      rescue
+      rescue StandardError
         api.indices.delete index: new_index
         raise
       end
@@ -170,7 +168,8 @@ module Elastic::Core
     private
 
     def wait_for_index_to_stabilize
-      return if @settling_time == 0
+      return if @settling_time.zero?
+
       Elastic.logger.info "Waiting #{@settling_time * 1.2}s for write indices to catch up ..."
       sleep(@settling_time * 1.2)
     end
@@ -212,10 +211,6 @@ module Elastic::Core
       end
     end
 
-    def delete_marked_for_deletion(_index)
-      api.delete_by_query(index: _index, body: { query: { term: { _mark_for_deletion: true } } })
-    end
-
     def write_indices_expired?
       @write_indices_expiration && @write_indices_expiration < Time.current
     end
@@ -231,7 +226,7 @@ module Elastic::Core
       new_name = "#{index_name}:#{Time.now.to_i}"
       api.indices.create index: new_name
       api.cluster.health wait_for_status: 'yellow'
-      setup_index_types new_name
+      setup_index_mapping new_name
       new_name
     end
 
@@ -248,25 +243,20 @@ module Elastic::Core
     end
 
     def mapping_synchronized?(_index)
-      type_mappings = api.indices.get_mapping(index: _index)
+      type_mappings = api.indices.get_mapping(index: _index, include_type_name: false)
       return false if type_mappings[_index].nil?
-      type_mappings = type_mappings[_index]['mappings']
+      return false if type_mappings[_index]['mappings'].empty?
 
-      @types.all? do |type|
-        next false if type_mappings[type].nil?
+      diff = Elastic::Commands::CompareMappings.for(
+        current: type_mappings[_index]['mappings'],
+        user: @mapping
+      )
 
-        diff = Elastic::Commands::CompareMappings.for(
-          current: type_mappings[type],
-          user: @mapping
-        )
-        diff.empty?
-      end
+      diff.empty?
     end
 
-    def setup_index_types(_index)
-      @types.each do |type|
-        api.indices.put_mapping(index: _index, type: type, body: @mapping)
-      end
+    def setup_index_mapping(_index)
+      api.indices.put_mapping(index: _index, type: DEFAULT_TYPE, body: @mapping)
     end
 
     def transfer_alias(_alias, from: nil, to: nil)
@@ -284,7 +274,7 @@ module Elastic::Core
       {
         'create' => {
           '_id' => _hit['_id'],
-          '_type' => _hit['_type'],
+          '_type' => DEFAULT_TYPE,
           'data' => _hit['_source']
         }
       }
@@ -295,7 +285,7 @@ module Elastic::Core
     end
 
     def retry_on_temporary_error(_action, retries: 3)
-      return yield
+      yield
     rescue Elasticsearch::Transport::Transport::Errors::ServiceUnavailable,
            Elasticsearch::Transport::Transport::Errors::GatewayTimeout => exc
       raise if retries <= 0

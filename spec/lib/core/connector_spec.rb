@@ -13,13 +13,13 @@ describe Elastic::Core::Connector do
   end
 
   let(:connector) do
-    described_class.new('idx_name', ['type_a', 'type_b'], mapping, settling_time: 0.seconds)
+    described_class.new('idx_name', mapping, settling_time: 0.seconds)
   end
 
   let(:index_name) { connector.index_name }
 
-  let(:foo_record) { { id: 'foo', type: 'type_a', data: { 'foo' => 'qux', 'bar' => 1 } } }
-  let(:bar_record) { { id: 'bar', type: 'type_a', data: { 'foo' => 'baz', 'bar' => 2 } } }
+  let(:foo_record) { { id: 'foo', data: { 'foo' => 'qux', 'bar' => 1 } } }
+  let(:bar_record) { { id: 'bar', data: { 'foo' => 'baz', 'bar' => 2 } } }
   let(:all_records) { [foo_record, bar_record] }
 
   context "when index does not exists" do
@@ -31,15 +31,14 @@ describe Elastic::Core::Connector do
       it "creates the new index with the provided mapping" do
         expect { connector.remap }
           .to change { api.indices.exists? index: index_name }.to true
-        expect(es_index_mappings(index_name, 'type_a')).to eq mapping
-        expect(es_index_mappings(index_name, 'type_b')).to eq mapping
+        expect(es_index_mapping(index_name)).to eq mapping
       end
     end
 
     describe "index" do
       it "fails with index missing error" do
         expect do
-          connector.index('_id' => 'qux', '_type' => 'type_a', 'data' => { foo: 'world' })
+          connector.index('_id' => 'qux', '_type' => '_doc', 'data' => { foo: 'world' })
         end.to raise_error Elastic::MissingIndexError
       end
     end
@@ -57,7 +56,7 @@ describe Elastic::Core::Connector do
     describe "remap" do
       it "updates index mappings" do
         expect { connector.remap }
-          .to change { es_index_mappings(index_name, 'type_a') }.to mapping
+          .to change { es_index_mapping(index_name) }.to mapping
       end
     end
   end
@@ -74,7 +73,7 @@ describe Elastic::Core::Connector do
     describe "index" do
       it "stores new documents" do
         expect do
-          connector.index('_id' => 'qux', '_type' => 'type_a', 'data' => { foo: 'world' })
+          connector.index('_id' => 'qux', '_type' => '_doc', 'data' => { foo: 'world' })
           api.indices.refresh index: index_name
         end.to change { es_index_count(index_name) }.by(1)
       end
@@ -89,15 +88,14 @@ describe Elastic::Core::Connector do
 
     context "and some objects have already been indexed" do
       before do
-        connector.index('_id' => 'foo', '_type' => 'type_a', 'data' => { foo: 'hello' })
-        connector.index('_id' => 'bar', '_type' => 'type_a', 'data' => { foo: 'world' })
+        connector.index('_id' => 'foo', 'data' => { foo: 'hello' })
+        connector.index('_id' => 'bar', 'data' => { foo: 'world' })
       end
 
       describe "delete" do
         it "removes existing documents from index" do
-          expect do
-            connector.delete('_id' => 'bar', '_type' => 'type_a')
-          end.to change { es_index_count(index_name) }.by(-1)
+          expect { connector.delete('_id' => 'bar') }
+            .to change { es_index_count(index_name) }.by(-1)
         end
       end
     end
@@ -117,7 +115,7 @@ describe Elastic::Core::Connector do
     describe "remap" do
       it "updates index mappings" do
         expect { connector.remap }
-          .to change { es_index_mappings(index_name, 'type_a') }.to mapping
+          .to change { es_index_mapping(index_name) }.to mapping
       end
     end
   end
@@ -126,7 +124,7 @@ describe Elastic::Core::Connector do
     before do
       prepare_index(
         mapping: {
-          'properties' => { 'foo' => { 'type' => 'string' }, 'bar' => { 'type' => 'integer' } }
+          'properties' => { 'foo' => { 'type' => 'text' }, 'bar' => { 'type' => 'integer' } }
         },
         records: all_records
       )
@@ -145,15 +143,16 @@ describe Elastic::Core::Connector do
     describe "migrate" do
       it "regenerates index with new map and moves records to new index" do
         expect { connector.migrate }.to change { es_indexes_for_alias(index_name) }
-        expect(es_index_mappings(index_name, 'type_a')).to eq mapping
+
+        expect(es_index_mapping(index_name)).to eq mapping
         expect(es_index_count(index_name)).to eq 2
       end
 
       it "calls copy_to and does not overwrites documents changed during migration" do
         expect(connector).to receive(:copy_to).and_wrap_original do |m, *args|
           Thread.new do # inject insertion just before copy is initiated
-            connector.index('_id' => 'foo', '_type' => 'type_a', 'data' => { foo: 'inside' })
-            connector.delete('_id' => 'bar', '_type' => 'type_a')
+            connector.index('_id' => 'foo', 'data' => { foo: 'inside' })
+            connector.delete('_id' => 'bar')
           end.join
 
           m.call(*args)
@@ -185,7 +184,7 @@ describe Elastic::Core::Connector do
     describe "index" do
       it "makes documents indexed inside rollover block available only after block has finished" do
         connector.rollover do
-          connector.index('_id' => 'foo', '_type' => 'type_a', 'data' => { foo: 'world' })
+          connector.index('_id' => 'foo', 'data' => { foo: 'world' })
 
           api.indices.refresh index: index_name
           expect(es_index_count(index_name)).to eq 0
@@ -197,7 +196,7 @@ describe Elastic::Core::Connector do
       it "makes documents indexed outside rollover block available inmediately" do
         connector.rollover do
           Thread.new do
-            connector.index('_id' => 'foo', '_type' => 'type_a', 'data' => { foo: 'world' })
+            connector.index('_id' => 'foo', 'data' => { foo: 'world' })
             api.indices.refresh index: index_name
             expect(es_index_count(index_name)).to eq 1
           end.join
@@ -206,14 +205,14 @@ describe Elastic::Core::Connector do
 
       it "executes index operations in the proper order independent of calling thread" do
         connector.rollover do
-          connector.index('_id' => 'foo', '_type' => 'type_a', 'data' => { foo: 'inside' })
+          connector.index('_id' => 'foo', 'data' => { foo: 'inside' })
 
           Thread.new do
-            connector.index('_id' => 'foo', '_type' => 'type_a', 'data' => { foo: 'outside' })
-            connector.index('_id' => 'bar', '_type' => 'type_a', 'data' => { foo: 'outside' })
+            connector.index('_id' => 'foo', 'data' => { foo: 'outside' })
+            connector.index('_id' => 'bar', 'data' => { foo: 'outside' })
           end.join
 
-          connector.index('_id' => 'bar', '_type' => 'type_a', 'data' => { foo: 'inside' })
+          connector.index('_id' => 'bar', 'data' => { foo: 'inside' })
         end
 
         api.indices.refresh(index: index_name)
@@ -224,13 +223,13 @@ describe Elastic::Core::Connector do
 
     describe "delete" do
       it "removes existing documents from index" do
-        connector.index('_id' => 'foo', '_type' => 'type_a', 'data' => { foo: 'outside' })
+        connector.index('_id' => 'foo', 'data' => { foo: 'outside' })
 
         connector.rollover do
-          connector.index('_id' => 'bar', '_type' => 'type_a', 'data' => { foo: 'inside' })
+          connector.index('_id' => 'bar', 'data' => { foo: 'inside' })
           Thread.new do
-            connector.delete('_id' => 'foo', '_type' => 'type_a')
-            connector.delete('_id' => 'bar', '_type' => 'type_a')
+            connector.delete('_id' => 'foo')
+            connector.delete('_id' => 'bar')
           end.join
         end
         expect(es_index_count(index_name)).to be 0
@@ -257,13 +256,12 @@ describe Elastic::Core::Connector do
     api.indices.put_alias index: actual_index, name: "#{index_name}.w"
 
     if mapping
-      api.indices.put_mapping index: actual_index, type: 'type_a', body: mapping
-      api.indices.put_mapping index: actual_index, type: 'type_b', body: mapping
+      api.indices.put_mapping index: actual_index, type: '_doc', body: mapping
     end
 
     if records
       records.each do |r|
-        api.index(index: actual_index, id: r[:id], type: r[:type], body: r[:data])
+        api.index(index: actual_index, type: '_doc', id: r[:id], body: r[:data])
       end
 
       api.indices.refresh index: actual_index
