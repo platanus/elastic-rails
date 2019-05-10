@@ -8,7 +8,7 @@ describe Elastic::Commands::CompareMappings do
   it "returns the properties that are in user but not in current" do
     user = {
       'properties' => {
-        'foo' => { 'type' => 'string', 'index' => 'not_analyzed' },
+        'foo' => { 'type' => 'keyword' },
         'qux' => { 'type' => 'integer' },
         'baz' => { 'type' => 'integer' }
       }
@@ -16,8 +16,8 @@ describe Elastic::Commands::CompareMappings do
 
     current = {
       'properties' => {
-        'foo' => { 'type' => 'string', 'index' => 'not_analyzed' },
-        'bar' => { 'type' => 'string', 'index' => 'not_analyzed' }
+        'foo' => { 'type' => 'keyword' },
+        'bar' => { 'type' => 'keyword' }
       }
     }
 
@@ -27,8 +27,8 @@ describe Elastic::Commands::CompareMappings do
   it "returns user properties that are different from current properties" do
     user = {
       'properties' => {
-        'foo' => { 'type' => 'string', 'index' => 'not_analyzed' },
-        'bar' => { 'type' => 'integer' }
+        'foo' => { 'type' => 'string' },
+        'bar' => { 'type' => 'string' }
       }
     }
 
@@ -39,7 +39,7 @@ describe Elastic::Commands::CompareMappings do
       }
     }
 
-    expect(perform(current: current, user: user)).to eq(['foo'])
+    expect(perform(current: current, user: user)).to eq(['bar'])
   end
 
   it "properly handles nested properties" do

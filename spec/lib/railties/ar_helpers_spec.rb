@@ -13,7 +13,7 @@ describe Elastic::Railties::ARHelpers do
       Class.new do
         def self.columns_hash
           {
-            'foo' => OpenStruct.new(type: 'text'),
+            'foo' => OpenStruct.new(type: 'string'),
             'bar' => OpenStruct.new(type: 'date'),
             'baz' => OpenStruct.new(type: 'date')
           }
@@ -31,7 +31,7 @@ describe Elastic::Railties::ARHelpers do
     end
 
     it "infers type from column type" do
-      expect(helpers.infer_ar4_field_options(target, 'foo')).to eq(type: :string)
+      expect(helpers.infer_ar4_field_options(target, 'foo')).to eq(type: :keyword)
     end
 
     it "returns nil if target is occluded by a serializer" do
@@ -48,7 +48,7 @@ describe Elastic::Railties::ARHelpers do
       Class.new do
         def self.type_for_attribute(_name)
           {
-            'foo' => OpenStruct.new(type: 'text'),
+            'foo' => OpenStruct.new(type: 'string'),
             'bar' => OpenStruct.new(to_s: 'ActiveRecord::Type::Serialized'),
             'baz' => OpenStruct.new(type: 'date')
           }.fetch(_name, nil)
@@ -60,7 +60,7 @@ describe Elastic::Railties::ARHelpers do
     end
 
     it "infers type from column type" do
-      expect(helpers.infer_ar5_field_options(target, 'foo')).to eq(type: :string)
+      expect(helpers.infer_ar5_field_options(target, 'foo')).to eq(type: :keyword)
     end
 
     it "returns nil if target is occluded by a serializer" do

@@ -6,7 +6,7 @@ describe Elastic::Type do
 
   let(:root_index) do
     build_index('RootIndex', target: root_type) do
-      field :foo, type: :string
+      field :foo, type: :text
       field :bar, type: :long, transform: -> { self + 1 }
 
       nested :tags do
@@ -32,12 +32,12 @@ describe Elastic::Type do
     it "holds the proper mapping structure" do
       expect(root_index.definition.as_es_mapping).to eq(
         'properties' => {
-          'foo' => { 'type' => 'string' },
+          'foo' => { 'type' => 'text' },
           'bar' => { 'type' => 'long' },
           'tags' => {
             'type' => 'nested',
             'properties' => {
-              'name' => { 'type' => 'string', 'index' => 'not_analyzed' }
+              'name' => { 'type' => 'keyword' }
             }
           }
         }
