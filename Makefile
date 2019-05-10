@@ -16,7 +16,7 @@ help:
 	@echo "  ${BOLD}make services-destroy${NORMAL}"
 	@echo ""
 
-run: services-up
+services: services-up
 
 services-ps:
 	docker-compose $(DOCKER_COMPOSE_ARGS) ps

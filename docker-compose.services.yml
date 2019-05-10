@@ -10,7 +10,7 @@ services:
     environment:
       - discovery.type=single-node
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
 
 volumes:
   elasticsearch_data:
