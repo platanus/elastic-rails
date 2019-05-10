@@ -37,7 +37,7 @@ describe Elastic::Nodes::Match do
       node.mode = :phrase
 
       expect(node.render)
-        .to eq('match' => { 'foo' => { 'query' => 'hello world', 'type' => 'phrase' } })
+        .to eq('match_phrase' => { 'foo' => { 'query' => 'hello world' } })
     end
 
     it "renders correctly if boost is set" do
