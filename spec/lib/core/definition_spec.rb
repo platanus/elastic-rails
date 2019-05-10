@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Elastic::Core::Definition do
   let(:simple_target) { build_type('Foo', :id) }
   let(:middleware) { Class.new(Elastic::Core::BaseMiddleware) { def mode; :index end } }
-  let(:definition) { described_class.new.tap { |d| d.targets = [simple_target] } }
+  let(:definition) { described_class.new.tap { |d| d.target = simple_target } }
 
   before do
     allow(Elastic::Core::Middleware).to receive(:wrap) { |t| middleware.new(t) }
@@ -37,17 +37,6 @@ describe Elastic::Core::Definition do
     # nothing to check here...
   end
 
-  describe "freeze" do
-    it "fails if given targets do not use the same elastic_mode" do
-      definition.targets = [
-        Class.new(Elastic::Core::BaseMiddleware) { def mode; :index end; }.new(nil),
-        Class.new(Elastic::Core::BaseMiddleware) { def mode; :storage end; }.new(nil)
-      ]
-
-      expect { definition.freeze }.to raise_error RuntimeError
-    end
-  end
-
   describe "frozen?" do
     it { expect(definition.frozen?).to be false }
   end
@@ -55,14 +44,9 @@ describe Elastic::Core::Definition do
   context "definition has been frozen" do
     before { definition.freeze }
 
-    describe "main_target" do
-      it { expect(definition.main_target).to eq definition.targets.first }
-    end
-
-    describe "targets" do
-      it "wraps targets using middleware provided by Middleware module" do
-        expect(definition.targets.first).to be_a middleware
-        expect(definition.targets.first.target).to be simple_target
+    describe "target" do
+      it "wraps target using middleware provided by Middleware module" do
+        expect(definition.target).to be_a middleware
       end
     end
 
@@ -165,7 +149,7 @@ describe Elastic::Core::Definition do
     describe "freeze" do
       it "call's field_options_for and field's needs_inference?" do
         definition.freeze
-        expect(definition.main_target).to have_received(:field_options_for).with('foo', {})
+        expect(definition.target).to have_received(:field_options_for).with('foo', {})
         expect(foo_field).to have_received(:needs_inference?)
         expect(foo_field).to have_received(:merge!).with('type' => 'teapot')
       end

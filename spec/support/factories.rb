@@ -1,11 +1,11 @@
 RSpec.configure do |config|
   DEFAULT_MAPPING = { 'properties' => {} }
 
-  def definition_double(targets: [], mapping: DEFAULT_MAPPING, fields: [])
+  def definition_double(target: nil, mapping: DEFAULT_MAPPING, fields: [])
     fields = fields.map do |field|
       case field
       when String, Symbol
-         Elastic::Fields::Value.new(field, {})
+        Elastic::Fields::Value.new(field, {})
       else
         field
       end
@@ -14,8 +14,7 @@ RSpec.configure do |config|
     expanded_fields = (mapping['properties'].keys + fields.map(&:name)).uniq
 
     double(Elastic::Core::Definition).tap do |double|
-      allow(double).to receive(:targets).and_return(targets)
-      allow(double).to receive(:types).and_return(targets.map(&:to_s))
+      allow(double).to receive(:target).and_return(target)
       allow(double).to receive(:as_es_mapping).and_return(mapping)
       allow(double).to receive(:fields).and_return(fields)
       allow(double).to receive(:get_field) { |name| fields.find { |f| f.name == name } }
