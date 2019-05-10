@@ -8,6 +8,7 @@ rvm:
 services:
   - docker
 before_install:
+  - gem update bundler
   - docker -v
   - make services-up
   - sleep 10
