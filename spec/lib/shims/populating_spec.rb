@@ -13,7 +13,7 @@ describe Elastic::Shims::Populating do
     end
   end
 
-  let(:middleware) { index.definition.main_target }
+  let(:middleware) { index.definition.target }
   let(:config) { Elastic::Core::QueryConfig.initial_config }
   let(:child) { Elastic::Nodes::Search.build build_node('dummy') }
 
@@ -32,8 +32,8 @@ describe Elastic::Shims::Populating do
     end
 
     describe "handle_result" do
-      let(:hit_1) { Elastic::Results::Hit.new('FooType', 1, nil, nil) }
-      let(:hit_2) { Elastic::Results::Hit.new('FooType', 2, nil, nil) }
+      let(:hit_1) { Elastic::Results::Hit.new(1, nil, nil) }
+      let(:hit_2) { Elastic::Results::Hit.new(2, nil, nil) }
       let(:result) { Elastic::Results::Root.new([hit_1, hit_2], 2, {}) }
 
       before do
@@ -66,8 +66,8 @@ describe Elastic::Shims::Populating do
     end
 
     describe "handle_result" do
-      let(:hit_1) { Elastic::Results::Hit.new('FooType', nil, 0, foo: 'hello') }
-      let(:hit_2) { Elastic::Results::Hit.new('FooType', nil, 0, foo: 'world') }
+      let(:hit_1) { Elastic::Results::Hit.new(nil, 0, foo: 'hello') }
+      let(:hit_2) { Elastic::Results::Hit.new(nil, 0, foo: 'world') }
       let(:result) { Elastic::Results::Root.new([hit_1, hit_2], 2, {}) }
 
       before do
