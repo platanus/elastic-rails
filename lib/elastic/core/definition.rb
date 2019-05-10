@@ -75,15 +75,18 @@ module Elastic::Core
       else
         parent = @field_map[_name[0...separator]]
         return nil if parent.nil?
+
         parent.get_field(_name[separator + 1..-1])
       end
     end
 
     def cache_target
-      target = @target.to_s.camelize.constantize if @target.is_a?(Symbol) || @target.is_a?(String)
+      target = @target
+      target = target.to_s.camelize.constantize if @target.is_a?(Symbol) || @target.is_a?(String)
       target = load_target_middleware(target) unless target.class < BaseMiddleware
 
       raise 'index target is not indexable' if target.nil?
+
       @target_cache = target
     end
 

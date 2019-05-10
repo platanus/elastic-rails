@@ -6,10 +6,6 @@ module Elastic::Core
       @target = _target
     end
 
-    def type_name
-      @target.to_s
-    end
-
     def mode
       not_supported :mode
     end
