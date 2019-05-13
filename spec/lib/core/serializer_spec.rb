@@ -54,11 +54,6 @@ describe Elastic::Core::Serializer do
   end
 
   describe "as_elastic_document" do
-    it "includes object type in result" do
-      object = OpenStruct.new(id: 'foo')
-      expect(serializer.new(definition, object).as_elastic_document['_type']).to eq 'OpenStruct'
-    end
-
     it "includes object id in result if available" do
       object = OpenStruct.new(id: 'foo')
       expect(serializer.new(definition, object).as_elastic_document['_id']).to eq 'foo'
@@ -78,7 +73,7 @@ describe Elastic::Core::Serializer do
     it "does not includes object source data if only_meta option is used" do
       object = OpenStruct.new(id: 'id', foo: 'foo', bar: 'bar')
       expect(serializer.new(definition, object).as_elastic_document(only_meta: true))
-        .to eq('_id' => 'id', '_type' => 'OpenStruct')
+        .to eq('_id' => 'id')
     end
   end
 end

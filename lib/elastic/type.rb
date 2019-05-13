@@ -34,7 +34,6 @@ module Elastic
       @connector ||= begin
         Elastic::Core::Connector.new(
           suffix,
-          definition.types,
           definition.as_es_mapping
         ).tap do |conn|
           if Elastic.config.whiny_indices && conn.status != :ready

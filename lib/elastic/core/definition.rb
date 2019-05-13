@@ -2,29 +2,22 @@ module Elastic::Core
   class Definition
     attr_reader :middleware_options
 
-    def main_target
-      targets.first
-    end
+    def target
+      raise 'attempting to access target before definition has been frozen' if @target_cache.nil?
 
-    def targets
-      raise 'attempting to access targets before definition has been frozen' if @target_cache.nil?
       @target_cache
     end
 
-    def targets=(_values)
-      @targets = _values
-    end
-
-    def types
-      targets.map(&:type_name)
+    def target=(_value)
+      @target = _value
     end
 
     def mode
-      main_target.mode
+      target.mode
     end
 
     def initialize
-      @targets = []
+      @target = nil
       @field_map = {}
       @field_cache = {}
       @middleware_options = HashWithIndifferentAccess.new
@@ -40,7 +33,8 @@ module Elastic::Core
 
     def freeze
       return if frozen?
-      cache_targets
+
+      cache_target
       complete_and_validate_fields
       freeze_fields
       @middleware_options.freeze
@@ -81,26 +75,19 @@ module Elastic::Core
       else
         parent = @field_map[_name[0...separator]]
         return nil if parent.nil?
+
         parent.get_field(_name[separator + 1..-1])
       end
     end
 
-    def cache_targets
-      @target_cache = load_targets.freeze
-    end
+    def cache_target
+      target = @target
+      target = target.to_s.camelize.constantize if @target.is_a?(Symbol) || @target.is_a?(String)
+      target = load_target_middleware(target) unless target.class < BaseMiddleware
 
-    def load_targets
-      mode = nil
-      @targets.map do |target|
-        target = target.to_s.camelize.constantize if target.is_a?(Symbol) || target.is_a?(String)
+      raise 'index target is not indexable' if target.nil?
 
-        target = load_target_middleware(target) unless target.class < BaseMiddleware
-        raise 'index target is not indexable' if target.nil?
-        raise 'mistmatching indexable mode' if mode && mode != target.mode
-        mode = target.mode
-
-        target
-      end
+      @target_cache = target
     end
 
     def complete_and_validate_fields
@@ -127,7 +114,7 @@ module Elastic::Core
     end
 
     def infer_mapping_options(_name)
-      main_target.field_options_for(_name, middleware_options)
+      target.field_options_for(_name, middleware_options)
     end
   end
 end

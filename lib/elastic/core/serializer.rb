@@ -17,7 +17,7 @@ module Elastic::Core
     end
 
     def as_elastic_document(only_meta: false)
-      result = { '_type' => object.class.to_s }
+      result = {}
       result['_id'] = read_attribute_for_indexing(:id) if has_attribute_for_indexing?(:id)
       result['data'] = as_elastic_source unless only_meta
       result

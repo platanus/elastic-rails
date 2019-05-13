@@ -84,9 +84,9 @@ module Elastic::Fields
     def load_registered_datatype(_name)
       # TODO: replace this with a datatype registry
       case _name
-      when :term
+      when :term, :keyword
         Elastic::Datatypes::Term
-      when :string
+      when :string, :text
         Elastic::Datatypes::String
       when :date
         Elastic::Datatypes::Date

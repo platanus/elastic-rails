@@ -7,8 +7,8 @@ describe Elastic::Nodes::TopHits do
     {
       'hits' => {
         'hits' => [
-          { '_type' => 'FooType', '_id' => 1 },
-          { '_type' => 'FooType', '_id' => 2 }
+          { '_type' => '_doc', '_id' => 1 },
+          { '_type' => '_doc', '_id' => 2 }
         ]
       }
     }

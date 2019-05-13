@@ -26,21 +26,15 @@ module Elastic::Shims
     end
 
     def populate(_result)
-      groups = _result.pick(Elastic::Results::Hit).group_by(&:type)
-      groups.each { |t, h| populate_group(t, h) }
-    end
-
-    def populate_group(_type_name, _hits)
-      target = resolve_target(_type_name)
-      raise "Unexpected type name #{_type_name}" if target.nil?
+      hits = _result.pick(Elastic::Results::Hit).to_a
 
       if populate_by_id?
-        ids = _hits.map(&:id)
+        ids = hits.map(&:id)
         objects = target.find_by_ids(ids, middleware_options)
-        objects.each_with_index { |o, i| _hits[i].data = o }
+        objects.each_with_index { |o, i| hits[i].data = o }
       else
-        _hits.each do |hit|
-          hit.data = target.build_from_data(hit.source, middleware_options)
+        hits.each do |hit|
+          hit.data = @index.definition.target.build_from_data(hit.source, middleware_options)
         end
       end
     end
@@ -49,8 +43,8 @@ module Elastic::Shims
       @index.definition.mode == :index
     end
 
-    def resolve_target(_type_name)
-      @index.definition.targets.find { |t| t.type_name == _type_name }
+    def target
+      @index.definition.target
     end
 
     def middleware_options

@@ -29,9 +29,10 @@ module Elastic::Nodes
 
     def render(_options = {})
       hash = { 'query' => @query }
-      hash['type'] = @mode.to_s unless @mode.nil? || @mode == :boolean
 
-      { "match" => { render_field(_options) => render_boost(hash) } }
+      match_mode = @mode.nil? || @mode == :boolean ? 'match' : "match_#{@mode}"
+
+      { match_mode => { render_field(_options) => render_boost(hash) } }
     end
 
     private

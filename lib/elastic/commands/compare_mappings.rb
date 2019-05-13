@@ -1,8 +1,8 @@
 module Elastic::Commands
   class CompareMappings < Elastic::Support::Command.new(:current, :user)
     def perform
-      user_properties.select do |field, property|
-        !compare_field_properties(current_properties[field], property)
+      user_properties.reject do |field, property|
+        compare_field_properties(current_properties[field], property)
       end.map { |f| f[0] }
     end
 

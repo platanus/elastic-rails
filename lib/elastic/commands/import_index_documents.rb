@@ -4,22 +4,14 @@ module Elastic::Commands
   )
     def perform
       if collection.present?
-        import_collection
+        target.collect_from(collection, middleware_options) { |obj| queue obj }
       else
-        targets.each { |target| import_target(target) }
+        target.collect_all(middleware_options) { |obj| queue obj }
       end
       flush
     end
 
     private
-
-    def import_collection
-      main_target.collect_from(collection, middleware_options) { |obj| queue obj }
-    end
-
-    def import_target(_target)
-      _target.collect_all(middleware_options) { |obj| queue obj }
-    end
 
     def cache
       @cache ||= []
@@ -48,12 +40,8 @@ module Elastic::Commands
       index.new(_object).as_elastic_document
     end
 
-    def main_target
-      index.definition.main_target
-    end
-
-    def targets
-      index.definition.targets
+    def target
+      index.definition.target
     end
 
     def middleware_options

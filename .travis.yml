@@ -1,8 +1,22 @@
 language: ruby
 rvm:
-  - 2.4.0
-  - 2.3.3
-  - 2.2.6
+  - 2.6.2
+  - 2.5.3
+  - 2.4.1
+  - 2.3.7
 services:
-  - elasticsearch
-before_install: gem install bundler -v 1.12.5
+  - docker
+before_install:
+  - gem update bundler
+  - docker -v
+  - make services-up
+  - sleep 10
+deploy:
+  provider: rubygems
+  api_key:
+    secure: Ucdb3YW5+gBFBxhZylqacER9xdu/oP4lmu6JqiWIL95IdNwQEyh45llBmRxYnsyb1WdaFlu35EbkgFZyerfWBtSKl5xjxkEJH7xRjfA/Ait19YGd9jdrVGSPXMZodf8+Q4GQe47Q934AsR/YLZ/g6cDUsEwhsYVoCmVWR5SICCdaTI98K2Pt4/W2CEcucSNzb4tWptj7noreCTQL4iLodTC7x4MMk2wscNFCKZUW5J2HCB8eds6pK7hYTt5wjo+ARJdkFvYlanJ7bOBFGLGps3UP4Rj5K3h2hM+7nGwt4yddDLYMaBwfwjpfo4f4ayX7pnMvwfn3WCfD9f4ps430WbSqPOvuHLAxcO7th6EOoLmS0/5RDFL+Gk96WHgr51A5RdPUoN3O1Qa4sl6nsPCJmC64mR7Mm62ZYeYCvUXgf7cZYzX7/dLIK2u0pkRQa3axkZgR+COcmAImZL8ffSNxOFRpQPPBNWoEZhlOTXwKmkSJjfiWYvCUGRmx3DFM1Tra88ctWkLh3B77wcDFBtUZEmA8KYS+ies8ctQyndHtzU1oJ2gxOD3Ye64fWRprZl+ApeFNTgBlu+kMe/vs8i504ERBur421iOqbnfP3IDqIuizC5zkSXG2JEAT1rvLtuf2tBuTbB6h/jYZtFssboXENlw++ZopIO5ZAbFaXMxBPPc=
+  gem: elastic-rails
+  on:
+    tags: true
+    repo: platanus/elastic-rails
+    branch: master

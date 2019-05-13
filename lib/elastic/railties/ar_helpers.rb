@@ -38,8 +38,8 @@ module Elastic::Railties
     # rubocop:disable Metrics/CyclomaticComplexity
     def ar_type_to_options(_type)
       case _type.try(:to_sym)
-      when :text              then { type: :string }
-      when :string            then { type: :string, index: 'not_analyzed' }
+      when :text              then { type: :text }
+      when :string            then { type: :keyword }
       when :integer           then { type: :long } # not sure..
       when :float, :decimal   then { type: :double } # not sure..
       when :date              then { type: :date }

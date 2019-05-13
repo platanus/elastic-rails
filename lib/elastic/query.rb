@@ -35,7 +35,7 @@ module Elastic
       end
     end
 
-    def ids(_type = nil)
+    def ids
       execute assembler.assemble_ids
     end
 
@@ -87,11 +87,7 @@ module Elastic
     end
 
     def execute(_query)
-      raw = @index.connector.query(
-        type: @index.definition.types,
-        query: _query.render
-      )
-
+      raw = @index.connector.query(query: _query.render)
       _query.handle_result(raw, formatter)
     end
 
