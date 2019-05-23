@@ -17,7 +17,7 @@ describe Elastic::Nodes::Agg::Top do
   describe "render" do
     it "renders correctly" do
       expect(node.render)
-        .to eq('top_hits' => { "_source" => { "include" => [field_name] }, "size" => 1 })
+        .to eq('top_hits' => { "_source" => { "includes" => [field_name] }, "size" => 1 })
     end
 
     it "renders sort option correctly" do
@@ -26,7 +26,7 @@ describe Elastic::Nodes::Agg::Top do
       expect(node.render)
         .to eq(
           'top_hits' => {
-            "_source" => { "include" => ["bar"] },
+            "_source" => { "includes" => ["bar"] },
             "size" => 1,
             "sort" => [{ 'qux' => { "order" => "desc" } }]
           }

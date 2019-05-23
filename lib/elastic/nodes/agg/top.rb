@@ -19,7 +19,7 @@ module Elastic::Nodes::Agg
     end
 
     def render(_options = {})
-      top_hit_config = { '_source' => { 'include' => [@field.to_s] }, 'size' => 1 }
+      top_hit_config = { '_source' => { 'includes' => [@field.to_s] }, 'size' => 1 }
       top_hit_config['sort'] = render_sorts if registered_sorts.count > 0
 
       { 'top_hits' => top_hit_config }
