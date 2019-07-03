@@ -34,7 +34,8 @@ module Elastic::Nodes
       Elastic::Results::Root.new(
         _raw['hits'] ? prepare_hits(_raw['hits']['hits'], _formatter) : [],
         _raw['hits'] ? _raw['hits']['total'] : 0,
-        _raw['aggregations'] ? load_aggs_results(_raw['aggregations'], _formatter) : {}
+        _raw['aggregations'] ? load_aggs_results(_raw['aggregations'], _formatter) : {},
+        _raw['_scroll_id']
       )
     end
 

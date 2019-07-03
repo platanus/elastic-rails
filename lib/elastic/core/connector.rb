@@ -107,8 +107,14 @@ module Elastic::Core
       api.count(index: index_name, body: query)['count']
     end
 
-    def query(query: nil)
-      api.search(index: index_name, body: query)
+    def query(query: nil, scroll: nil)
+      query_params = { index: index_name, body: query }
+      query_params[:scroll] = scroll unless scroll.nil?
+      api.search(query_params)
+    end
+
+    def scroll_query(scroll_id: nil, scroll: nil)
+      api.scroll(body: { scroll_id: scroll_id, scroll: scroll })
     end
 
     def rollover(&_block) # rubocop:disable Metrics/MethodLength

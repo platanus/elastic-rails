@@ -70,6 +70,16 @@ module Elastic
       execute assembler.assemble_metric _node
     end
 
+    def initial_scroll(_scroll = "1m")
+      execute(assembler.assemble, _scroll)
+    end
+
+    def scroll_after(_scroll_id, _scroll = "1m")
+      query = assembler.assemble
+      raw = @index.connector.scroll_query(scroll_id: _scroll_id, scroll: _scroll)
+      query.handle_result(raw, formatter)
+    end
+
     private
 
     def with_clone(&_block)
@@ -86,8 +96,8 @@ module Elastic
       Core::QueryConfig.initial_config
     end
 
-    def execute(_query)
-      raw = @index.connector.query(query: _query.render)
+    def execute(_query, _scroll = nil)
+      raw = @index.connector.query(query: _query.render, scroll: _scroll)
       _query.handle_result(raw, formatter)
     end
 
