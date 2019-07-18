@@ -47,7 +47,8 @@ describe Elastic::Commands::BuildQueryFromParams do
 
   it "builds the correct match node depending on field type and value" do
     expect(perform(string: 'phrase')).to be_a Elastic::Nodes::Match
-    expect(perform(string: 'phrase').query).to eq 'phrase'
+    expect(perform(string: { matches: 'phrase', mode: :phrase_prefix }).query).to eq 'phrase'
+    expect(perform(string: { matches: 'phrase', mode: :phrase_prefix }).mode).to eq :phrase_prefix
   end
 
   it "builds the correct range node depending on field type and value" do
