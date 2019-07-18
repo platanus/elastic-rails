@@ -162,6 +162,7 @@ module Elastic::Commands
       Elastic::Nodes::Match.new.tap do |node|
         node.field = _field.name
         node.query = _field.prepare_value_for_query(_options[:matches])
+        node.mode = _options[:mode]
       end
     end
   end
