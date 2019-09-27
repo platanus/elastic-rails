@@ -14,8 +14,19 @@ module Elastic
       disable_index_name_caching: false
     }
 
-    attr_accessor :host, :port, :api_client, :index, :page_size, :coord_similarity, :logger,
-      :import_batch_size, :whiny_indices, :time_zone, :disable_indexing, :disable_index_name_caching
+    attr_accessor :host,
+                  :port,
+                  :adapter,
+                  :api_client,
+                  :index,
+                  :page_size,
+                  :coord_similarity,
+                  :logger,
+                  :import_batch_size,
+                  :whiny_indices,
+                  :time_zone,
+                  :disable_indexing,
+                  :disable_index_name_caching
 
     def initialize
       assign_attributes DEFAULTS
@@ -50,7 +61,11 @@ module Elastic
     private
 
     def default_api_client
-      @default_api_client ||= Elasticsearch::Client.new host: @host, port: @port
+      @default_api_client ||= Elasticsearch::Client.new(
+        host: @host,
+        port: @port,
+        adapter: @adapter
+      )
     end
 
     def default_logger
