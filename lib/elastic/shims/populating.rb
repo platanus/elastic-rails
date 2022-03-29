@@ -20,13 +20,13 @@ module Elastic::Shims
     private
 
     def disable_hits_source
-      child.pick(Elastic::Nodes::Concerns::HitProvider) do |node|
+      child.pick_nodes(Elastic::Nodes::Concerns::HitProvider) do |node|
         node.source = false
       end
     end
 
     def populate(_result)
-      hits = _result.pick(Elastic::Results::Hit).to_a
+      hits = _result.pick_nodes(Elastic::Results::Hit).to_a
 
       if populate_by_id?
         ids = hits.map(&:id)

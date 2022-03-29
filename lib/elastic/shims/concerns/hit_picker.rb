@@ -21,7 +21,7 @@ module Elastic::Shims::Concerns
     private
 
     def set_hits_source
-      child.pick(Elastic::Nodes::Concerns::HitProvider) do |node|
+      child.pick_nodes(Elastic::Nodes::Concerns::HitProvider) do |node|
         node.source = required_source_fields
       end
     end

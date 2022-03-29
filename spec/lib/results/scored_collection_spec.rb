@@ -36,8 +36,8 @@ describe Elastic::Results::ScoredCollection do
 
   describe "traversable" do
     it "goes through every item" do
-      expect(collection.pick.to_a).to include(collection, item_1, item_2)
-      expect(collection.pick(Elastic::Results::ScoredItem).to_a).to eq [item_1, item_2]
+      expect(collection.pick_nodes.to_a).to include(collection, item_1, item_2)
+      expect(collection.pick_nodes(Elastic::Results::ScoredItem).to_a).to eq [item_1, item_2]
     end
   end
 end

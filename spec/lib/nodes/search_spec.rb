@@ -31,8 +31,8 @@ describe Elastic::Nodes::Search do
 
   describe "traversable" do
     it "traverses through query and aggregation nodes" do
-      expect(node.pick.to_a.size).to eq(3)
-      expect(node.pick(Elastic::Nodes::Search).to_a.size).to eq(1)
+      expect(node.pick_nodes.to_a.size).to eq(3)
+      expect(node.pick_nodes(Elastic::Nodes::Search).to_a.size).to eq(1)
     end
   end
 
