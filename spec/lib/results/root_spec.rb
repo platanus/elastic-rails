@@ -19,8 +19,8 @@ describe Elastic::Results::Root do
 
   describe "traversable" do
     it "goes through every hit and aggregation" do
-      expect(result.pick.to_a).to include(result, hit_1, hit_2, agg_1, agg_2, agg_3)
-      expect(result.pick(Elastic::Results::Hit).to_a).to eq [hit_1, hit_2]
+      expect(result.pick_nodes.to_a).to include(result, hit_1, hit_2, agg_1, agg_2, agg_3)
+      expect(result.pick_nodes(Elastic::Results::Hit).to_a).to eq [hit_1, hit_2]
     end
   end
 end

@@ -25,8 +25,8 @@ describe Elastic::Nodes::And do
 
   describe "traversable" do
     it "traverses through query and aggregation nodes" do
-      expect(node.pick.to_a.size).to eq(3)
-      expect(node_single.pick.to_a.size).to eq(2)
+      expect(node.pick_nodes.to_a.size).to eq(3)
+      expect(node_single.pick_nodes.to_a.size).to eq(2)
     end
   end
 end

@@ -9,7 +9,7 @@ module Elastic::Shims
     private
 
     def extract_aggregation_chain
-      child.pick(Elastic::Nodes::Concerns::Aggregable).map do |node|
+      child.pick_nodes(Elastic::Nodes::Concerns::Aggregable).map do |node|
         bucketed = node.aggregations.find { |n| n.is_a? Elastic::Nodes::Concerns::Bucketed }
         bucketed.try(:name)
       end.reject(&:nil?)

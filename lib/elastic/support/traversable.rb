@@ -4,7 +4,7 @@ module Elastic::Support
       raise NotImplementedError, "every traversable tree must implement 'traverse'"
     end
 
-    def pick(*_types, &_block)
+    def pick_nodes(*_types, &_block)
       if _types.empty?
         enum = Enumerator.new do |y|
           traverse { |h| y << h }
