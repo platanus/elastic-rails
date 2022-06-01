@@ -82,7 +82,7 @@ describe Elastic::Core::Connector do
     describe "drop" do
       it "removes index" do
         expect { connector.drop }
-          .to change { api.indices.exists? index: "#{index_name}:12345" }.to false
+          .to change { api.indices.exists? index: "#{index_name}_12345" }.to false
       end
     end
 
@@ -248,7 +248,7 @@ describe Elastic::Core::Connector do
   # Some helpers
 
   def prepare_index(mapping: nil, records: nil)
-    actual_index = "#{index_name}:12345"
+    actual_index = "#{index_name}_12345"
 
     api.indices.create index: actual_index
     api.cluster.health wait_for_status: 'yellow'

@@ -21,7 +21,7 @@ module Elastic::Core
     end
 
     def drop
-      api.indices.delete index: "#{index_name}:*"
+      api.indices.delete index: "#{index_name}_*"
       nil
     end
 
@@ -221,7 +221,7 @@ module Elastic::Core
     end
 
     def create_index_w_mapping
-      new_name = "#{index_name}:#{Time.now.to_i}"
+      new_name = "#{index_name}_#{Time.now.to_i}"
       api.indices.create index: new_name
       api.cluster.health wait_for_status: 'yellow'
       setup_index_mapping new_name
