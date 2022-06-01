@@ -255,9 +255,7 @@ describe Elastic::Core::Connector do
     api.indices.put_alias index: actual_index, name: index_name
     api.indices.put_alias index: actual_index, name: "#{index_name}.w"
 
-    if mapping
-      api.indices.put_mapping index: actual_index, type: '_doc', body: mapping
-    end
+    api.indices.put_mapping index: actual_index, body: mapping if mapping
 
     if records
       records.each do |r|
