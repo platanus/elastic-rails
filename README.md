@@ -107,7 +107,6 @@ BikeIndex
 
 # More score manipulation:
 BikeIndex
-  .coord_similarity(false) # disable coord similarity (no score normalization)
   .boost(0.0) { must(brand: ['Trek', 'Cannondale']) } # no score
   .boost(fixed: 1.0) { should(year: 2015) } # fixed score
   .boost(fixed: 2.0) { should(year: 2016) }
@@ -150,4 +149,3 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/platan
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
