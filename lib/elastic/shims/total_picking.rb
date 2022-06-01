@@ -5,7 +5,7 @@ module Elastic::Shims
 
       case result
       when Elastic::Results::Root
-        result.total
+        result.total['value']
       when Elastic::Results::GroupedResult
         result.map_to_group { |bucket| Elastic::Results::Metric.new(bucket.total) }
       else
