@@ -1,7 +1,7 @@
 module Elastic::Dsl
   module BoolQueryBuilder
     def coord_similarity(_enable)
-      with_bool_query { |query| query.disable_coord = !_enable }
+      with_bool_query { |query| query }
     end
 
     def must(*_queries)
