@@ -43,7 +43,7 @@ module Elastic::Dsl
     def aggregate_metric(_klass, _field, _options, _default_name, &_block)
       # TODO: detect nested name and wrap node
       name = _options.delete(:as) || sprintf(_default_name, _field)
-      node = _klass.build(name, _field, _options)
+      node = _klass.build(name, _field, **_options)
       _block.call node unless _block.nil?
       aggregate node
     end

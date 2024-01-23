@@ -29,7 +29,7 @@ module Elastic::Commands
       path = parse_nesting_path(_field)
       raise NotImplementedError, "nested fields not yet supported in sorting" if path
 
-      node.add_sort(_field, _options)
+      node.add_sort(_field, **_options)
     end
 
     def parse_nesting_path(_field)
