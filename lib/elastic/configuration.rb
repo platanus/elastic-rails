@@ -4,7 +4,6 @@ module Elastic
       host: '127.0.0.1',
       port: 9200,
       page_size: 20,
-      coord_similarity: true,
       import_batch_size: 10_000,
       whiny_indices: false,
       api_client: nil, # set by method
@@ -14,7 +13,7 @@ module Elastic
       disable_index_name_caching: false
     }
 
-    attr_accessor :host, :port, :api_client, :index, :page_size, :coord_similarity, :logger,
+    attr_accessor :host, :port, :api_client, :index, :page_size, :logger,
       :import_batch_size, :whiny_indices, :time_zone, :disable_indexing, :disable_index_name_caching
 
     def initialize

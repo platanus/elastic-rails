@@ -1,7 +1,5 @@
 module Elastic::Core
   class Connector
-    DEFAULT_TYPE = '_doc'
-
     def initialize(_name, _mapping, settling_time: 10.seconds)
       @name = _name
       @mapping = _mapping
@@ -23,7 +21,7 @@ module Elastic::Core
     end
 
     def drop
-      api.indices.delete index: "#{index_name}:*"
+      api.indices.delete index: "#{index_name}_*"
       nil
     end
 
@@ -56,7 +54,7 @@ module Elastic::Core
 
       # TODO: validate document type
       operations = write_indices.map do |write_index|
-        { 'index' => _document.merge('_index' => write_index, '_type' => DEFAULT_TYPE) }
+        { 'index' => _document.merge('_index' => write_index) }
       end
 
       api.bulk(body: operations)
@@ -66,7 +64,7 @@ module Elastic::Core
       return if Elastic.config.disable_indexing
 
       # TODO: validate documents type
-      body = _documents.map { |doc| { 'index' => doc.merge('_type' => DEFAULT_TYPE) } }
+      body = _documents.map { |doc| { 'index' => doc } }
 
       write_indices.each do |write_index|
         retry_on_temporary_error('bulk indexing') do
@@ -83,12 +81,12 @@ module Elastic::Core
       write_index, rolling_index = write_indices
 
       operations = [{
-        'delete' => _document.merge('_index' => write_index, '_type' => DEFAULT_TYPE)
+        'delete' => _document.merge('_index' => write_index)
       }]
 
       if rolling_index
         operations << {
-          'delete' => _document.merge('_index' => rolling_index, '_type' => DEFAULT_TYPE)
+          'delete' => _document.merge('_index' => rolling_index)
         }
       end
 
@@ -223,7 +221,7 @@ module Elastic::Core
     end
 
     def create_index_w_mapping
-      new_name = "#{index_name}:#{Time.now.to_i}"
+      new_name = "#{index_name}_#{Time.now.to_i}"
       api.indices.create index: new_name
       api.cluster.health wait_for_status: 'yellow'
       setup_index_mapping new_name
@@ -243,7 +241,7 @@ module Elastic::Core
     end
 
     def mapping_synchronized?(_index)
-      type_mappings = api.indices.get_mapping(index: _index, include_type_name: false)
+      type_mappings = api.indices.get_mapping(index: _index)
       return false if type_mappings[_index].nil?
       return false if type_mappings[_index]['mappings'].empty?
 
@@ -256,7 +254,7 @@ module Elastic::Core
     end
 
     def setup_index_mapping(_index)
-      api.indices.put_mapping(index: _index, type: DEFAULT_TYPE, body: @mapping)
+      api.indices.put_mapping(index: _index, body: @mapping)
     end
 
     def transfer_alias(_alias, from: nil, to: nil)
@@ -274,7 +272,6 @@ module Elastic::Core
       {
         'create' => {
           '_id' => _hit['_id'],
-          '_type' => DEFAULT_TYPE,
           'data' => _hit['_source']
         }
       }

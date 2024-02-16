@@ -6,8 +6,8 @@ module Elastic
     class << self
       extend Forwardable
 
-      def_delegators :query, :must, :should, :segment, :stats, :maximum, :minimum, :sum, :average,
-        :coord_similarity, :limit, :offset, :pluck, :ids, :total
+      def_delegators :query, :must, :should, :segment, :stats, :maximum, :minimum, :sum,
+                     :average, :limit, :offset, :pluck, :ids, :total
     end
 
     def self.default_suffix

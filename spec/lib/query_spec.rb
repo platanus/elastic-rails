@@ -140,7 +140,6 @@ describe Elastic::Query do
     describe "each_with_score" do
       it "iterates over matching documents and its scores" do
         results = query
-                  .coord_similarity(false)
                   .boost(2.0, fixed: true) { should('tags.name' => 'baz_tag') }
                   .boost(3.0, fixed: true) { should('tags.name' => 'qux_tag') }
 

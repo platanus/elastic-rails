@@ -5,7 +5,7 @@ module Elastic
     class << self
       extend Forwardable
 
-      def_delegators :query, :must, :should, :segment, :coord_similarity
+      def_delegators :query, :must, :should, :segment
     end
 
     def self.query

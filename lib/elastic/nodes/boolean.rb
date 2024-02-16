@@ -10,7 +10,7 @@ module Elastic::Nodes
       new.tap { |n| n.shoulds = _nodes }
     end
 
-    attr_accessor :minimum_should_match, :disable_coord
+    attr_accessor :minimum_should_match
 
     def initialize
       super
@@ -18,7 +18,6 @@ module Elastic::Nodes
       @must_nots = []
       @shoulds = []
       @filters = []
-      @disable_coord = !Elastic.config.coord_similarity
     end
 
     def must(_node)
@@ -82,7 +81,6 @@ module Elastic::Nodes
       hash['should'] = @shoulds.map { |n| n.render(_options) } if !@shoulds.empty?
       hash['filters'] = @filters.map { |n| n.render(_options) } if !@filters.empty?
       hash['minimum_should_match'] = minimum_should_match unless minimum_should_match.nil?
-      hash['disable_coord'] = true if disable_coord
       render_boost(hash)
 
       { "bool" => hash }
@@ -123,7 +121,6 @@ module Elastic::Nodes
       _clone.shoulds = _shoulds
       _clone.filters = _filters
       _clone.minimum_should_match = @minimum_should_match
-      _clone.disable_coord = @disable_coord
       _clone
     end
   end
